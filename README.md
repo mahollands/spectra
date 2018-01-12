@@ -3,7 +3,7 @@
 This is a python module for working with astronomical spectra.
 It includes a handy spectral class that includes wavlengths, fluxes and errors.
 
-# Feautres:
+# Features:
 * Spectra arithmetic
 * Synthetic magnitudes (filter curves included)
 * Apply redshifts, and conversion between air/vac wavelengths
