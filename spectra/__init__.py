@@ -4,7 +4,7 @@ __author__ = "Mark Hollands"
 
 import numpy as np
 from sys import exit
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d, Akima1DInterpolator as Ak_i
 from scipy.optimize import leastsq
 from scipy.special import wofz
 from astropy.io import fits
@@ -267,11 +267,19 @@ class Spectrum(object):
       x2 = 1*X.x
     else:
       raise TypeError
-    extrap_y, extrap_e = (self.y[0],self.y[-1]), (self.e[0],self.e[-1])
-    y2 = interp1d(self.x, self.y, kind=kind, \
-      bounds_error=False, fill_value=0., **kwargs)(x2)
-    e2 = interp1d(self.x, self.e, kind=kind, \
-      bounds_error=False, fill_value=0., **kwargs)(x2)
+    if kind == "Akima":
+      pass
+      y2 = Aki(self.x, self.y)(x2)
+      e2 = Aki(self.x, self.y)(x2)
+      nan = np.isnan(y2) | np.isnan(e2)
+      y2[nan] = 0.
+      e2[nan] = 0.
+    else:
+      extrap_y, extrap_e = (self.y[0],self.y[-1]), (self.e[0],self.e[-1])
+      y2 = interp1d(self.x, self.y, kind=kind, \
+        bounds_error=False, fill_value=0., **kwargs)(x2)
+      e2 = interp1d(self.x, self.e, kind=kind, \
+        bounds_error=False, fill_value=0., **kwargs)(x2)
     return Spectrum(x2,y2,e2)
 
   def copy(self):
