@@ -714,34 +714,29 @@ def sdss_mag2fl( w, ugriz, ugrizErr=None ):
     return F_lambda, F_err
 #
 
-def convolve_gaussian( x, y, FWHM ):
+def convolve_gaussian(x, y, FWHM):
+  """
+  Convolve spectrum with a Gaussian with FWHM by oversampling and
+  using an FFT approach. Wavelengths are assumed to be sorted,
+  but uniform spacing is not required. Will cause wrap-around at
+  the end of the spectrum.
+  """
   sigma = FWHM/2.355
 
-  x0 = np.min(x)
-  xN = np.max(x)
-  N = len(x)
-
-  #oversample x-axis by at least factor 10 (up to 20).
-  xi = np.linspace( x0, xN, next_pow_2(10*N) )
-
+  #oversample data by at least factor 10 (up to 20).
+  xi = np.linspace(x[0], x[-1], next_pow_2(10*len(x)))
+  yi = interp1d(x, y)(xi)
   Ni = len(xi)
 
-  interp_func = interp1d( x, y )
-  yi = interp_func( xi )
+  yg = np.exp(-0.5*((xi-x[0])/sigma)**2) #half gaussian
+  yg += yg[::-1]
+  yg /= np.sum(yg) #Norm kernel
 
-  yg = np.zeros_like( xi )
-  yg = np.exp( -0.5*((xi-x0)/sigma)**2 ) #half gaussian
-  yg[Ni//2:] = yg[Ni//2:0:-1]
+  yiF = np.fft.fft(yi)
+  ygF = np.fft.fft(yg)
+  yic = np.fft.ifft(yiF * ygF).real
 
-  yg /= np.sum(yg)
-
-  yiF = np.fft.fft( yi )
-  ygF = np.fft.fft( yg )
-  yic = np.real( np.fft.ifft( yiF * ygF ) )
-
-  interp_func2 = interp1d( xi, yic )
-
-  return interp_func2( x )
+  return interp1d(xi, yic)(x)
 #
 
 def convolve_gaussian_R( x, y, R ):
