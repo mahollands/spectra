@@ -714,6 +714,12 @@ def sdss_mag2fl( w, ugriz, ugrizErr=None ):
     return F_lambda, F_err
 #
 
+def next_pow_2(N_in):
+  N_out = 1
+  while N_out < N_in:
+    N_out *= 2
+  return N_out
+
 def convolve_gaussian(x, y, FWHM):
   """
   Convolve spectrum with a Gaussian with FWHM by oversampling and
@@ -739,43 +745,14 @@ def convolve_gaussian(x, y, FWHM):
   return interp1d(xi, yic)(x)
 #
 
-def convolve_gaussian_R( x, y, R ):
-  sigma = 1./(2.355*R)
-
-  xL = np.log( x )
-
-  xL0 = np.min(xL)
-  xLN = np.max(xL)
-  N = len(x)
-
-  #oversample x-axis by at least factor 10 (up to 20).
-  xLi = np.linspace( xL0, xLN, next_pow_2(10*N) )
-
-  Ni = len(xLi)
-
-  interp_func = interp1d( xL, y )
-  yi = interp_func( xLi )
-
-  yg = np.zeros_like( xLi )
-  yg = np.exp( -0.5*((xLi-xL0)/sigma)**2 ) #half gaussian
-  yg[Ni//2:] = yg[Ni//2:0:-1]
-
-  yg /= np.sum(yg)
-
-  yiF = np.fft.fft( yi )
-  ygF = np.fft.fft( yg )
-  yic = np.real( np.fft.ifft( yiF * ygF ) )
-
-  interp_func2 = interp1d( xLi, yic )
-
-  return interp_func2( xL )
+def convolve_gaussian_R(x, y, R):
+  """
+  Similar to convolve_gaussian, but convolves to a specified resolution
+  rather than a specfied FWHM. Essentially this amounts to convolving
+  along a log-uniform x-axis instead.
+  """
+  return convolve_gaussian(np.log(x), y, 1./R)
 #
-
-def next_pow_2( N_in ):
-  N_out = 1
-  while N_out < N_in:
-    N_out *= 2
-  return N_out
 
 def black_body( x, T, norm=True ):
   """
