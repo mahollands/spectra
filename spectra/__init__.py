@@ -83,7 +83,7 @@ class Spectrum(object):
         if isinstance(key, np.ndarray):
           assert len(key) == len(self)
           assert key.dtype == bool
-        return Spectrum(*indexed_data)
+        return Spectrum(*indexed_data, self.name)
     else:
       raise TypeError
 
@@ -283,7 +283,7 @@ class Spectrum(object):
         bounds_error=False, fill_value=0., **kwargs)(x2)
       e2 = interp1d(self.x, self.e, kind=kind, \
         bounds_error=False, fill_value=0., **kwargs)(x2)
-    return Spectrum(x2,y2,e2)
+    return Spectrum(x2,y2,e2, self.name)
 
   def copy(self):
     """
@@ -427,7 +427,8 @@ def spec_from_sdss_fits(fname, **kwargs):
   lam = 10**loglam
   ivar[ivar==0.] = 0.001
   err = 1/np.sqrt(ivar)
-  return Spectrum(lam,flux,err)*1e-17
+  name = os.path.splitext(os.path.basename(fname))[0]
+  return Spectrum(lam, flux, err, name=name)*1e-17
 
 def spectra_mean(spectra):
   """
