@@ -8,6 +8,7 @@ from scipy.interpolate import interp1d, Akima1DInterpolator as Ak_i
 from scipy.optimize import leastsq
 from scipy.special import wofz
 from astropy.io import fits
+import os
 import math
 
 jangstrom = \
@@ -42,15 +43,17 @@ class Spectrum(object):
   .............................................................................
   """
 
-  def __init__(self, x, y, e):
+  def __init__(self, x, y, e, name=""):
     """
     Initialise spectrum
     """
     assert isinstance(x, np.ndarray)
     assert isinstance(y, np.ndarray)
     assert isinstance(e, np.ndarray)
+    assert isinstance(name, str)
     assert x.ndim == y.ndim == e.ndim == 1
     assert len(x) == len(y) == len(e)
+    self.name = name
     self.x = x
     self.y = y
     self.e = e
@@ -66,7 +69,7 @@ class Spectrum(object):
     """
     Return spectrum representation
     """
-    return "Spectrum class with {} pixels".format(len(self))
+    return "Spectrum class with {} pixels\nName: {}".format(len(self), self.name)
 
   def __getitem__(self, key):
     """
@@ -401,8 +404,9 @@ def spec_from_txt(fname, **kwargs):
   """
   Loads a text file with the first 3 columns as wavelengths, fluxes, errors.
   """
-  x, y, e = np.loadtxt( fname, unpack=True, usecols=(0,1,2), **kwargs )
-  return Spectrum(x,y,e)
+  x, y, e = np.loadtxt(fname, unpack=True, usecols=(0,1,2), **kwargs)
+  name = os.path.splitext(os.path.basename(fname))[0]
+  return Spectrum(x, y, e, name=name)
     
 def model_from_txt(fname, **kwargs):
   """
@@ -410,8 +414,9 @@ def model_from_txt(fname, **kwargs):
   This produces a spectrum object where the errors are just set to zero.
   This is therefore good to use for models.
   """
-  x, y = np.loadtxt( fname, unpack=True, usecols=(0,1), **kwargs )
-  return Spectrum(x,y,np.zeros_like(x))
+  x, y = np.loadtxt(fname, unpack=True, usecols=(0,1), **kwargs)
+  name = os.path.splitext(os.path.basename(fname))[0]
+  return Spectrum(x, y, np.zeros_like(x), name=name)
 
 def spec_from_sdss_fits(fname, **kwargs):
   """
