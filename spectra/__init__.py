@@ -272,8 +272,8 @@ class Spectrum(object):
       raise TypeError
     if kind == "Akima":
       pass
-      y2 = Aki(self.x, self.y)(x2)
-      e2 = Aki(self.x, self.y)(x2)
+      y2 = Ak_i(self.x, self.y)(x2)
+      e2 = Ak_i(self.x, self.y)(x2)
       nan = np.isnan(y2) | np.isnan(e2)
       y2[nan] = 0.
       e2[nan] = 0.
