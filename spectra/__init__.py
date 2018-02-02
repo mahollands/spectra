@@ -399,21 +399,18 @@ class Spectrum(object):
     self.y = convolve_gaussian_R(self.x, self.y, res)
 
   def split(self, W):
+    """
+    If W is an int/float, splits spectrum in two around W. If W is an
+    interable of ints/floats, this will split into mutliple chunks instead.
+    """
     if isinstance(W, (int, float)):
-      before = self.x<W
-      return self[before], self[~before]
+      W = -np.inf, W, np.inf
     elif isinstance(W, (list, tuple, np.ndarray)):
-      #TODO Make this more efficient
-      S_list = []
-      S_prev = self
-      for w in W:
-        S1, S2 = S_prev.split(w)
-        S_list.append(S1)
-        S_prev = S2
-      S_list.append(S2)
-      return S_list
+      if not all([isinstance(w, (int, float)) for w in W]): raise TypeError
+      W = -np.inf, *sorted(W), np.inf
     else:
       raise TypeError
+    return tuple(self.clip(*pair) for pair in zip(W[:-1], W[1:]))
 
 #..............................................................................
 
