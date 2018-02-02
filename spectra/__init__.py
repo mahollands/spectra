@@ -398,6 +398,23 @@ class Spectrum(object):
   def convolve_gaussian_R(self, res):
     self.y = convolve_gaussian_R(self.x, self.y, res)
 
+  def split(self, W):
+    if isinstance(W, (int, float)):
+      before = self.x<W
+      return self[before], self[~before]
+    elif isinstance(W, (list, tuple, np.ndarray)):
+      #TODO Make this more efficient
+      S_list = []
+      S_prev = self
+      for w in W:
+        S1, S2 = S_prev.split(w)
+        S_list.append(S1)
+        S_prev = S2
+      S_list.append(S2)
+      return S_list
+    else:
+      raise TypeError
+
 #..............................................................................
 
 def spec_from_txt(fname, **kwargs):
