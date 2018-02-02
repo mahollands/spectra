@@ -752,7 +752,6 @@ def convolve_gaussian(x, y, FWHM):
   #oversample data by at least factor 10 (up to 20).
   xi = np.linspace(x[0], x[-1], next_pow_2(10*len(x)))
   yi = interp1d(x, y)(xi)
-  Ni = len(xi)
 
   yg = np.exp(-0.5*((xi-x[0])/sigma)**2) #half gaussian
   yg += yg[::-1]
