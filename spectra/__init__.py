@@ -25,11 +25,10 @@ class Spectrum(object):
   slicing
 
   Example:
-  .............................................................................
-  S1 = Spectrum(x1, y1, e1)
-  S2 = Spectrum(x1, y1, e1)
-  
-  S3 = S1 - S2
+  >>> S1 = Spectrum(x1, y1, e1)
+  >>> S2 = Spectrum(x1, y1, e1)
+  >>> S3 = S1 - S2
+
   .............................................................................
   In this case S1, S2, and S3 are all 'Spectrum' objects but the errors on S3
   are calculated as S3.e = sqrt(S1.e**2 + S2.e**2)
@@ -38,8 +37,9 @@ class Spectrum(object):
 
   Example:
   .............................................................................
-  plt.plot(S.x, S.y) #plots the spectrum with matplotlib
-  plt.show()
+  >>> plt.plot(S.x, S.y) #plots the spectrum with matplotlib
+  >>> plt.show()
+
   .............................................................................
   """
 
@@ -259,7 +259,7 @@ class Spectrum(object):
     or X.x if X is Spectrum type. This returns a new spectrum rather than
     updating a spectrum in place, however this can be acheived by
 
-    S1 = S1.interp_wave(X)
+    >>> S1 = S1.interp_wave(X)
 
     Wavelengths outside the range of the original spectrum are filled with
     zeroes. By default the interpolation is nearest neighbour.
@@ -299,7 +299,7 @@ class Spectrum(object):
 
   def clip(self, x0, x1): 
     """
-    Returns Spectrum clipped between x0 and x1
+    Returns Spectrum clipped between x0 and x1.
     """
     return self[self.sect(x0, x1)]
 
@@ -417,7 +417,35 @@ class Spectrum(object):
       raise TypeError
     return tuple(self.clip(*pair) for pair in zip(W[:-1], W[1:]))
 
+  def join(self, other, sort=False):
+    """
+    Joins a second spectrum to the current spectrum. Can potentially be used
+    rescursively, i.e.
+    >>> S = S1.join(S2).join(S3)
+
+    But  will not be as fast as 
+    """
+    assert isinstance(other, Spectrum)
+    return join_spectra((self, other), sort=sort)
+
 #..............................................................................
+
+def join_spectra(SS, sort=False):
+  """
+  Joins a collection of spectra into a single spectrum. The name of the first
+  spectrum is used as the new name. Can optionally sort the new spectrum by
+  wavelengths.
+  """
+  for S in SS:
+    assert isinstance(S, Spectrum), 'item is not Spectrum'
+  x = np.hstack(S.x for S in SS)
+  y = np.hstack(S.y for S in SS)
+  e = np.hstack(S.e for S in SS)
+  if sort:
+    idx = np.argsort(x)
+    return Spectrum(x[idx], y[idx], e[idx], name=SS[0].name)
+  else:
+    return Spectrum(x, y, e, name=SS[0].name)
 
 def spec_from_txt(fname, **kwargs):
   """
