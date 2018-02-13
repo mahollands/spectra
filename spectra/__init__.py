@@ -352,12 +352,17 @@ class Spectrum(object):
     self.y *= arr
     self.e *= arr
 
-  def apply_redshift(self, v, wavelengths):
+  def apply_redshift(self, v, wavelengths, unit='km/s'):
     """
     Applies redshift of v km/s to spectrum for "air" or "vac" wavelengths
     """
     c0 = 2.99792458e5
-    beta = v/c0
+    if unit == 'km/s':
+      beta = v/c0
+    elif unit == 'c':
+      beta = v
+    else:
+      raise ValueError("'unit' should be in ['km/s', 'c']")
     factor = math.sqrt((1+beta)/(1-beta))
     if wavelengths == "air":
       self.x = air_to_vac(self.x) 
