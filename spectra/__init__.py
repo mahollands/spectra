@@ -873,18 +873,3 @@ def keep_points( x, fname ):
     x1,x2 = float(s1),float(s2)
     C |= (x>x1)&(x<x2)
   return C
-
-if __name__ == "__main__":
-  folder = "/home/astro/phujdu/spectra/"
-  fname = "SDSSJ153505.75+124744.2_54240-2754-0570.dat" 
-  S = spec_from_txt(folder+fname)
-
-  print("for s in S")
-  for i in range(1000):
-    for s in S:
-      pass
-
-  print("for s in S")
-  for i in range(1000):
-    for s in zip(S.x, S.y, S.e):
-      pass
