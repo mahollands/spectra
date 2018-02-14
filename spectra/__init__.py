@@ -208,7 +208,7 @@ class Spectrum(object):
     """
     Return other - self (with standard error propagation)
     """
-    return -(self - other)
+    return -1*(self - other)
 
   def __rmul__(self, other):
     """
