@@ -428,6 +428,12 @@ class Spectrum(object):
     assert isinstance(other, Spectrum)
     return join_spectra((self, other), sort=sort)
 
+  def closest_wave(self, x0):
+    """
+    Returns the pixel index closest in wavelength to x0
+    """
+    return np.argmin(np.abs(self.x-x0))
+
 #..............................................................................
 
 def join_spectra(SS, sort=False):
