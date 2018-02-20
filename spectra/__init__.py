@@ -208,7 +208,7 @@ class Spectrum(object):
     """
     Return other - self (with standard error propagation)
     """
-    return -1*(self - other)
+    return -(self - other)
 
   def __rmul__(self, other):
     """
@@ -232,6 +232,25 @@ class Spectrum(object):
     else:
       raise TypeError
     return Spectrum(*new_data)
+
+  def __neg__(self):
+    """
+    Implements -self
+    """
+    return Spectrum(self.x, -self.y, self.e, name=self.name)
+
+  def __pos__(self):
+    """
+    Implements +self
+    """
+    return self
+
+  def __abs__(self):
+    """
+    Implements abs(self)
+    """
+    return Spectrum(self.x, abs(self.y), self.e, name=self.name)
+
 
   def apply_mask(self, mask):
     """
