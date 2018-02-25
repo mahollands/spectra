@@ -42,7 +42,7 @@ class Spectrum(object):
 
   .............................................................................
   """
-
+  __slots__ = ['name', 'x', 'y', 'e']
   def __init__(self, x, y, e, name=""):
     """
     Initialise spectrum
