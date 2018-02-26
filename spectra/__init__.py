@@ -270,7 +270,7 @@ class Spectrum(object):
     if np.all(self.e == 0):
       return mag_calc_AB(self.x, self.y, self.y*1e-9, filt, NMONTE=0)
     else:
-      return mag_calc_AB(self.x, self.y, self.e, filt, NMONTE=1000)
+      return mag_calc_AB(self.x, self.y, self.e, filt, NMONTE=NMONTE)
 
   def interp_wave(self, X, kind='linear', **kwargs):
     """
@@ -561,7 +561,7 @@ def mag_calc_AB( w, f, e, filt, NMONTE=1000 ):
 
   Johnson: ['U','B','V','R','I']
 
-  Galex:   'GalexNUV'
+  Galex:   'GalexFUV' 'GalexNUV'
 
   Denis:   'DenisI'
 
@@ -578,6 +578,8 @@ def mag_calc_AB( w, f, e, filt, NMONTE=1000 ):
     full_path = long_path+"SLOAN_SDSS."+filt+".dat"
   elif filt in 'UBVRI':
     full_path = long_path+"Generic_Johnson."+filt+".dat"
+  elif filt == 'GalexFUV':
+    full_path = long_path+"GALEX_GALEX.NUV.dat"
   elif filt == 'GalexNUV':
     full_path = long_path+"GALEX_GALEX.NUV.dat"
   elif filt == 'DenisI':
