@@ -7,6 +7,7 @@ from sys import exit
 from scipy.interpolate import interp1d, Akima1DInterpolator as Ak_i
 from scipy.optimize import leastsq
 from scipy.special import wofz
+from scipy.integrate import trapz as Itrapz, simps as Isimps
 from astropy.io import fits
 import os
 import math
@@ -53,6 +54,7 @@ class Spectrum(object):
     assert isinstance(name, str)
     assert x.ndim == y.ndim == e.ndim == 1
     assert len(x) == len(y) == len(e)
+    assert np.all(e >= 0.)
     self.name = name
     self.x = x
     self.y = y
@@ -97,106 +99,90 @@ class Spectrum(object):
     """
     Return self + other (with standard error propagation)
     """
-    if isinstance(other, (int, float)):
-      new_data = self.x * 1., \
-                 self.y + other, \
-                 self.e * 1.
-    elif isinstance(other, np.ndarray):
-      assert len(self) == len(other)
-      new_data = self.x * 1., \
-                 self.y + other, \
-                 self.e * 1.
+    if isinstance(other, (int, float, np.ndarray)):
+      if isinstance(other, np.ndarray):
+        assert len(self) == len(other)
+      x2 = self.x * 1.
+      y2 = self.y + other
+      e2 = self.e * 1.
     elif isinstance(other, Spectrum):
       assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
-      new_data = 0.5*(self.x+other.x), \
-                 self.y+other.y, \
-                 np.hypot(self.e, other.e)
+      x2 = 0.5*(self.x+other.x)
+      y2 = self.y+other.y
+      e2 = np.hypot(self.e, other.e)
     else:
       raise TypeError
-    return Spectrum(*new_data)
+    return Spectrum(x2, y2, e2, self.name)
 
   def __sub__(self, other):
     """
     Return self - other (with standard error propagation)
     """
-    if isinstance(other, (int, float)):
-      new_data = self.x * 1., \
-                 self.y - other, \
-                 self.e * 1.
-    elif isinstance(other, np.ndarray):
-      assert len(self) == len(other)
-      new_data = self.x * 1., \
-                 self.y - other, \
-                 self.e * 1.
+    if isinstance(other, (int, float, np.ndarray)):
+      if isinstance(other, np.ndarray): assert len(self) == len(other)
+      x2 = self.x * 1.
+      y2 = self.y - other
+      e2 = self.e * 1.
     elif isinstance(other, Spectrum):
       assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
-      new_data = 0.5*(self.x+other.x), \
-                 self.y - other.y, \
-                 np.hypot(self.e, other.e)
+      x2 = 0.5*(self.x+other.x)
+      y2 = self.y - other.y
+      e2 = np.hypot(self.e, other.e)
     else:
       raise TypeError
-    return Spectrum(*new_data)
+    return Spectrum(x2, y2, e2, self.name)
       
   def __mul__(self, other):
     """
     Return self * other (with standard error propagation)
     """
-    if isinstance(other, (int, float)):
-      new_data = self.x * 1., \
-                 self.y * other, \
-                 self.e * other
-    elif isinstance(other, np.ndarray):
-      assert len(self) == len(other)
-      new_data = self.x * 1., \
-                 self.y * other, \
-                 self.e * other
+    if isinstance(other, (int, float, np.ndarray)):
+      if isinstance(other, np.ndarray): assert len(self) == len(other)
+      x2 = self.x * 1.
+      y2 = self.y * other
+      e2 = self.e * other
     elif isinstance(other, Spectrum):
       assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
-      new_data = 0.5*(self.x+other.x), \
-                 self.y*other.y, \
-                 y2*np.hypot(self.e/self.y, other.e/other.y)
+      x2 = 0.5*(self.x+other.x)
+      y2 = self.y*other.y
+      e2 = y2*np.hypot(self.e/self.y, other.e/other.y)
     else:
       raise TypeError
-    return Spectrum(*new_data)
+    return Spectrum(x2, y2, e2, self.name)
 
   def __truediv__(self, other):
     """
     Return self / other (with standard error propagation)
     """
-    if isinstance(other, (int, float)):
-      new_data = self.x * 1., \
-                 self.y / other, \
-                 self.e / other
-    elif isinstance(other, np.ndarray):
-      assert len(self) == len(other)
-      new_data = self.x * 1., \
-                 self.y / other, \
-                 self.e / other
+    if isinstance(other, (int, float, np.ndarray)):
+      if isinstance(other, np.ndarray): assert len(self) == len(other)
+      x2 = self.x * 1.
+      y2 = self.y / other
+      e2 = self.e / other
     elif isinstance(other, Spectrum):
       assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
+      x2 = 0.5*(self.x+other.x)
       y2 = self.y/other.y
-      new_data = 0.5*(self.x+other.x), \
-                 y2, \
-                 y2*np.hypot(self.e/self.y, other.e/other.y)
+      e2 = y2*np.hypot(self.e/self.y, other.e/other.y)
     else:
       raise TypeError
-    return Spectrum(*new_data)
+    return Spectrum(x2, y2, e2, self.name)
 
   def __pow__(self,other):
     """
     Return S**other (with standard error propagation)
     """
     if isinstance(other, (int, float)):
-      new_data = self.x * 1., \
-                 self.y**other, \
-                 other * y2 * self.e/self.y
+      x2 = self.x * 1.
+      y2 = self.y**other
+      e2 = other * y2 * self.e/self.y
     else:
       raise TypeError
-    return Spectrum(*new_data)
+    return Spectrum(x2, y2, e2, self.name)
 
   def __radd__(self, other):
     """
@@ -220,18 +206,14 @@ class Spectrum(object):
     """
     Return other / self (with standard error propagation)
     """
-    if isinstance(other, (int, float)):
-      new_data = self.x * 1., \
-                 other / self.y, \
-                 other * self.e /(self.y*self.y)
-    elif isinstance(other,np.ndarray):
-      assert len(self) == len(other)
-      new_data = self.x * 1., \
-                 other / self.y, \
-                 other * self.e /(self.y*self.y)
+    if isinstance(other, (int, float, np.ndarray)):
+      if isinstance(other, np.ndarray): assert len(self) == len(other)
+      x2 = self.x * 1.
+      y2 = other / self.y
+      e2 = other * self.e /(self.y*self.y)
     else:
       raise TypeError
-    return Spectrum(*new_data)
+    return Spectrum(x2, y2, e2, self.name)
 
   def __neg__(self):
     """
@@ -256,6 +238,7 @@ class Spectrum(object):
     """
     Apply a mask to the spectral fluxes
     """
+    self.x = np.ma.masked_array(self.x, mask)
     self.y = np.ma.masked_array(self.y, mask)
     self.e = np.ma.masked_array(self.e, mask)
 
@@ -533,7 +516,7 @@ def voigt( x, x0, fwhm_g, fwhm_l ):
   z = ((x-x0) + 0.5j*fwhm_l)/(sigma*Vb)
   return wofz(z).real/(sigma*Vc)
 
-def sdss_mag_to_flux( ew, mag, mag_err, offset ):
+def sdss_mag_to_flux(ew, mag, mag_err, offset):
   """
   Converts an SDSS filter to a flux in Janskys/c. Offset is required to go
   from SDSS mags to AB mags. This should be 0.04 for u, else 0.
@@ -550,7 +533,7 @@ def sdss_mag_to_flux( ew, mag, mag_err, offset ):
     
 #
 
-def mag_calc_AB( w, f, e, filt, NMONTE=1000 ):
+def mag_calc_AB(x, y, e, filt, NMONTE=1000, Ifun=Itrapz):
   """
   Calculates the synthetic AB magnitude of a spectrum for a given filter.
   If NMONTE is > 0, monte-carlo error propagation is performed outputting
@@ -593,169 +576,34 @@ def mag_calc_AB( w, f, e, filt, NMONTE=1000 ):
   elif filt in ['S'+b for b in '12']:
     full_path = long_path+"Spitzer_IRAC.I"+filt[1]+".dat"
   else:
-    raise ValueError( 'Invalid filter name: %s'%filt )
+    raise ValueError('Invalid filter name: {}'.format(filt))
 
-  w_filt, R_filt = np.loadtxt( full_path, unpack=True )
+  x_filt, R_filt = np.loadtxt(full_path, unpack=True)
 
   #clip original data to filter range and remove bad flux
-  w_slice = ( w > w_filt[0] ) & ( w < w_filt[-1] )
-  e_good =  e/np.median(e) < 5.
-  w, f, e = [arr[w_slice&e_good] for arr in (w, f, e)]
+  x_slice = (x > x_filt[0]) & (x < x_filt[-1])
+  e_good =  True #e/np.median(e) < 5.
+  x, y, e = tuple(arr[x_slice&e_good] for arr in (x, y, e))
 
   #calculate the pivot wavelength
-  dw = differentiate_axis( w_filt )
-  w_piv = np.sqrt(np.sum(R_filt * w_filt * dw)/np.sum(R_filt / w_filt * dw))
+  x_piv = np.sqrt(Ifun(R_filt * x_filt, x_filt)/Ifun(R_filt/x_filt, x_filt))
 
   #interpolate filter to new w axis
-  R_func = interp1d(w_filt, R_filt)  
-  R_filt = R_func(w)
+  R_filt = interp1d(x_filt, R_filt)(x)
 
-  #calculate wavelength step. matches original axis length
-  dw = differentiate_axis(w)
+  def m_AB_int(x, y, R_filt, x_piv):
+    y_l = Ifun(x*R_filt*y, x)/Ifun(x*R_filt, x) 
+    y_nu = y_l * x_piv**2 * 3.335640952e4
+    m = -2.5 * np.log10(y_nu) + 8.90
+    return m
 
   #calculate f_nu at w_piv via monte carlo
   if NMONTE == 0:
-      f_l = np.sum(w * R_filt * f * dw)/np.sum(w * R_filt *dw) 
-      f_nu = f_l * w_piv**2 * 3.335640952e4
-      m = -2.5 * np.log10(f_nu) + 8.90
-      return m #no error if NMONTE=0
+    return m_AB_int(x, y, R_filt, x_piv)
   else:
-    m = np.empty( NMONTE, "float64" )
-    for i in range(NMONTE):
-      f_monte = np.random.normal(f, e)
-      f_l = np.sum(w * R_filt * f_monte * dw)/np.sum(w * R_filt *dw) 
-      f_nu = f_l * w_piv**2 * 3.335640952e4
-      m[i] = -2.5 * np.log10(f_nu) + 8.90
-
+    y_mc = lambda y, e: np.random.normal(y, e)
+    m = np.array([m_AB_int(x, y_mc(y, e), R_filt, x_piv) for i in range(NMONTE)])
     return np.mean(m), np.std(m)
-#
-
-def mag_calc_AB2( w, f, e, filter ):
-  """
-  Calculates the synthetic AB magnitude of a spectrum.
-  Uses a monte carlo approach to calculate errors assuming
-  no covariance between adjacent wavelength elements.
-  """
-
-  #load filter
-  long_path = "/home/astro/phujdu/Python/MH/mh/spectra/"
-  if   filter in ['u','g','r','i','z']:
-    full_path = long_path+"SLOAN_SDSS."+filter+".dat"
-  elif filter in ['U','B','V','R','I']:
-    full_path = long_path+"Generic_Johnson."+filter+".dat"
-  else:
-    print("bad filter name")
-    exit()
-  w_filt, R_filt = np.loadtxt( full_path, unpack=True )
-
-  #clip original data to filter range and remove bad flux
-  w_slice = ( w > w_filt[0] ) & ( w < w_filt[-1] )
-  e_good =  e/np.median(e) < 5.
-  w = w[w_slice&e_good]
-  f = f[w_slice&e_good]
-  e = e[w_slice&e_good]
-
-  #interpolate filter to new w axis
-  R_func = interp1d( w_filt, R_filt )  
-  R_filt = R_func( w )
-
-  #calculate wavelength step. matches original axis length
-  dw = differentiate_axis( w )
-
-  #calculate magnitudes in a monte carlo way
-  NMONTE = 1000
-  m = np.empty( NMONTE, "float64" )
-  for i in range(NMONTE):
-    f_monte = np.random.normal( f, e )
-    f_jansk = 3631. * 2.99792458e-5/w**2
-    top_integral = np.sum( f_monte * R_filt * dw )
-    bot_integral = np.sum( f_jansk * R_filt * dw ) 
-    m[i] = -2.5 * np.log10( top_integral/bot_integral )
-
-  return np.mean( m ), np.std( m )
-#
-
-def mag_calc_AB_bootstrap( w, f, e, filter ):
-  """
-  Calculates the synthetic AB magnitude of a spectrum.
-  Uses a bootstrap approach to calculate errors.
-  """
-
-  #load filter
-  long_path = "/home/astro/phujdu/Python/MH/mh/spectra/"
-  if   filter in ['u','g','r','i','z']:
-    full_path = long_path+"SLOAN_SDSS."+filter+".dat"
-  elif filter in ['U','B','V','R','I']:
-    full_path = long_path+"Generic_Johnson."+filter+".dat"
-  elif filter == "GALEX_NUV":
-    full_path = long_path+"GALEX_GALEX.NUV.dat"
-  else:
-    print("bad filter name")
-    exit()
-  w_filt, R_filt = np.loadtxt( full_path, unpack=True )
-
-  #clip original data to filter range and remove bad flux
-  w_slice = ( w > w_filt[0] ) & ( w < w_filt[-1] )
-  e_good =  e/np.median(e) < 5.
-  w = w[w_slice&e_good]
-  f = f[w_slice&e_good]
-  e = e[w_slice&e_good]
-
-  #calculate the pivot wavelength
-  dw = differentiate_axis( w_filt )
-  w_piv = np.sqrt(np.sum(R_filt * w_filt * dw)/np.sum(R_filt / w_filt * dw))
-
-  #interpolate filter to new w axis
-  R_filt = interp1d( w_filt, R_filt )( w )
-
-  #calculate wavelength step. matches original axis length
-  dw = differentiate_axis( w )
-
-  #calculate f_nu at w_piv via bootstrap
-  NBOOT = 5000
-  m = np.empty( NBOOT, "float64" )
-  for i in range(NBOOT):
-    resample = np.random.randint( 0, len(w), len(w) )
-    f_l = np.sum( (w*R_filt*f*dw)[resample] )/np.sum( (w*R_filt*dw)[resample] )
-    f_nu = f_l * w_piv**2 * 3.335640952e4
-    m[i] = -2.5 * np.log10( f_nu ) + 8.90
-
-  return np.mean( m ), np.std( m )
-#
-
-def lambda_piv( filter ):
-  #load filter
-  long_path = "/home/astro/phujdu/Python/MH/mh/spectra/"
-  if   filter in ['u','g','r','i','z']:
-    full_path = long_path+"SLOAN_SDSS."+filter+".dat"
-  elif filter in ['U','B','V','R','I']:
-    full_path = long_path+"Generic_Johnson."+filter+".dat"
-  else:
-    print("bad filter name")
-    exit()
-  w_filt, R_filt = np.loadtxt( full_path, unpack=True )
-
-  #calculate wavelength step. matches original axis length
-  dw = differentiate_axis( w )
-
-  #calculate the pivot wavelength
-  return np.sqrt(np.sum(R_filt* w_filt * dw)/np.sum(R_filt / w_filt * dw))
-#
-
-def differentiate_axis( x ):
-  """
-  for an axis x, this calculates dx from:
-
-  dx_i = 0.5*( x_i+1 - x_i-1 )
-
-  dx_0 and dx_N are copies of dx_1 and dx_N-1 respectively
-  """
-
-  dx = 0.5 * ( x[2:] - x[:-2] )
-  dx0 = np.array( (dx[ 0],) )
-  dxN = np.array( (dx[-1],) )
-  dx = np.hstack( (dx0,dx,dxN) )
-  return dx
 #
 
 def vac_to_air( Wvac ):
