@@ -9,6 +9,7 @@ from scipy.optimize import leastsq
 from scipy.special import wofz
 from scipy.integrate import trapz as Itrapz, simps as Isimps
 from astropy.io import fits
+from functools import reduce
 import os
 import math
 
@@ -606,7 +607,7 @@ def mag_calc_AB(x, y, e, filt, NMONTE=1000, Ifun=Itrapz):
     return np.mean(m), np.std(m)
 #
 
-def vac_to_air( Wvac ):
+def vac_to_air(Wvac):
   """
   converts vacuum wavelengths to air wavelengths,
   as per VALD3 documentation (in Angstroms)
@@ -733,18 +734,16 @@ def sky_line_fwhm( w, sky, w0 ):
   return vec[2] * 2.355
 #
 
-def keep_points( x, fname ):
+def keep_points(x, fname):
   """
   creates a mask for a spectrum that regions between pairs from a file
   """
-  C = np.zeros_like(x,dtype='bool')
   try:
     lines = open(fname,'r').readlines()
   except IOError:
     print("file %s does not exist" %fname)
     exit()
-  for line in lines:
-    s1, s2 = line.split()
-    x1,x2 = float(s1),float(s2)
-    C |= (x>x1)&(x<x2)
-  return C
+  between = lambda x, x1, x2: (x>float(x1))&(x<float(x2))
+  pairs = (line.split() for line in lines)
+  segments = (between(x, *pair) for pair in pairs)
+  return reduce(lambda x, y: x | y, segments)
