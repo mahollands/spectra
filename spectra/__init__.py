@@ -82,9 +82,6 @@ class Spectrum(object):
       if isinstance(key, int):
         return indexed_data
       else:
-        if isinstance(key, np.ndarray):
-          assert len(key) == len(self)
-          assert key.dtype == bool
         return Spectrum(*indexed_data, self.name)
     else:
       raise TypeError
@@ -438,22 +435,25 @@ class Spectrum(object):
 
 #..............................................................................
 
-def join_spectra(SS, sort=False):
+def join_spectra(SS, sort=False, name=None):
   """
   Joins a collection of spectra into a single spectrum. The name of the first
   spectrum is used as the new name. Can optionally sort the new spectrum by
   wavelengths.
   """
+  if name == None: name = SS[0].name
+  
   for S in SS:
     assert isinstance(S, Spectrum), 'item is not Spectrum'
   x = np.hstack(S.x for S in SS)
   y = np.hstack(S.y for S in SS)
   e = np.hstack(S.e for S in SS)
+  S = Spectrum(x, y, e, name)
   if sort:
     idx = np.argsort(x)
-    return Spectrum(x[idx], y[idx], e[idx], name=SS[0].name)
+    return S[idx]
   else:
-    return Spectrum(x, y, e, name=SS[0].name)
+    return S
 
 def spec_from_txt(fname, **kwargs):
   """
