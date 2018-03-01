@@ -10,6 +10,7 @@ from scipy.special import wofz
 from scipy.integrate import trapz as Itrapz, simps as Isimps
 from astropy.io import fits
 from functools import reduce
+import operator
 import os
 import math
 
@@ -744,6 +745,5 @@ def keep_points(x, fname):
     print("file %s does not exist" %fname)
     exit()
   between = lambda x, x1, x2: (x>float(x1))&(x<float(x2))
-  pairs = (line.split() for line in lines)
-  segments = (between(x, *pair) for pair in pairs)
-  return reduce(lambda x, y: x | y, segments)
+  segments = (between(x, *line.split()) for line in lines)
+  return reduce(operator.or_, segments)
