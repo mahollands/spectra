@@ -546,9 +546,11 @@ def mag_calc_AB(x, y, e, filt, NMONTE=1000, Ifun=Itrapz):
 
   Johnson: ['U','B','V','R','I']
 
-  Galex:   'GalexFUV' 'GalexNUV'
+  Gaia:    ['GaiaG', 'GaiaBp', GaiaRp']
 
-  Denis:   'DenisI'
+  Galex:   ['GalexFUV' 'GalexNUV']
+
+  Denis:   ['DenisI']
 
   2Mass:   ['2mJ','2mH','2mK']
 
@@ -560,27 +562,29 @@ def mag_calc_AB(x, y, e, filt, NMONTE=1000, Ifun=Itrapz):
   #load filter
   long_path = "/home/astro/phujdu/Python/MH/mh/spectra/filt_profiles/"
   if   filt in 'ugriz':
-    full_path = long_path+"SLOAN_SDSS."+filt+".dat"
+    end_path = f"SLOAN_SDSS.{filt}.dat"
   elif filt in 'UBVRI':
-    full_path = long_path+"Generic_Johnson."+filt+".dat"
-  elif filt == 'GalexFUV':
-    full_path = long_path+"GALEX_GALEX.NUV.dat"
-  elif filt == 'GalexNUV':
-    full_path = long_path+"GALEX_GALEX.NUV.dat"
+    end_path = f"Generic_Johnson.{filt}.dat"
+  elif filt in ['Gaia'+b for b in 'G,Bp,Rp'.split(',')]:
+    fdict = {"Gaia"+k:v for k,v in zip(("G","Bp","Rp"), ("","bp","rp"))}
+    end_path = f"GAIA_GAIA2r.G{fdict[filt]}.dat"
+  elif filt in ['GalexFUV','GalexNUV']:
+    fdict = {"Galex"+k:k for k in ("NUV","FUV")}
+    end_path = f"GALEX_GALEX.{fdict[filt]}.dat"
   elif filt == 'DenisI':
-    full_path = long_path+"DENIS_DENIS.I.dat"
+    end_path = "DENIS_DENIS.I.dat"
   elif filt in ['2m'+b for b in 'JHK']:
-    full_path = long_path+"2MASS_2MASS."+filt[-1]+".dat"
+    end_path = f"2MASS_2MASS.{filt[-1]}.dat"
   elif filt in ['UK'+b for b in 'YJHK']:
-    full_path = long_path+"UKIRT_UKIDSS."+filt[-1]+".dat"
+    end_path = f"UKIRT_UKIDSS.{filt[-1]}.dat"
   elif filt in ['W'+b for b in '12']:
-    full_path = long_path+"WISE_WISE."+filt+".dat"
+    end_path = f"WISE_WISE.{filt}.dat"
   elif filt in ['S'+b for b in '12']:
-    full_path = long_path+"Spitzer_IRAC.I"+filt[1]+".dat"
+    end_path = f"Spitzer_IRAC.I{filt[1]}.dat"
   else:
     raise ValueError('Invalid filter name: {}'.format(filt))
 
-  x_filt, R_filt = np.loadtxt(full_path, unpack=True)
+  x_filt, R_filt = np.loadtxt(long_path+end_path, unpack=True)
 
   #clip original data to filter range and remove bad flux
   x_slice = (x > x_filt[0]) & (x < x_filt[-1])
