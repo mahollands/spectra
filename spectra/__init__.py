@@ -3,6 +3,7 @@ from __future__ import print_function, division
 __author__ = "Mark Hollands"
 
 import numpy as np
+import matplotlib.pyplot as plt
 from sys import exit
 from scipy.interpolate import interp1d, Akima1DInterpolator as Ak_i
 from scipy.optimize import leastsq
@@ -40,7 +41,7 @@ class Spectrum(object):
 
   Example:
   .............................................................................
-  >>> plt.plot(S.x, S.y) #plots the spectrum with matplotlib
+  >>> S.plot('k-') #plots the spectrum with matplotlib
   >>> plt.show()
 
   .............................................................................
@@ -434,6 +435,9 @@ class Spectrum(object):
     Returns the pixel index closest in wavelength to x0
     """
     return np.argmin(np.abs(self.x-x0))
+
+  def plot(self, *args, errors=False, **kwargs):
+    plt.plot(self.x, self.e if errors else self.y, *args, **kwargs)
 
 #..............................................................................
 
