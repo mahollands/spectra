@@ -14,6 +14,8 @@ from functools import reduce
 import operator
 import os
 import math
+import astropy.units as u
+import astropy.constants as const
 
 jangstrom = \
   "$\mathrm{erg}\;\mathrm{s}^{-1}\,\mathrm{cm}^{-2}\,\mathrm{\AA}^{-1}$"
@@ -46,8 +48,8 @@ class Spectrum(object):
 
   .............................................................................
   """
-  __slots__ = ['name', 'x', 'y', 'e']
-  def __init__(self, x, y, e, name=""):
+  __slots__ = ['name', 'x', 'y', 'e', 'wavelengths']
+  def __init__(self, x, y, e, name="", wavelengths='air'):
     """
     Initialise spectrum
     """
@@ -59,6 +61,7 @@ class Spectrum(object):
     assert len(x) == len(y) == len(e)
     assert np.all(e >= 0.)
     self.name = name
+    self.wavelengths = wavelengths
     self.x = x
     self.y = y
     self.e = e
@@ -85,7 +88,7 @@ class Spectrum(object):
       if isinstance(key, int):
         return indexed_data
       else:
-        return Spectrum(*indexed_data, self.name)
+        return Spectrum(*indexed_data, self.name, self.wavelengths)
     else:
       raise TypeError
 
@@ -113,7 +116,7 @@ class Spectrum(object):
       e2 = np.hypot(self.e, other.e)
     else:
       raise TypeError
-    return Spectrum(x2, y2, e2, self.name)
+    return Spectrum(x2, y2, e2, self.name, self.wavelengths)
 
   def __sub__(self, other):
     """
@@ -132,7 +135,7 @@ class Spectrum(object):
       e2 = np.hypot(self.e, other.e)
     else:
       raise TypeError
-    return Spectrum(x2, y2, e2, self.name)
+    return Spectrum(x2, y2, e2, self.name, self.wavelengths)
       
   def __mul__(self, other):
     """
@@ -151,7 +154,7 @@ class Spectrum(object):
       e2 = y2*np.hypot(self.e/self.y, other.e/other.y)
     else:
       raise TypeError
-    return Spectrum(x2, y2, e2, self.name)
+    return Spectrum(x2, y2, e2, self.name, self.wavelengths)
 
   def __truediv__(self, other):
     """
@@ -170,7 +173,7 @@ class Spectrum(object):
       e2 = y2*np.hypot(self.e/self.y, other.e/other.y)
     else:
       raise TypeError
-    return Spectrum(x2, y2, e2, self.name)
+    return Spectrum(x2, y2, e2, self.name, self.wavelengths)
 
   def __pow__(self,other):
     """
@@ -213,13 +216,13 @@ class Spectrum(object):
       e2 = other * self.e /(self.y*self.y)
     else:
       raise TypeError
-    return Spectrum(x2, y2, e2, self.name)
+    return Spectrum(x2, y2, e2, self.name, self.wavelengths)
 
   def __neg__(self):
     """
     Implements -self
     """
-    return Spectrum(self.x, -self.y, self.e, name=self.name)
+    return Spectrum(self.x, -self.y, self.e, self.name, self.wavelengths)
 
   def __pos__(self):
     """
@@ -231,7 +234,7 @@ class Spectrum(object):
     """
     Implements abs(self)
     """
-    return Spectrum(self.x, abs(self.y), self.e, name=self.name)
+    return Spectrum(self.x, abs(self.y), self.e, self.name, self.wavelengths)
 
 
   def apply_mask(self, mask):
@@ -269,6 +272,7 @@ class Spectrum(object):
     if isinstance(X, np.ndarray):
       x2 = 1*X
     elif isinstance(X, Spectrum):
+      assert self.wavelengths == X.wavelengths
       x2 = 1*X.x
     else:
       raise TypeError
@@ -285,7 +289,7 @@ class Spectrum(object):
         bounds_error=False, fill_value=0., **kwargs)(x2)
       e2 = interp1d(self.x, self.e, kind=kind, \
         bounds_error=False, fill_value=0., **kwargs)(x2)
-    return Spectrum(x2,y2,e2, self.name)
+    return Spectrum(x2,y2,e2, self.name, self.wavelengths)
 
   def copy(self):
     """
@@ -319,24 +323,46 @@ class Spectrum(object):
     """
     Saves Spectrum to a text file.
     """
-    #C style formatting faster here than .format or f-strings
-    with open(fname, 'w') as F:
+    if fname.endswith((".txt", ".dat")):
+      #C style formatting faster here than .format or f-strings
+      with open(fname, 'w') as F:
+        if errors:
+          for px in self: F.write("%9.3f %12.5E %11.5E\n" %px)
+        else:
+          for px in self: F.write("%9.3f %12.5E\n" %px[:2])
+    elif fname.endswith(".npy"):
       if errors:
-        for px in self: F.write("%9.3f %12.5E %11.5E\n" %px)
+        data = np.array([self.x, self.y, self.e])
       else:
-        for px in self: F.write("%9.3f %12.5E\n" %px[:2])
+        data = np.array([self.x, self.y])
+      np.save(fname, data)
+    else:
+      print("Unrecognised File type")
+      print("Save aborted")
 
   def air_to_vac(self):
     """
     Changes air wavelengths to vaccuum wavelengths in place
     """
-    self.x = air_to_vac(self.x) 
+    if self.wavelengths == 'air':
+      self.x = air_to_vac(self.x) 
+      self.wavelengths = 'vac'
+    elif self.wavelengths == 'vac':
+      print("wavelengths already vac")
+    else:
+      raise ValueError
 
   def vac_to_air(self):
     """
     Changes vaccuum wavelengths to air wavelengths in place
     """
-    self.x = vac_to_air(self.x) 
+    if self.wavelengths == 'vac':
+      self.x = vac_to_air(self.x) 
+      self.wavelengths = 'air'
+    elif self.wavelengths == 'air':
+      print("wavelengths already air")
+    else:
+      raise ValueError
 
   def Flambda_to_Fnu(self):
     """
@@ -354,26 +380,24 @@ class Spectrum(object):
     self.y *= arr
     self.e *= arr
 
-  def apply_redshift(self, v, wavelengths, unit='km/s'):
+  def apply_redshift(self, v, unit=u.km/u.s):
     """
     Applies redshift of v km/s to spectrum for "air" or "vac" wavelengths
     """
-    c0 = 2.99792458e5
-    if unit == 'km/s':
-      beta = v/c0
-    elif unit == 'c':
-      beta = v
-    else:
-      raise ValueError("'unit' should be in ['km/s', 'c']")
+    v *= unit
+    assert v.si.unit == const.c.unit
+    assert self.wavelengths in ('vac', 'air')
+    beta = v/const.c
+    beta = beta.decompose().value
     factor = math.sqrt((1+beta)/(1-beta))
-    if wavelengths == "air":
+    if self.wavelengths == "air":
       self.x = air_to_vac(self.x) 
       self.x *= factor
       self.x = vac_to_air(self.x) 
-    elif wavelengths == "vac":
+    elif self.wavelengths == "vac":
       self.x *= factor
     else:
-      pass
+      raise ValueError("self.wavelength should be in ['vac', 'air']")
 
   def scale_model(self, S_in, return_scaling_factor=False):
     """
@@ -451,25 +475,27 @@ def join_spectra(SS, sort=False, name=None):
   
   for S in SS:
     assert isinstance(S, Spectrum), 'item is not Spectrum'
+    assert S.wavelengths == SS[0].wavelengths, 'item is not Spectrum'
+  wave = SS[0].wavelengths
   x = np.hstack(S.x for S in SS)
   y = np.hstack(S.y for S in SS)
   e = np.hstack(S.e for S in SS)
-  S = Spectrum(x, y, e, name)
+  S = Spectrum(x, y, e, name, wave)
   if sort:
     idx = np.argsort(x)
     return S[idx]
   else:
     return S
 
-def spec_from_txt(fname, **kwargs):
+def spec_from_txt(fname, wave='air', **kwargs):
   """
   Loads a text file with the first 3 columns as wavelengths, fluxes, errors.
   """
   x, y, e = np.loadtxt(fname, unpack=True, usecols=(0,1,2), **kwargs)
   name = os.path.splitext(os.path.basename(fname))[0]
-  return Spectrum(x, y, e, name=name)
+  return Spectrum(x, y, e, name=name, wavelengths=wave)
     
-def model_from_txt(fname, **kwargs):
+def model_from_txt(fname, wave='vac', **kwargs):
   """
   Loads a text file with the first 2 columns as wavelengths and fluxes.
   This produces a spectrum object where the errors are just set to zero.
@@ -477,7 +503,25 @@ def model_from_txt(fname, **kwargs):
   """
   x, y = np.loadtxt(fname, unpack=True, usecols=(0,1), **kwargs)
   name = os.path.splitext(os.path.basename(fname))[0]
-  return Spectrum(x, y, np.zeros_like(x), name=name)
+  return Spectrum(x, y, np.zeros_like(x), name=name, wavelengths=wave)
+
+def spec_from_npy(fname, wave='air'):
+  """
+  Loads a text file with the first 3 columns as wavelengths, fluxes, errors.
+  """
+  data = np.load(fname)
+  assert data.ndim == 2, "Data must be 2D"
+
+  if data.shape[0] == 2:
+    x, y = data
+    e = np.zeros_like(x)
+  elif data.shape[0] == 3:
+    x, y, e = data
+  else:
+    print("Data should have 2 or 3 columns")
+    exit()
+  name = os.path.splitext(os.path.basename(fname))[0]
+  return Spectrum(x, y, e, name=name, wavelengths=wave)
 
 def spec_from_sdss_fits(fname, **kwargs):
   """
@@ -489,7 +533,7 @@ def spec_from_sdss_fits(fname, **kwargs):
   ivar[ivar==0.] = 0.001
   err = 1/np.sqrt(ivar)
   name = os.path.splitext(os.path.basename(fname))[0]
-  return Spectrum(lam, flux, err, name=name)*1e-17
+  return Spectrum(lam, flux, err, name=name, wavelenths='vac')*1e-17
 
 def spectra_mean(spectra):
   """
