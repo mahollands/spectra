@@ -97,8 +97,8 @@ class Spectrum(object):
       if isinstance(key, int):
         return indexed_data
       else:
-        xunit, yunit = self.xunit.to_string(), self.yunit.to_string()
-        return Spectrum(*indexed_data, self.name, self.wave, xunit, yunit)
+        x_unit, y_unit = self.x_unit.to_string(), self.y_unit.to_string()
+        return Spectrum(*indexed_data, self.name, self.wave, x_unit, y_unit)
     else:
       raise TypeError
 
@@ -454,7 +454,7 @@ class Spectrum(object):
     """
     assert isinstance(S_in, Spectrum)
     assert self.x_unit == S_in.x_unit
-    assert self.y_unit.is_equivalent(S_in.y_unit)
+    assert self.y_unit == S_in.y_unit
 
     #if M and S already have same x-axis, this won't do much.
     S = S_in[S_in.e>0]
@@ -554,6 +554,23 @@ def model_from_txt(fname, wave='vac', x_unit='AA', y_unit='erg/(s cm2 AA)', **kw
   name = os.path.splitext(os.path.basename(fname))[0]
   return Spectrum(x, y, np.zeros_like(x), name, wave, x_unit, y_unit)
 
+def model_from_dk(fname, x_unit='AA', y_unit='erg/(s cm2 AA)', **kwargs):
+  """
+  Similar to model_from_txt, but will autoskip past the DK header. Units are converted 
+  """
+  with open(fname, 'r') as F:
+    skip = 1
+    while True:
+      line = F.readline()
+      if line.startswith("END"):
+        break
+      else:
+        skip += 1
+  M = model_from_txt(fname, 'vac', 'AA', 'erg/(s cm3)', skiprows=skip)
+  M.x_unit_to(x_unit)
+  M.y_unit_to(y_unit)
+  return M
+
 def spec_from_npy(fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)'):
   """
   Loads a text file with the first 3 columns as wavelengths, fluxes, errors.
@@ -582,7 +599,7 @@ def spec_from_sdss_fits(fname, **kwargs):
   ivar[ivar==0.] = 0.001
   err = 1/np.sqrt(ivar)
   name = os.path.splitext(os.path.basename(fname))[0]
-  return Spectrum(lam, flux, err, name=name, wave='vac')*1e-17
+  return Spectrum(lam, flux, err, name, 'vac')*1e-17
 
 def spectra_mean(SS):
   """
