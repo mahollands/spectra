@@ -61,8 +61,8 @@ class Spectrum(object):
     assert np.all(e >= 0.)
     self.name = name
     self.wave = wave
-    self.x_unit = u.Unit(x_unit)
-    self.y_unit = u.Unit(y_unit)
+    self.x_unit = u.Unit(x_unit).to_string()
+    self.y_unit = u.Unit(y_unit).to_string()
     self.x = x
     self.y = y
     self.e = e
@@ -97,8 +97,7 @@ class Spectrum(object):
       if isinstance(key, int):
         return indexed_data
       else:
-        x_unit, y_unit = self.x_unit.to_string(), self.y_unit.to_string()
-        return Spectrum(*indexed_data, self.name, self.wave, x_unit, y_unit)
+        return Spectrum(*indexed_data, self.name, self.wave, self.x_unit, self.y_unit)
     else:
       raise TypeError
 
@@ -128,8 +127,7 @@ class Spectrum(object):
       e2 = np.hypot(self.e, other.e)
     else:
       raise TypeError
-    x_unit, y_unit = self.x_unit.to_string(), self.y_unit.to_string()
-    return Spectrum(x2, y2, e2, self.name, self.wave, x_unit, y_unit)
+    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, self.y_unit)
 
   def __sub__(self, other):
     """
@@ -150,8 +148,7 @@ class Spectrum(object):
       e2 = np.hypot(self.e, other.e)
     else:
       raise TypeError
-    x_unit, y_unit = self.x_unit.to_string(), self.y_unit.to_string()
-    return Spectrum(x2, y2, e2, self.name, self.wave, x_unit, y_unit)
+    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, self.y_unit)
       
   def __mul__(self, other):
     """
@@ -161,20 +158,20 @@ class Spectrum(object):
       if isinstance(other, np.ndarray): assert len(self) == len(other)
       x2 = self.x * 1.
       y2 = self.y * other
-      e2 = self.e * other
-      y_unit = self.y_unit.to_string()
+      e2 = self.e * np.abs(other)
+      y_unit = self.y_unit
     elif isinstance(other, Spectrum):
       assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
       assert self.x_unit == other.x_unit
       x2 = 0.5*(self.x+other.x)
       y2 = self.y*other.y
-      e2 = y2*np.hypot(self.e/self.y, other.e/other.y)
-      y_unit = (self.y_unit * other.y_unit).to_string()
+      e2 = np.abs(y2)*np.hypot(self.e/self.y, other.e/other.y)
+      u1, u2 = u.Unit(self.y_unit), u.Unit(other.y_unit)
+      y_unit = (u1*u2).to_string()
     else:
       raise TypeError
-    x_unit = self.x_unit.to_string()
-    return Spectrum(x2, y2, e2, self.name, self.wave, x_unit, y_unit)
+    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, y_unit)
 
   def __truediv__(self, other):
     """
@@ -184,20 +181,20 @@ class Spectrum(object):
       if isinstance(other, np.ndarray): assert len(self) == len(other)
       x2 = self.x * 1.
       y2 = self.y / other
-      e2 = self.e / other
-      y_unit = self.y_unit.to_string()
+      e2 = self.e / np.abs(other)
+      y_unit = self.y_unit
     elif isinstance(other, Spectrum):
       assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
       assert self.x_unit == other.x_unit
       x2 = 0.5*(self.x+other.x)
       y2 = self.y/other.y
-      e2 = y2*np.hypot(self.e/self.y, other.e/other.y)
-      y_unit = (self.y_unit / other.y_unit).to_string()
+      e2 = np.abs(y2)*np.hypot(self.e/self.y, other.e/other.y)
+      u1, u2 = u.Unit(self.y_unit), u.Unit(other.y_unit)
+      y_unit = (u1/u2).to_string()
     else:
       raise TypeError
-    x_unit = self.x_unit.to_string()
-    return Spectrum(x2, y2, e2, self.name, self.wave, x_unit, y_unit)
+    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, y_unit)
 
   def __pow__(self,other):
     """
@@ -209,8 +206,7 @@ class Spectrum(object):
       e2 = other * y2 * self.e/self.y
     else:
       raise TypeError
-    x_unit, y_unit = self.x_unit.to_string(), (self.y_unit*self.y_unit).to_string()
-    return Spectrum(x2, y2, e2, self.name, self.wave, x_unit, y_unit)
+    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, self.y_unit)
 
   def __radd__(self, other):
     """
@@ -241,15 +237,14 @@ class Spectrum(object):
       e2 = other * self.e /(self.y*self.y)
     else:
       raise TypeError
-    x_unit = self.x_unit.to_string()
-    y_unit = (1/self.y_unit).to_string()
-    return Spectrum(x2, y2, e2, self.name, self.wave, x_unit, y_unit)
+    y_unit = (1/u.Unit(self.y_unit)).to_string()
+    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, y_unit)
 
   def __neg__(self):
     """
     Implements -self
     """
-    return Spectrum(self.x, -self.y, self.e, self.name, self.wave, self.x_unit, self.y_unit)
+    return -1 * self
 
   def __pos__(self):
     """
@@ -374,7 +369,7 @@ class Spectrum(object):
     """
     Changes air wavelengths to vaccuum wavelengths in place
     """
-    assert self.x_unit == u.Unit("AA")
+    assert u.Unit(self.x_unit) == u.Unit("AA")
     if self.wave == 'air':
       self.x = air_to_vac(self.x) 
       self.wave = 'vac'
@@ -387,7 +382,7 @@ class Spectrum(object):
     """
     Changes vaccuum wavelengths to air wavelengths in place
     """
-    assert self.x_unit == u.Unit("AA")
+    assert u.Unit(self.x_unit) == u.Unit("AA")
     if self.wave == 'vac':
       self.x = vac_to_air(self.x) 
       self.wave = 'air'
@@ -403,10 +398,10 @@ class Spectrum(object):
     """
     assert isinstance(new_unit, str)
 
-    x = self.x * self.x_unit
+    x = self.x * u.Unit(self.x_unit)
     x = x.to(new_unit, u.spectral())
     self.x = x.value
-    self.x_unit = u.Unit(new_unit)
+    self.x_unit = u.Unit(new_unit).to_string()
     
   def y_unit_to(self, new_unit):
     """
@@ -415,19 +410,20 @@ class Spectrum(object):
     """
     assert isinstance(new_unit, str)
 
-    y = self.y * self.y_unit
-    e = self.e * self.y_unit
-    y = y.to(new_unit, u.spectral_density(self.x*self.x_unit))
-    e = e.to(new_unit, u.spectral_density(self.x*self.x_unit))
+    x = self.x * u.Unit(self.x_unit)
+    y = self.y * u.Unit(self.y_unit)
+    e = self.e * u.Unit(self.y_unit)
+    y = y.to(new_unit, u.spectral_density(x))
+    e = e.to(new_unit, u.spectral_density(x))
     self.y = y.value
     self.e = e.value
-    self.y_unit = u.Unit(new_unit)
+    self.y_unit = u.Unit(new_unit).to_string()
     
-  def apply_redshift(self, v, unit="km/s"):
+  def apply_redshift(self, v, v_unit="km/s"):
     """
     Applies redshift of v km/s to spectrum for "air" or "vac" wavelengths
     """
-    v *= u.Unit(unit)
+    v *= u.Unit(v_unit)
     assert v.si.unit == const.c.unit
     assert self.wave in ('vac', 'air')
     beta = v/const.c
