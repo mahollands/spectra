@@ -410,14 +410,18 @@ class Spectrum(object):
     """
     assert isinstance(new_unit, str)
 
-    x = self.x * u.Unit(self.x_unit)
-    y = self.y * u.Unit(self.y_unit)
-    e = self.e * u.Unit(self.y_unit)
-    y = y.to(new_unit, u.spectral_density(x))
-    e = e.to(new_unit, u.spectral_density(x))
-    self.y = y.value
-    self.e = e.value
-    self.y_unit = u.Unit(new_unit).to_string()
+    if new_unit == "mag":
+      self.to_y_unit("Jy")
+      self /= 3631
+    else:
+      x = self.x * u.Unit(self.x_unit)
+      y = self.y * u.Unit(self.y_unit)
+      e = self.e * u.Unit(self.y_unit)
+      y = y.to(new_unit, u.spectral_density(x))
+      e = e.to(new_unit, u.spectral_density(x))
+      self.y = y.value
+      self.e = e.value
+      self.y_unit = u.Unit(new_unit).to_string()
     
   def apply_redshift(self, v, v_unit="km/s"):
     """
@@ -465,10 +469,14 @@ class Spectrum(object):
       return self*A
     
   def convolve_gaussian(self, fwhm):
-    self.y = convolve_gaussian(self.x, self.y, fwhm)
+    S = S.copy()
+    S.y = convolve_gaussian(S.x, S.y, fwhm)
+    return S
 
   def convolve_gaussian_R(self, res):
-    self.y = convolve_gaussian_R(self.x, self.y, res)
+    S = S.copy()
+    S.y = convolve_gaussian_R(S.x, S.y, res)
+    return S
 
   def split(self, W):
     """
