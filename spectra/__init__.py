@@ -469,12 +469,12 @@ class Spectrum(object):
       return self*A
     
   def convolve_gaussian(self, fwhm):
-    S = S.copy()
+    S = self.copy()
     S.y = convolve_gaussian(S.x, S.y, fwhm)
     return S
 
   def convolve_gaussian_R(self, res):
-    S = S.copy()
+    S = self.copy()
     S.y = convolve_gaussian_R(S.x, S.y, res)
     return S
 
