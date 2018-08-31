@@ -823,7 +823,7 @@ def convolve_gaussian_R(x, y, R):
   return convolve_gaussian(np.log(x), y, 1./R)
 #
 
-def black_body( x, T, norm=True ):
+def black_body(x, T, norm=True):
   """
   x in angstroms
   T in Kelvin
@@ -840,6 +840,25 @@ def black_body( x, T, norm=True ):
   if norm:
     logf -= logf.max() #normalise to peak at 1.
   return np.exp( logf )
+#
+
+def Black_body(x, T, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)", norm=True):
+  """
+  Returns a Black body curve like black_body(), but the return value
+  is a Spectrum class.
+  """
+  zero_flux = np.zeros_like(x)
+  M = Spectrum(x, zero_flux, zero_flux, 'BlackBody', 'vac', x_unit, y_unit)
+  M.x_unit_to("AA")
+  M.y_unit_to("erg/(s cm2 AA)")
+  M.y = black_body(M.x, T, norm=False)
+  if wave=='air':
+    M.vac_to_air()
+  M.x_unit_to(x_unit)
+  M.y_unit_to(y_unit)
+  if norm:
+    M /= M.y.max()
+  return M
 #
 
 def sky_residual(params, x, y, e ):
