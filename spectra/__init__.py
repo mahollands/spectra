@@ -848,10 +848,12 @@ def Black_body(x, T, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)", norm=True
   is a Spectrum class.
   """
   zero_flux = np.zeros_like(x)
-  M = Spectrum(x, zero_flux, zero_flux, 'BlackBody', 'vac', x_unit, y_unit)
+  M = Spectrum(x, zero_flux, zero_flux, f'{T}K BlackBody', wave, x_unit, y_unit)
   M.x_unit_to("AA")
   M.y_unit_to("erg/(s cm2 AA)")
-  M.y = black_body(M.x, T, norm=False)
+  if wave=='air':
+    M.air_to_vac()
+  M.y = black_body(M.x, T, False)
   if wave=='air':
     M.vac_to_air()
   M.x_unit_to(x_unit)
