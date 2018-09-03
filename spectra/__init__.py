@@ -653,6 +653,36 @@ voigt.Va = 1/(2*np.sqrt(2*np.log(2)))
 voigt.Vb = np.sqrt(2)
 voigt.Vc = np.sqrt(2*np.pi)
 
+def load_transmission_curve(filt):
+  """
+  Loads the filter curves obtained from VOSA (SVO).
+  """
+  long_path = "/home/astro/phujdu/Python/MH/mh/spectra/filt_profiles/"
+  if   filt in 'ugriz':
+    end_path = f"SLOAN_SDSS.{filt}.dat"
+  elif filt in 'UBVRI':
+    end_path = f"Generic_Johnson.{filt}.dat"
+  elif filt in ['Gaia'+b for b in 'G,Bp,Rp'.split(',')]:
+    fdict = {"Gaia"+k:v for k,v in zip(("G","Bp","Rp"), ("","bp","rp"))}
+    end_path = f"GAIA_GAIA2r.G{fdict[filt]}.dat"
+  elif filt in ['GalexFUV','GalexNUV']:
+    fdict = {"Galex"+k:k for k in ("NUV","FUV")}
+    end_path = f"GALEX_GALEX.{fdict[filt]}.dat"
+  elif filt == 'DenisI':
+    end_path = "DENIS_DENIS.I.dat"
+  elif filt in ['2m'+b for b in 'JHK']:
+    end_path = f"2MASS_2MASS.{filt[-1]}.dat"
+  elif filt in ['UK'+b for b in 'YJHK']:
+    end_path = f"UKIRT_UKIDSS.{filt[-1]}.dat"
+  elif filt in ['W'+b for b in '12']:
+    end_path = f"WISE_WISE.{filt}.dat"
+  elif filt in ['S'+b for b in '12']:
+    end_path = f"Spitzer_IRAC.I{filt[1]}.dat"
+  else:
+    raise ValueError('Invalid filter name: {}'.format(filt))
+  return model_from_txt(long_path+end_path, x_unit="AA", y_unit="")
+#
+
 def mag_calc_AB(S, filt, NMONTE=1000, Ifun=Itrapz):
   """
   Calculates the synthetic AB magnitude of a spectrum for a given filter.
@@ -678,48 +708,24 @@ def mag_calc_AB(S, filt, NMONTE=1000, Ifun=Itrapz):
   """
 
   #load filter
-  long_path = "/home/astro/phujdu/Python/MH/mh/spectra/filt_profiles/"
-  if   filt in 'ugriz':
-    end_path = f"SLOAN_SDSS.{filt}.dat"
-  elif filt in 'UBVRI':
-    end_path = f"Generic_Johnson.{filt}.dat"
-  elif filt in ['Gaia'+b for b in 'G,Bp,Rp'.split(',')]:
-    fdict = {"Gaia"+k:v for k,v in zip(("G","Bp","Rp"), ("","bp","rp"))}
-    end_path = f"GAIA_GAIA2r.G{fdict[filt]}.dat"
-  elif filt in ['GalexFUV','GalexNUV']:
-    fdict = {"Galex"+k:k for k in ("NUV","FUV")}
-    end_path = f"GALEX_GALEX.{fdict[filt]}.dat"
-  elif filt == 'DenisI':
-    end_path = "DENIS_DENIS.I.dat"
-  elif filt in ['2m'+b for b in 'JHK']:
-    end_path = f"2MASS_2MASS.{filt[-1]}.dat"
-  elif filt in ['UK'+b for b in 'YJHK']:
-    end_path = f"UKIRT_UKIDSS.{filt[-1]}.dat"
-  elif filt in ['W'+b for b in '12']:
-    end_path = f"WISE_WISE.{filt}.dat"
-  elif filt in ['S'+b for b in '12']:
-    end_path = f"Spitzer_IRAC.I{filt[1]}.dat"
-  else:
-    raise ValueError('Invalid filter name: {}'.format(filt))
-  R = model_from_txt(long_path+end_path, wave=S.wave, x_unit="AA", y_unit="")
+  R = load_transmission_curve(filt)
+  R.wave = S.wave
 
   #Convert Spectra/filter-curve to Hz/Jy for integrals
   R.x_unit_to("Hz")
   S.x_unit_to("Hz")
   S.y_unit_to("Jy")
 
-  #clip data to filter range
+  #clip data to filter range and interpolate filter to data axis
   S = S.clip(np.min(R.x), np.max(R.x))
-
-  #interpolate filter to data axis
   R = R.interp_wave(S)
 
+  #Calculate AB magnitudes, potentially including flux errors
   def m_AB_int(X, Y, R):
     y_nu = Ifun(Y*R/X, X)/Ifun(R/X, X) 
     m = -2.5 * np.log10(y_nu) + 8.90
     return m
 
-  #Calculate AB magnitudes, potentially including flux errors
   if NMONTE == 0:
     return m_AB_int(S.x, S.y, R.y)
   else:
