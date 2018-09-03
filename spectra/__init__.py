@@ -279,9 +279,9 @@ class Spectrum(object):
     S.y_unit_to("erg/(s cm2 AA)")
 
     if np.all(self.e == 0):
-      return mag_calc_AB(S.x, S.y, S.y*1e-9, filt, NMONTE=0)
+      return mag_calc_AB(S, filt, NMONTE=0)
     else:
-      return mag_calc_AB(S.x, S.y, S.e, filt, NMONTE=NMONTE)
+      return mag_calc_AB(S, filt, NMONTE=NMONTE)
 
   def interp_wave(self, X, kind='linear', **kwargs):
     """
@@ -645,33 +645,15 @@ def spectra_mean(SS):
     
 ###############################################################################
 
-Va = 1/(2*np.sqrt(2*np.log(2)))
-Vb = np.sqrt(2)
-Vc = np.sqrt(2*np.pi)
-
 def voigt( x, x0, fwhm_g, fwhm_l ):
-  sigma = Va*fwhm_g
-  z = ((x-x0) + 0.5j*fwhm_l)/(sigma*Vb)
-  return wofz(z).real/(sigma*Vc)
+  sigma = voigt.Va*fwhm_g
+  z = ((x-x0) + 0.5j*fwhm_l)/(sigma*voigtVb)
+  return wofz(z).real/(sigma*voigt.Vc)
+voigt.Va = 1/(2*np.sqrt(2*np.log(2)))
+voigt.Vb = np.sqrt(2)
+voigt.Vc = np.sqrt(2*np.pi)
 
-def sdss_mag_to_flux(ew, mag, mag_err, offset):
-  """
-  Converts an SDSS filter to a flux in Janskys/c. Offset is required to go
-  from SDSS mags to AB mags. This should be 0.04 for u, else 0.
-  """
-  mag -= offset
-  F_nu = 10**( -0.4*mag -19.44 )
-  conversion_factor = 2.998e18/ew**2 #speed of light over lambda**2
-  F_lambda = conversion_factor*F_nu
-  if mag_err > 0:
-    F_err    = 0.4*F_lambda*mag_err
-    return F_lambda, F_err
-  else:
-    return F_lambda
-    
-#
-
-def mag_calc_AB(x, y, e, filt, NMONTE=1000, Ifun=Itrapz):
+def mag_calc_AB(S, filt, NMONTE=1000, Ifun=Itrapz):
   """
   Calculates the synthetic AB magnitude of a spectrum for a given filter.
   If NMONTE is > 0, monte-carlo error propagation is performed outputting
@@ -719,32 +701,30 @@ def mag_calc_AB(x, y, e, filt, NMONTE=1000, Ifun=Itrapz):
     end_path = f"Spitzer_IRAC.I{filt[1]}.dat"
   else:
     raise ValueError('Invalid filter name: {}'.format(filt))
+  R = model_from_txt(long_path+end_path, wave=S.wave, x_unit="AA", y_unit="")
 
-  x_filt, R_filt = np.loadtxt(long_path+end_path, unpack=True)
+  #Convert Spectra/filter-curve to Hz/Jy for integrals
+  R.x_unit_to("Hz")
+  S.x_unit_to("Hz")
+  S.y_unit_to("Jy")
 
-  #clip original data to filter range and remove bad flux
-  x_slice = (x > x_filt[0]) & (x < x_filt[-1])
-  e_good =  True #e/np.median(e) < 5.
-  x, y, e = tuple(arr[x_slice&e_good] for arr in (x, y, e))
+  #clip data to filter range
+  S = S.clip(np.min(R.x), np.max(R.x))
 
-  #calculate the pivot wavelength
-  x_piv = np.sqrt(Ifun(R_filt * x_filt, x_filt)/Ifun(R_filt/x_filt, x_filt))
+  #interpolate filter to data axis
+  R = R.interp_wave(S)
 
-  #interpolate filter to new w axis
-  R_filt = interp1d(x_filt, R_filt)(x)
-
-  def m_AB_int(x, y, R_filt, x_piv):
-    y_l = Ifun(x*R_filt*y, x)/Ifun(x*R_filt, x) 
-    y_nu = y_l * x_piv**2 * 3.335640952e4
+  def m_AB_int(X, Y, R):
+    y_nu = Ifun(Y*R/X, X)/Ifun(R/X, X) 
     m = -2.5 * np.log10(y_nu) + 8.90
     return m
 
-  #calculate f_nu at w_piv via monte carlo
+  #Calculate AB magnitudes, potentially including flux errors
   if NMONTE == 0:
-    return m_AB_int(x, y, R_filt, x_piv)
+    return m_AB_int(S.x, S.y, R.y)
   else:
-    y_mc = lambda y, e: np.random.normal(y, e)
-    m = np.array([m_AB_int(x, y_mc(y, e), R_filt, x_piv) for i in range(NMONTE)])
+    y_mc = lambda S: np.random.normal(S.y, S.e)
+    m = np.array([m_AB_int(S.x, y_mc(S), R.y) for i in range(NMONTE)])
     return np.mean(m), np.std(m)
 #
 
@@ -772,24 +752,6 @@ def air_to_vac( Wair ):
   return Wair*n
 #
 
-def sdss_mag2fl( w, ugriz, ugrizErr=None ):
-  ugriz[0] -= 0.04
-  F_nu = 10**( -0.4*ugriz -19.44 )
-  conversion_factor = 2.998e18/w**2 #speed of light over lambda**2
-  F_lambda = conversion_factor*F_nu
-  if ugrizErr is None:
-    return F_lambda
-  else:
-    F_err    = 0.9210340372*F_lambda*ugrizErr
-    return F_lambda, F_err
-#
-
-def next_pow_2(N_in):
-  N_out = 1
-  while N_out < N_in:
-    N_out *= 2
-  return N_out
-
 def convolve_gaussian(x, y, FWHM):
   """
   Convolve spectrum with a Gaussian with FWHM by oversampling and
@@ -798,6 +760,12 @@ def convolve_gaussian(x, y, FWHM):
   the end of the spectrum.
   """
   sigma = FWHM/2.355
+
+  def next_pow_2(N_in):
+    N_out = 1
+    while N_out < N_in:
+      N_out *= 2
+    return N_out
 
   #oversample data by at least factor 10 (up to 20).
   xi = np.linspace(x[0], x[-1], next_pow_2(10*len(x)))
