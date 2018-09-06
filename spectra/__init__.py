@@ -18,7 +18,6 @@ import astropy.constants as const
 
 jangstrom = \
   "$\mathrm{erg}\;\mathrm{s}^{-1}\,\mathrm{cm}^{-2}\,\mathrm{\AA}^{-1}$"
-fitskeys = ('loglam', 'flux', 'ivar')
 
 ###############################################################################
 
@@ -458,7 +457,7 @@ class Spectrum(object):
     else:
       raise ValueError("self.wave should be in ['vac', 'air']")
 
-  def scale_model(self, S_in, return_scaling_factor=False):
+  def scale_model(self, other, return_scaling_factor=False):
     """
     If self is model spectrum (errors are presumably zero), and S is a data
     spectrum (has errors) then this reproduces a scaled version of M2.
@@ -468,15 +467,36 @@ class Spectrum(object):
     the model to share the same wavelengths, use model.interp_wave(),
     either before or after calling this function.
     """
-    assert isinstance(S_in, Spectrum)
-    assert self.x_unit == S_in.x_unit
-    assert self.y_unit == S_in.y_unit
+    assert isinstance(other, Spectrum)
+    assert self.x_unit == other.x_unit
+    assert self.y_unit == other.y_unit
 
     #if M and S already have same x-axis, this won't do much.
-    S = S_in[S_in.e>0]
+    S = other[other.e>0]
     M = self.interp_wave(S)
 
     A_sm, A_mm = np.sum(S.y*M.y/S.e**2), np.sum((M.y/S.e)**2)
+    A = A_sm/A_mm
+
+    if return_scaling_factor:
+      return self*A, A
+    else:
+      return self*A
+    
+  def scale_model_to_model(self, other, return_scaling_factor=False):
+    """
+    Similar to scale_model, but for scaling one model to another. Essentially
+    this is for the case when the argument doesn't have errors.
+    """
+    assert isinstance(other, Spectrum)
+    assert self.x_unit == other.x_unit
+    assert self.y_unit == other.y_unit
+
+    #if M and S already have same x-axis, this won't do much.
+    S = other
+    M = self.interp_wave(S)
+
+    A_sm, A_mm = np.sum(S.y*M.y), np.sum(M.y)
     A = A_sm/A_mm
 
     if return_scaling_factor:
@@ -614,7 +634,7 @@ def spec_from_sdss_fits(fname, **kwargs):
   Loads a SDSS fits file as spectrum (result in vac wavelengths)
   """
   hdulist = fits.open(fname)
-  loglam, flux, ivar = [hdulist[1].data[key] for key in fitskeys]
+  loglam, flux, ivar = [hdulist[1].data[key] for key in ('loglam', 'flux', 'ivar')]
   lam = 10**loglam
   ivar[ivar==0.] = 0.001
   err = 1/np.sqrt(ivar)
