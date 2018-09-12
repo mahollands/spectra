@@ -667,7 +667,7 @@ def spectra_mean(SS):
 
 def voigt( x, x0, fwhm_g, fwhm_l ):
   sigma = voigt.Va*fwhm_g
-  z = ((x-x0) + 0.5j*fwhm_l)/(sigma*voigtVb)
+  z = ((x-x0) + 0.5j*fwhm_l)/(sigma*voigt.Vb)
   return wofz(z).real/(sigma*voigt.Vc)
 voigt.Va = 1/(2*np.sqrt(2*np.log(2)))
 voigt.Vb = np.sqrt(2)
