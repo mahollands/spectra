@@ -46,10 +46,10 @@ class Spectrum(object):
 
   .............................................................................
   """
-  __slots__ = ['name', 'x', 'y', 'e', 'wave', 'x_unit', 'y_unit']
+  __slots__ = ['name', 'head', 'x', 'y', 'e', 'wave', 'x_unit', 'y_unit']
   def __init__(self, x, y, e, name="", wave='air', x_unit="AA", y_unit="erg/(s cm^2 AA)"):
     """
-    Initialise spectrum
+    Initialise spectrum. Arbitrary header items can be added to self.head
     """
     assert isinstance(x, np.ndarray)
     assert isinstance(y, np.ndarray)
@@ -65,6 +65,7 @@ class Spectrum(object):
     self.x = x
     self.y = y
     self.e = e
+    self.head = {}
 
   def __len__(self):
     """
