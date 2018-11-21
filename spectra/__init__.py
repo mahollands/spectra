@@ -308,6 +308,12 @@ class Spectrum(object):
       nan = np.isnan(y2) | np.isnan(e2)
       y2[nan] = 0.
       e2[nan] = 0.
+    elif kind == "sinc":
+      y2 = Lanczos(self.x, self.y, X)
+      e2 = Lanczos(self.x, self.e, X)
+      plt.plot(X, y2)
+      plt.plot(X, e2)
+      plt.show()
     else:
       extrap_y, extrap_e = (self.y[0],self.y[-1]), (self.e[0],self.e[-1])
       y2 = interp1d(self.x, self.y, kind=kind, \
@@ -983,3 +989,9 @@ def A_curve(x, R=3.1):
   a[FUV], b[FUV] = Av_UV(8.0)
   A = a + b/R
   return A
+
+def Lanczos(x, y, xnew):
+  i = np.arange(len(x))
+  Ii = interp1d(x, i, kind='linear', fill_value='extrapolate')(xnew)
+  ynew = [np.sum(y*np.sinc(ii-i)) for ii in Ii]
+  return np.array(ynew)
