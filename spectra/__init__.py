@@ -311,9 +311,6 @@ class Spectrum(object):
     elif kind == "sinc":
       y2 = Lanczos(self.x, self.y, X)
       e2 = Lanczos(self.x, self.e, X)
-      plt.plot(X, y2)
-      plt.plot(X, e2)
-      plt.show()
     else:
       extrap_y, extrap_e = (self.y[0],self.y[-1]), (self.e[0],self.e[-1])
       y2 = interp1d(self.x, self.y, kind=kind, \
