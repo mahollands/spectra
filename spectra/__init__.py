@@ -10,6 +10,7 @@ from scipy.special import wofz
 from scipy.integrate import trapz as Itrapz, simps as Isimps
 from astropy.io import fits
 from functools import reduce
+from trm import molly
 import operator
 import os
 import math
@@ -302,9 +303,8 @@ class Spectrum(object):
     else:
       raise TypeError
     if kind == "Akima":
-      pass
       y2 = Ak_i(self.x, self.y)(x2)
-      e2 = Ak_i(self.x, self.y)(x2)
+      e2 = Ak_i(self.x, self.e)(x2)
       nan = np.isnan(y2) | np.isnan(e2)
       y2[nan] = 0.
       e2[nan] = 0.
@@ -642,6 +642,19 @@ def spec_from_sdss_fits(fname, **kwargs):
   name = os.path.splitext(os.path.basename(fname))[0]
   return Spectrum(lam, flux, err, name, 'vac')*1e-17
 
+def spec_list_from_molly(fname):
+  """
+  Returns a list of spectra read in from a TRM molly file.
+  """
+  def convert_mol(molsp):
+    x, y, e = molsp.wave, molsp.f, molsp.fe
+    name = molsp.head['Object']
+    S = Spectrum(x, y, e, name, y_unit="mJy")
+    S.head = molsp.head
+    return S
+  
+  return [convert_mol(molsp) for molsp in molly.gmolly(fname)]
+
 def spectra_mean(SS):
   """
   Calculate the weighted mean spectrum of a list/tuple of spectra.
@@ -699,6 +712,10 @@ def load_transmission_curve(filt):
     end_path = f"WISE_WISE.{filt}.dat"
   elif filt in ['S'+b for b in '12']:
     end_path = f"Spitzer_IRAC.I{filt[1]}.dat"
+  elif filt in ['sm'+b for b in 'uvgriz']:
+    end_path = f"SkyMapper_SkyMapper.{filt[2]}.dat"
+  elif filt in ['ps'+b for b in 'grizy']:
+    end_path = f"PAN-STARRS_PS1.{filt[2]}.dat"
   else:
     raise ValueError('Invalid filter name: {}'.format(filt))
   return model_from_txt(long_path+end_path, x_unit="AA", y_unit="")
@@ -711,21 +728,25 @@ def mag_calc_AB(S, filt, NMONTE=1000, Ifun=Itrapz):
   both a synthetic-mag and error. For model-spectra, i.e. no errors,
   use e=np.ones_like(f) and NMONTE=0. List of currently supported filters:
 
-  SDSS:    ['u','g','r','i','z']
+  2Mass:     ['2mJ','2mH','2mK']
 
-  Johnson: ['U','B','V','R','I']
+  Denis:     ['DenisI']
 
-  Gaia:    ['GaiaG', 'GaiaBp', GaiaRp']
+  Gaia:      ['GaiaG', 'GaiaBp', GaiaRp']
 
-  Galex:   ['GalexFUV' 'GalexNUV']
+  Galex:     ['GalexFUV' 'GalexNUV']
 
-  Denis:   ['DenisI']
+  Johnson:   ['U','B','V','R','I']
 
-  2Mass:   ['2mJ','2mH','2mK']
+  PanSTARRS: ['ps(grizy)']
 
-  WISE:    ['W1','W2']
+  SDSS:      ['u','g','r','i','z']
 
-  Spitzer: ['S1','S2']
+  Spitzer:   ['S1','S2']
+
+  Skymapper: ['sm(uvgriz)']
+
+  WISE:      ['W1','W2']
   """
 
   #load filter
