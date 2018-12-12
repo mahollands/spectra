@@ -80,7 +80,7 @@ class Spectrum(object):
     """
     Inverse variance attribute from flux errors
     """
-    return 1/self.e**2
+    return 1.0/self.e**2
 
   def __len__(self):
     """
@@ -129,9 +129,9 @@ class Spectrum(object):
     if isinstance(other, (int, float, np.ndarray)):
       if isinstance(other, np.ndarray):
         assert len(self) == len(other)
-      x2 = self.x * 1.
+      x2 = self.x.copy()
       y2 = self.y + other
-      e2 = self.e * 1.
+      e2 = self.e.copy()
     elif isinstance(other, Spectrum):
       assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
@@ -150,9 +150,9 @@ class Spectrum(object):
     """
     if isinstance(other, (int, float, np.ndarray)):
       if isinstance(other, np.ndarray): assert len(self) == len(other)
-      x2 = self.x * 1.
+      x2 = self.x.copy()
       y2 = self.y - other
-      e2 = self.e * 1.
+      e2 = self.e.copy()
     elif isinstance(other, Spectrum):
       assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
@@ -171,7 +171,7 @@ class Spectrum(object):
     """
     if isinstance(other, (int, float, np.ndarray)):
       if isinstance(other, np.ndarray): assert len(self) == len(other)
-      x2 = self.x * 1.
+      x2 = self.x.copy()
       y2 = self.y * other
       e2 = self.e * np.abs(other)
       y_unit = self.y_unit
@@ -194,7 +194,7 @@ class Spectrum(object):
     """
     if isinstance(other, (int, float, np.ndarray)):
       if isinstance(other, np.ndarray): assert len(self) == len(other)
-      x2 = self.x * 1.
+      x2 = self.x.copy()
       y2 = self.y / other
       e2 = self.e / np.abs(other)
       y_unit = self.y_unit
@@ -216,7 +216,7 @@ class Spectrum(object):
     Return S**other (with standard error propagation)
     """
     if isinstance(other, (int, float)):
-      x2 = self.x * 1.
+      x2 = self.x.copy()
       y2 = self.y**other
       e2 = other * y2 * self.e/self.y
     else:
@@ -247,7 +247,7 @@ class Spectrum(object):
     """
     if isinstance(other, (int, float, np.ndarray)):
       if isinstance(other, np.ndarray): assert len(self) == len(other)
-      x2 = self.x * 1.
+      x2 = self.x.copy()
       y2 = other / self.y
       e2 = other * self.e /(self.y*self.y)
     else:
@@ -493,7 +493,7 @@ class Spectrum(object):
     S = other[other.e>0]
     M = self.interp_wave(S)
 
-    A_sm, A_mm = np.sum(S.y*M.y/S.e**2), np.sum((M.y/S.e)**2)
+    A_sm, A_mm = np.sum(S.y*M.y*S.ivar), np.sum(M.y**2*S.ivar)
     A = A_sm/A_mm
 
     if return_scaling_factor:
