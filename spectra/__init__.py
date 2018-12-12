@@ -579,17 +579,18 @@ def join_spectra(SS, sort=False, name=None):
   spectrum is used as the new name. Can optionally sort the new spectrum by
   wavelengths.
   """
-  if name == None: name = SS[0].name
+  S0 = SS[0]
+  if name == None: name = S0.name
   
   for S in SS:
     assert isinstance(S, Spectrum), 'item is not Spectrum'
-    assert S.wave == SS[0].wave
-    assert S.x_unit == SS[0].x_unit
-    assert S.y_unit == SS[0].y_unit
+    assert S.wave == S0.wave
+    assert S.x_unit == S0.x_unit
+    assert S.y_unit == S0.y_unit
 
-  wave = SS[0].wave
-  x_unit = SS[0].x_unit
-  y_unit = SS[0].y_unit
+  wave = S0.wave
+  x_unit = S0.x_unit
+  y_unit = S0.y_unit
 
   x = np.hstack(S.x for S in SS)
   y = np.hstack(S.y for S in SS)
@@ -685,7 +686,6 @@ def spectra_mean(SS):
   All spectra should have identical wavelengths.
   """
   S0 = SS[0]
-
   for S in SS:
     assert isinstance(S, Spectrum)
     assert len(S) == len(S0)
@@ -694,16 +694,23 @@ def spectra_mean(SS):
     assert S.x_unit == S0.x_unit
     assert S.y_unit == S0.y_unit
 
-  X, Y, E = np.array([S.x for S in SS]), \
-            np.array([S.y for S in SS]), \
-            np.array([S.e for S in SS])
+  X, Y, IV = np.array([S.x    for S in SS]), \
+             np.array([S.y    for S in SS]), \
+             np.array([S.ivar for S in SS])
 
-  Xbar, Ybar, Ebar = np.mean(X,axis=0), \
-                     np.sum(Y/E**2, axis=0)/np.sum(1/E**2, axis=0), \
-                     1/np.sqrt(np.sum(1/E**2, axis=0))
+  Xbar  = np.mean(X,axis=0)
+  IVbar = np.sum(IV, axis=0)
+  Ybar  = np.sum(Y*IV, axis=0) * IVbar
+  Ebar  = 1.0 / np.sqrt(IVbar)
 
-  return Spectrum(Xbar, Ybar, Ebar, name=S0.name, wave=S0.wave, \
-                  x_unit=S0.x_unit, y_unit=S0.y_unit)
+  kwargs = {
+    'name'   : S0.name,
+    'wave'   : S0.wave,
+    'x_unit' : S0.x_unit,
+    'y_unit' : S0.y_unit,
+  }
+
+  return Spectrum(Xbar, Ybar, Ebar, **kwargs)
     
 ###############################################################################
 
