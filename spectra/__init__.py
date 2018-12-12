@@ -68,6 +68,20 @@ class Spectrum(object):
     self.e = e
     self.head = {}
 
+  @property
+  def var(self)
+    """
+    Variance property attribute from flux errors
+    """
+    return self.e**2
+
+  @property
+  def ivar(self)
+    """
+    Inverse variance attribute from flux errors
+    """
+    return 1/self.e**2
+
   def __len__(self):
     """
     Return number of pixels in spectrum
