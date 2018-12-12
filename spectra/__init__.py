@@ -69,18 +69,25 @@ class Spectrum(object):
     self.head = {}
 
   @property
-  def var(self)
+  def var(self):
     """
     Variance property attribute from flux errors
     """
     return self.e**2
 
   @property
-  def ivar(self)
+  def ivar(self):
     """
     Inverse variance attribute from flux errors
     """
     return 1.0/self.e**2
+
+  @property
+  def SN(self):
+    """
+    Signal to noise ratio
+    """
+    return S.y/S.e
 
   def __len__(self):
     """
@@ -677,12 +684,15 @@ def spectra_mean(SS):
   Calculate the weighted mean spectrum of a list/tuple of spectra.
   All spectra should have identical wavelengths.
   """
+  S0 = SS[0]
+
   for S in SS:
     assert isinstance(S, Spectrum)
-    assert len(S) == len(SS[0])
-    assert np.isclose(S.x, SS[0].x).all()
-    assert S.x_unit == SS[0].x_unit
-    assert S.y_unit == SS[0].y_unit
+    assert len(S) == len(S0)
+    assert S.wave == S0.wave
+    assert np.isclose(S.x, S0.x).all()
+    assert S.x_unit == S0.x_unit
+    assert S.y_unit == S0.y_unit
 
   X, Y, E = np.array([S.x for S in SS]), \
             np.array([S.y for S in SS]), \
@@ -692,7 +702,8 @@ def spectra_mean(SS):
                      np.sum(Y/E**2, axis=0)/np.sum(1/E**2, axis=0), \
                      1/np.sqrt(np.sum(1/E**2, axis=0))
 
-  return Spectrum(Xbar, Ybar, Ebar)
+  return Spectrum(Xbar, Ybar, Ebar, name=S0.name, wave=S0.wave, \
+                  x_unit=S0.x_unit, y_unit=S0.y_unit)
     
 ###############################################################################
 
