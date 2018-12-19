@@ -55,10 +55,11 @@ class Spectrum(object):
     assert isinstance(x, np.ndarray)
     assert isinstance(y, np.ndarray)
     assert isinstance(e, np.ndarray)
-    assert isinstance(name, str)
     assert x.ndim == y.ndim == e.ndim == 1
     assert len(x) == len(y) == len(e)
     assert np.all(e >= 0.)
+    assert isinstance(name, str)
+    assert wave in ("air", "vac")
     self.name = name
     self.wave = wave
     self.x_unit = u.Unit(x_unit).to_string()
