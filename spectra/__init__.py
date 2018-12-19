@@ -48,7 +48,7 @@ class Spectrum(object):
   .............................................................................
   """
   __slots__ = ['name', 'head', 'x', 'y', 'e', 'wave', 'x_unit', 'y_unit']
-  def __init__(self, x, y, e, name="", wave='air', x_unit="AA", y_unit="erg/(s cm^2 AA)"):
+  def __init__(self, x, y, e, name="", wave='air', x_unit="AA", y_unit="erg/(s cm^2 AA)", head=None):
     """
     Initialise spectrum. Arbitrary header items can be added to self.head
     """
@@ -60,14 +60,18 @@ class Spectrum(object):
     assert np.all(e >= 0.)
     assert isinstance(name, str)
     assert wave in ("air", "vac")
+    self.x = x
+    self.y = y
+    self.e = e
     self.name = name
     self.wave = wave
     self.x_unit = u.Unit(x_unit).to_string()
     self.y_unit = u.Unit(y_unit).to_string()
-    self.x = x
-    self.y = y
-    self.e = e
-    self.head = {}
+    if head is None:
+      self.head = {}
+    else:
+      assert isinstance(head, dict)
+      self.head = head
 
   @property
   def var(self):
@@ -120,7 +124,7 @@ class Spectrum(object):
       if isinstance(key, int):
         return indexed_data
       else:
-        return Spectrum(*indexed_data, self.name, self.wave, self.x_unit, self.y_unit)
+        return Spectrum(*indexed_data, self.name, self.wave, self.x_unit, self.y_unit, self.head)
     else:
       raise TypeError
 
@@ -150,7 +154,7 @@ class Spectrum(object):
       e2 = np.hypot(self.e, other.e)
     else:
       raise TypeError
-    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, self.y_unit)
+    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, self.y_unit, self.head)
 
   def __sub__(self, other):
     """
@@ -171,7 +175,7 @@ class Spectrum(object):
       e2 = np.hypot(self.e, other.e)
     else:
       raise TypeError
-    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, self.y_unit)
+    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, self.y_unit, self.head)
       
   def __mul__(self, other):
     """
@@ -194,7 +198,7 @@ class Spectrum(object):
       y_unit = (u1*u2).to_string()
     else:
       raise TypeError
-    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, y_unit)
+    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, y_unit, self.head)
 
   def __truediv__(self, other):
     """
@@ -217,7 +221,7 @@ class Spectrum(object):
       y_unit = (u1/u2).to_string()
     else:
       raise TypeError
-    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, y_unit)
+    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, y_unit, self.head)
 
   def __pow__(self,other):
     """
@@ -229,7 +233,7 @@ class Spectrum(object):
       e2 = other * y2 * self.e/self.y
     else:
       raise TypeError
-    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, self.y_unit)
+    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, self.y_unit, self.head)
 
   def __radd__(self, other):
     """
@@ -261,7 +265,7 @@ class Spectrum(object):
     else:
       raise TypeError
     y_unit = (1/u.Unit(self.y_unit)).to_string()
-    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, y_unit)
+    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, y_unit, self.head)
 
   def __neg__(self):
     """
@@ -279,8 +283,9 @@ class Spectrum(object):
     """
     Implements abs(self)
     """
-    return Spectrum(self.x, abs(self.y), self.e, self.name, self.wave, self.x_unit, self.y_unit)
-
+    S = self.copy()
+    S.y = np.abs(S.y)
+    return S
 
   def apply_mask(self, mask):
     """
@@ -339,7 +344,7 @@ class Spectrum(object):
         bounds_error=False, fill_value=0., **kwargs)(x2)
       e2 = interp1d(self.x, self.e, kind=kind, \
         bounds_error=False, fill_value=0., **kwargs)(x2)
-    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, self.y_unit)
+    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, self.y_unit, self.head)
 
   def copy(self):
     """
