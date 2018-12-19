@@ -318,6 +318,14 @@ class Spectrum(object):
     self.y = np.ma.masked_array(self.y, mask)
     self.e = np.ma.masked_array(self.e, mask)
 
+  def remove_mask(self, mask):
+    """
+    Apply a mask to the spectral fluxes
+    """
+    self.x = np.array(self.x)
+    self.y = np.array(self.y)
+    self.e = np.array(self.e)
+
   def mag_calc_AB(self, filt, NMONTE=1000):
     """
     Calculates the AB magnitude of a filter called 'filt'. Errors
