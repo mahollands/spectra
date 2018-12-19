@@ -48,7 +48,7 @@ class Spectrum(object):
   .............................................................................
   """
   __slots__ = ['name', 'head', 'x', 'y', 'e', 'wave', 'x_unit', 'y_unit']
-  def __init__(self, x, y, e, name="", wave='air', x_unit="AA", y_unit="erg/(s cm^2 AA)", head=None):
+  def __init__(self, x, y, e, name="", wave='air', x_unit="AA", y_unit="erg/(s cm^2 AA)", head={}):
     """
     Initialise spectrum. Arbitrary header items can be added to self.head
     """
@@ -59,6 +59,7 @@ class Spectrum(object):
     assert len(x) == len(y) == len(e)
     assert np.all(e >= 0.)
     assert isinstance(name, str)
+    assert isinstance(head, dict)
     assert wave in ("air", "vac")
     self.x = x
     self.y = y
@@ -67,11 +68,7 @@ class Spectrum(object):
     self.wave = wave
     self.x_unit = u.Unit(x_unit).to_string()
     self.y_unit = u.Unit(y_unit).to_string()
-    if head is None:
-      self.head = {}
-    else:
-      assert isinstance(head, dict)
-      self.head = head
+    self.head = head
 
   @property
   def var(self):
@@ -93,6 +90,23 @@ class Spectrum(object):
     Signal to noise ratio
     """
     return self.y/self.e
+
+  @property
+  def data(self):
+    """
+    Returns all three arrays as a tuple. Useful for creating new spectra, e.g.
+    >>> Spectrum(*S.data)
+    """
+    return self.x, self.y, self.e
+
+  @property
+  def info(self):
+    """
+    Returns non-array attributes (in same order as __init__). This can be passed
+    used to create new spectra with the same information, e.g.
+    >>> Spectrum(x, y, e, *S.info)
+    """
+    return self.name, self.wave, self.x_unit, self.y_unit, self.head
 
   def __len__(self):
     """
@@ -124,7 +138,7 @@ class Spectrum(object):
       if isinstance(key, int):
         return indexed_data
       else:
-        return Spectrum(*indexed_data, self.name, self.wave, self.x_unit, self.y_unit, self.head)
+        return Spectrum(*indexed_data, *self.info)
     else:
       raise TypeError
 
@@ -132,7 +146,7 @@ class Spectrum(object):
     """
     Return iterator of spectrum
     """
-    return zip(self.x, self.y, self.e)
+    return zip(*self.data)
 
   def __add__(self, other):
     """
@@ -154,7 +168,7 @@ class Spectrum(object):
       e2 = np.hypot(self.e, other.e)
     else:
       raise TypeError
-    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, self.y_unit, self.head)
+    return Spectrum(x2, y2, e2, *self.info)
 
   def __sub__(self, other):
     """
@@ -175,7 +189,7 @@ class Spectrum(object):
       e2 = np.hypot(self.e, other.e)
     else:
       raise TypeError
-    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, self.y_unit, self.head)
+    return Spectrum(x2, y2, e2, *self.info)
       
   def __mul__(self, other):
     """
@@ -198,7 +212,9 @@ class Spectrum(object):
       y_unit = (u1*u2).to_string()
     else:
       raise TypeError
-    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, y_unit, self.head)
+    S = Spectrum(x2, y2, e2, *self.info)
+    S.y_unit = y_unit
+    return S
 
   def __truediv__(self, other):
     """
@@ -221,7 +237,9 @@ class Spectrum(object):
       y_unit = (u1/u2).to_string()
     else:
       raise TypeError
-    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, y_unit, self.head)
+    S = Spectrum(x2, y2, e2, *self.info)
+    S.y_unit = y_unit
+    return S
 
   def __pow__(self,other):
     """
@@ -233,7 +251,7 @@ class Spectrum(object):
       e2 = other * y2 * self.e/self.y
     else:
       raise TypeError
-    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, self.y_unit, self.head)
+    return Spectrum(x2, y2, e2, *self.info)
 
   def __radd__(self, other):
     """
@@ -265,7 +283,9 @@ class Spectrum(object):
     else:
       raise TypeError
     y_unit = (1/u.Unit(self.y_unit)).to_string()
-    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, y_unit, self.head)
+    S = Spectrum(x2, y2, e2, *self.info)
+    S.y_unit = y_unit
+    return S
 
   def __neg__(self):
     """
@@ -344,7 +364,7 @@ class Spectrum(object):
         bounds_error=False, fill_value=0., **kwargs)(x2)
       e2 = interp1d(self.x, self.e, kind=kind, \
         bounds_error=False, fill_value=0., **kwargs)(x2)
-    return Spectrum(x2, y2, e2, self.name, self.wave, self.x_unit, self.y_unit, self.head)
+    return Spectrum(x2, y2, e2, *self.info)
 
   def copy(self):
     """
