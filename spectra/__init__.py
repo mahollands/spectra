@@ -80,7 +80,7 @@ class Spectrum(object):
     """
     Inverse variance attribute from flux errors
     """
-    return 1.0/self.e**2
+    return 1.0/self.var
 
   @property
   def SN(self):
