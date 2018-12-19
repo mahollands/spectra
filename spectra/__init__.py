@@ -87,7 +87,7 @@ class Spectrum(object):
     """
     Signal to noise ratio
     """
-    return S.y/S.e
+    return self.y/self.e
 
   def __len__(self):
     """
@@ -580,7 +580,6 @@ def join_spectra(SS, sort=False, name=None):
   wavelengths.
   """
   S0 = SS[0]
-  if name == None: name = S0.name
   
   for S in SS:
     assert isinstance(S, Spectrum), 'item is not Spectrum'
@@ -588,14 +587,18 @@ def join_spectra(SS, sort=False, name=None):
     assert S.x_unit == S0.x_unit
     assert S.y_unit == S0.y_unit
 
-  wave = S0.wave
-  x_unit = S0.x_unit
-  y_unit = S0.y_unit
+  kwargs = {
+    'name'   : S0.name,
+    'wave'   : S0.wave,
+    'x_unit' : S0.x_unit,
+    'y_unit' : S0.y_unit,
+  }
+
 
   x = np.hstack(S.x for S in SS)
   y = np.hstack(S.y for S in SS)
   e = np.hstack(S.e for S in SS)
-  S = Spectrum(x, y, e, name, wave, x_unit, y_unit)
+  S = Spectrum(x, y, e, **kwargs)
   if sort:
     idx = np.argsort(x)
     return S[idx]
