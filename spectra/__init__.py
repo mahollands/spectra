@@ -791,6 +791,8 @@ def load_transmission_curve(filt):
     end_path = f"SkyMapper_SkyMapper.{filt[2]}.dat"
   elif filt in ['ps'+b for b in 'grizy']:
     end_path = f"PAN-STARRS_PS1.{filt[2]}.dat"
+  elif filt in ['sw'+b for b in ('U','UVW1','UVW2','UWM1')]:
+    end_path = f"Swift_UVOT.{filt[UVW1]}.dat"
   else:
     raise ValueError('Invalid filter name: {}'.format(filt))
   return model_from_txt(long_path+end_path, x_unit="AA", y_unit="")
@@ -1060,7 +1062,7 @@ def A_curve(x, R=3.1):
   return A
 
 def Lanczos(x, y, xnew):
-  i = np.arange(len(x))
-  Ii = interp1d(x, i, kind='linear', fill_value='extrapolate')(xnew)
-  ynew = [np.sum(y*np.sinc(ii-i)) for ii in Ii]
+  n = np.arange(len(x))
+  Ni = interp1d(x, n, kind='linear', fill_value='extrapolate')(xnew)
+  ynew = [np.sum(y*np.sinc(ni-n)) for ni in Ni]
   return np.array(ynew)
