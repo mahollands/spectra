@@ -610,6 +610,16 @@ class Spectrum(object):
 
 #..............................................................................
 
+def ZeroSpectrum(x, name="", wave='air', x_unit="AA", y_unit="erg/(s cm^2 AA)", head=None):
+  y = np.zeros_like(x)
+  e = np.zeros_like(x)
+  return Spectrum(x, y, e, name=name, wave=wave, x_unit=x_unit, y_unit=y_unit, head=head)
+
+def UnitSpectrum(x, name="", wave='air', x_unit="AA", head=None):
+  y = np.ones_like(x)
+  e = np.zeros_like(x)
+  return Spectrum(x, y, e, name=name, wave=wave, x_unit=x_unit, y_unit="", head=head)
+
 def join_spectra(SS, sort=False, name=None):
   """
   Joins a collection of spectra into a single spectrum. The name of the first
@@ -771,7 +781,7 @@ def load_transmission_curve(filt):
     end_path = f"SLOAN_SDSS.{filt}.dat"
   elif filt in 'UBVRI':
     end_path = f"Generic_Johnson.{filt}.dat"
-  elif filt in ['Gaia'+b for b in 'G,Bp,Rp'.split(',')]:
+  elif filt in ['Gaia'+b for b in 'G Bp Rp'.split()]:
     fdict = {"Gaia"+k:v for k,v in zip(("G","Bp","Rp"), ("","bp","rp"))}
     end_path = f"GAIA_GAIA2r.G{fdict[filt]}.dat"
   elif filt in ['GalexFUV','GalexNUV']:
@@ -791,8 +801,8 @@ def load_transmission_curve(filt):
     end_path = f"SkyMapper_SkyMapper.{filt[2]}.dat"
   elif filt in ['ps'+b for b in 'grizy']:
     end_path = f"PAN-STARRS_PS1.{filt[2]}.dat"
-  elif filt in ['sw'+b for b in ('U','UVW1','UVW2','UWM1')]:
-    end_path = f"Swift_UVOT.{filt[UVW1]}.dat"
+  elif filt in ['sw'+b for b in 'U UVW1 UVW2 UVM1'.split()]:
+    end_path = f"Swift_UVOT.{filt[2:]}.dat"
   else:
     raise ValueError('Invalid filter name: {}'.format(filt))
   return model_from_txt(long_path+end_path, x_unit="AA", y_unit="")
@@ -822,6 +832,8 @@ def mag_calc_AB(S, filt, NMONTE=1000, Ifun=Itrapz):
   Spitzer:   ['S1','S2']
 
   Skymapper: ['sm(uvgriz)']
+
+  Swift:     ['sw(U,UVW1,UVW2,UVM1)']
 
   WISE:      ['W1','W2']
   """
