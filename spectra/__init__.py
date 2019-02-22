@@ -374,7 +374,7 @@ class Spectrum(object):
       y2 = interp1d(self.x, self.y, kind=kind, \
         bounds_error=False, fill_value=0., **kwargs)(x2)
       e2 = interp1d(self.x, self.e, kind=kind, \
-        bounds_error=False, fill_value=0., **kwargs)(x2)
+        bounds_error=False, fill_value=np.inf, **kwargs)(x2)
     return Spectrum(x2, y2, e2, *self.info)
 
   def copy(self):
