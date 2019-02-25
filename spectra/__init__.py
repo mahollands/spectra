@@ -105,7 +105,7 @@ class Spectrum(object):
   @property
   def info(self):
     """
-    Returns non-array attributes (in same order as __init__). This can be passed
+    Returns non-array attributes (in same order as __init__). This can be
     used to create new spectra with the same information, e.g.
     >>> Spectrum(x, y, e, *S.info)
     """
