@@ -360,6 +360,7 @@ class Spectrum(object):
       x2 = 1*X.x
     else:
       raise TypeError
+
     if kind == "Akima":
       y2 = Ak_i(self.x, self.y)(x2)
       e2 = Ak_i(self.x, self.e)(x2)
@@ -367,14 +368,18 @@ class Spectrum(object):
       y2[nan] = 0.
       e2[nan] = 0.
     elif kind == "sinc":
-      y2 = Lanczos(self.x, self.y, X)
-      e2 = Lanczos(self.x, self.e, X)
+      y2 = Lanczos(self.x, self.y, x2)
+      e2 = Lanczos(self.x, self.e, x2)
+      extrap = (x2<self.x.min()) | (x2>self.x.max())
+      y2[extrap] = 0.
+      e2[extrap] = np.inf
     else:
       extrap_y, extrap_e = (self.y[0],self.y[-1]), (self.e[0],self.e[-1])
       y2 = interp1d(self.x, self.y, kind=kind, \
         bounds_error=False, fill_value=0., **kwargs)(x2)
       e2 = interp1d(self.x, self.e, kind=kind, \
         bounds_error=False, fill_value=np.inf, **kwargs)(x2)
+
     return Spectrum(x2, y2, e2, *self.info)
 
   def copy(self):
