@@ -747,18 +747,11 @@ def spectra_mean(SS):
   Ybar  = np.sum(Y*IV, axis=0) * IVbar
   Ebar  = 1.0 / np.sqrt(IVbar)
 
-  kwargs = {
-    'name'   : S0.name,
-    'wave'   : S0.wave,
-    'x_unit' : S0.x_unit,
-    'y_unit' : S0.y_unit,
-  }
-
-  return Spectrum(Xbar, Ybar, Ebar, **kwargs)
+  return Spectrum(Xbar, Ybar, Ebar, *S0.info)
     
 ###############################################################################
 
-def voigt( x, x0, fwhm_g, fwhm_l ):
+def voigt(x, x0, fwhm_g, fwhm_l):
   sigma = voigt.Va*fwhm_g
   z = ((x-x0) + 0.5j*fwhm_l)/(sigma*voigt.Vb)
   return wofz(z).real/(sigma*voigt.Vc)
