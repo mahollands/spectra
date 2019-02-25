@@ -15,7 +15,7 @@ and features many routines for performing common tasks for spectroscopy.
 * I/O Routines for reading/writing to various file types.
 * Sky line fitting
 
-#Dependencies
+# Dependencies:
 * Python >= 3.6
 * numpy
 * matplotlib
