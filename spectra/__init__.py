@@ -776,36 +776,30 @@ def load_transmission_curve(filt):
   """
   Loads the filter curves obtained from VOSA (SVO).
   """
-  long_path = "/home/astro/phujdu/Python/MH/mh/spectra/filt_profiles/"
-  if   filt in 'ugriz':
-    end_path = f"SLOAN_SDSS.{filt}.dat"
-  elif filt in 'UBVRI':
-    end_path = f"Generic_Johnson.{filt}.dat"
-  elif filt in ['Gaia'+b for b in 'G Bp Rp'.split()]:
-    fdict = {"Gaia"+k:v for k,v in zip(("G","Bp","Rp"), ("","bp","rp"))}
-    end_path = f"GAIA_GAIA2r.G{fdict[filt]}.dat"
-  elif filt in ['GalexFUV','GalexNUV']:
-    fdict = {"Galex"+k:k for k in ("NUV","FUV")}
-    end_path = f"GALEX_GALEX.{fdict[filt]}.dat"
-  elif filt == 'DenisI':
-    end_path = "DENIS_DENIS.I.dat"
-  elif filt in ['2m'+b for b in 'JHK']:
-    end_path = f"2MASS_2MASS.{filt[-1]}.dat"
-  elif filt in ['UK'+b for b in 'YJHK']:
-    end_path = f"UKIRT_UKIDSS.{filt[-1]}.dat"
-  elif filt in ['W'+b for b in '12']:
-    end_path = f"WISE_WISE.{filt}.dat"
-  elif filt in ['S'+b for b in '12']:
-    end_path = f"Spitzer_IRAC.I{filt[1]}.dat"
-  elif filt in ['sm'+b for b in 'uvgriz']:
-    end_path = f"SkyMapper_SkyMapper.{filt[2]}.dat"
-  elif filt in ['ps'+b for b in 'grizy']:
-    end_path = f"PAN-STARRS_PS1.{filt[2]}.dat"
-  elif filt in ['sw'+b for b in 'U UVW1 UVW2 UVM1'.split()]:
-    end_path = f"Swift_UVOT.{filt[2:]}.dat"
-  else:
-    raise ValueError('Invalid filter name: {}'.format(filt))
-  return model_from_txt(long_path+end_path, x_unit="AA", y_unit="")
+  filters_dir = "/home/astro/phujdu/Python/MH/mh/spectra/filt_profiles"
+
+  GaiaDict = {'G':'G', 'Bp':'Gbp', 'Rp':'Grp'}
+  filter_paths = {
+    **{b          : f"SLOAN_SDSS.{b}.dat" for b in "ugriz"}, #SDSS
+    **{b          : f"Generic_Johnson.{b}.dat" for b in "UBVRI"}, #Generic Johnson
+    **{f"Gaia{b}" : f"GAIA_GAIA2r.{GaiaDict[b]}.dat" for b in ("G","Bp","Rp")}, #Gaia
+    **{f"Galex{b}": f"GALEX_GALEX.{b}.dat" for b in ("NUV", "FUV")}, #GALEX
+    **{f"Denis{b}": f"DENIS_DENIS.{b}.dat" for b in "I"}, #DENIS
+    **{f"2m{b}"   : f"2MASS_2MASS.{b}.dat" for b in "JHK"}, #2Mass
+    **{f"W{b}"    : f"WISE_WISE.W{b}.dat" for b in "12"}, #Wise
+    **{f"S{b}"    : f"Spitzer_IRAC.I{b}.dat" for b in "12"}, #Spitzer
+    **{f"sm{b}"   : f"SkyMapper_SkyMapper.{b}.dat" for b in "uvgriz"}, #SkyMapper
+    **{f"ps{b}"   : f"PAN-STARRS_PS1.{b}.dat" for b in "grizy"}, #PanStarrs
+    **{f"sw{b}"   : f"Swift_UVOT.{b}.dat" for b in ("U","UVW1","UVW2","UVM2")}, #Swift
+  }
+
+  try:
+    full_path = "{}/{}".format(filters_dir, filter_paths[filt])
+  except KeyError:
+    print('Invalid filter name: {}'.format(filt))
+    exit()
+
+  return model_from_txt(full_path, x_unit="AA", y_unit="")
 #
 
 def mag_calc_AB(S, filt, NMONTE=1000, Ifun=Itrapz):
