@@ -871,7 +871,7 @@ def vac_to_air(Wvac):
   return Wvac/n
 #
 
-def air_to_vac( Wair ):
+def air_to_vac(Wair):
   """
   converts air wavelengths to vacuum wavelengths,
   as per VALD3 documentation (in Angstroms)
@@ -962,37 +962,24 @@ def Black_body(x, T, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)", norm=True
   return M
 #
 
-def sky_residual(params, x, y, e ):
-  """
-  Fitting function for sky_line_fwhm
-  """
-  A, x0, s, c = params
 
-  y_fit = A*np.exp( -0.5*((x-x0)/s)**2 ) + c
-
-  norm_residual = (y - y_fit)/e
-
-  if s < 0 or c < 0 or A < 0:
-    return norm_residual * 1000.
-  else:
-    return norm_residual
-#
-
-def sky_line_fwhm( w, sky, w0 ):
+def sky_line_fwhm(S, x0, dx=5.):
   """
   Given a sky spectrum, this fits a Gaussian to a
   sky line and returns the FWHM.
   """
-  guess = 1e-15, w0, 1., 0.
+  def sky_residual(params, S):
+    A, x0, fwhm, C = params
+    xw = fwhm /2.355
+    y_fit = A*np.exp(-0.5*((S.x-x0)/xw)**2) + C
+    return (S.y - y_fit)/S.e
 
-  clip = (w>w0-10.)&(w<w0+10.)
+  Sc = S.clip(x0-dx, x0+dx)
+  guess = Sc.y.max(), x0, 2*np.diff(Sc.x).mean(), Sc.y.min()
+  res = leastsq(sky_residual, guess, args=(Sc,), full_output=True)
+  vec, err = res[0], np.sqrt(np.diag(res[1]))
 
-  args= w[clip], sky[clip], np.sqrt(sky[clip])
-  result = leastsq(sky_residual, guess, args=args)
-
-  vec = result[0]
-
-  return vec[2] * 2.355
+  return vec[2], err[2]
 #
 
 def keep_points(x, fname):
