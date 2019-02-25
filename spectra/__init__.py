@@ -634,23 +634,17 @@ def join_spectra(SS, sort=False, name=None):
     assert S.x_unit == S0.x_unit
     assert S.y_unit == S0.y_unit
 
-  kwargs = {
-    'name'   : S0.name,
-    'wave'   : S0.wave,
-    'x_unit' : S0.x_unit,
-    'y_unit' : S0.y_unit,
-  }
-
-
   x = np.hstack(S.x for S in SS)
   y = np.hstack(S.y for S in SS)
   e = np.hstack(S.e for S in SS)
-  S = Spectrum(x, y, e, **kwargs)
+  S = Spectrum(x, y, e, *S0.info)
+  
+  if name is not None:
+    S.name = name
   if sort:
-    idx = np.argsort(x)
-    return S[idx]
-  else:
-    return S
+    S = S[np.argsort(x)]
+
+  return S
 
 def spec_from_txt(fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)', **kwargs):
   """
