@@ -744,7 +744,7 @@ def spectra_mean(SS):
 
   Xbar  = np.mean(X,axis=0)
   IVbar = np.sum(IV, axis=0)
-  Ybar  = np.sum(Y*IV, axis=0) * IVbar
+  Ybar  = np.sum(Y*IV, axis=0) / IVbar
   Ebar  = 1.0 / np.sqrt(IVbar)
 
   return Spectrum(Xbar, Ybar, Ebar, *S0.info)
@@ -767,17 +767,17 @@ def load_transmission_curve(filt):
 
   GaiaDict = {'G':'G', 'Bp':'Gbp', 'Rp':'Grp'}
   filter_paths = {
-    **{b          : f"SLOAN_SDSS.{b}.dat" for b in "ugriz"}, #SDSS
-    **{b          : f"Generic_Johnson.{b}.dat" for b in "UBVRI"}, #Generic Johnson
+    **{f"2m{b}"   : f"2MASS_2MASS.{b}.dat" for b in "JHK"}, #2Mass
+    **{f"Denis{b}": f"DENIS_DENIS.{b}.dat" for b in "I"}, #DENIS
     **{f"Gaia{b}" : f"GAIA_GAIA2r.{GaiaDict[b]}.dat" for b in ("G","Bp","Rp")}, #Gaia
     **{f"Galex{b}": f"GALEX_GALEX.{b}.dat" for b in ("NUV", "FUV")}, #GALEX
-    **{f"Denis{b}": f"DENIS_DENIS.{b}.dat" for b in "I"}, #DENIS
-    **{f"2m{b}"   : f"2MASS_2MASS.{b}.dat" for b in "JHK"}, #2Mass
-    **{f"W{b}"    : f"WISE_WISE.W{b}.dat" for b in "12"}, #Wise
-    **{f"S{b}"    : f"Spitzer_IRAC.I{b}.dat" for b in "12"}, #Spitzer
-    **{f"sm{b}"   : f"SkyMapper_SkyMapper.{b}.dat" for b in "uvgriz"}, #SkyMapper
+    **{b          : f"Generic_Johnson.{b}.dat" for b in "UBVRI"}, #Generic Johnson
     **{f"ps{b}"   : f"PAN-STARRS_PS1.{b}.dat" for b in "grizy"}, #PanStarrs
+    **{b          : f"SLOAN_SDSS.{b}.dat" for b in "ugriz"}, #SDSS
+    **{f"sm{b}"   : f"SkyMapper_SkyMapper.{b}.dat" for b in "uvgriz"}, #SkyMapper
+    **{f"S{b}"    : f"Spitzer_IRAC.I{b}.dat" for b in "12"}, #Spitzer
     **{f"sw{b}"   : f"Swift_UVOT.{b}.dat" for b in ("U","UVW1","UVW2","UVM2")}, #Swift
+    **{f"W{b}"    : f"WISE_WISE.W{b}.dat" for b in "12"}, #Wise
   }
 
   try:
@@ -800,7 +800,7 @@ def mag_calc_AB(S, filt, NMONTE=1000, Ifun=Itrapz):
 
   Denis:     ['DenisI']
 
-  Gaia:      ['GaiaG', 'GaiaBp', GaiaRp']
+  Gaia:      ['Gaia(G,Bp,Rp)']
 
   Galex:     ['GalexFUV' 'GalexNUV']
 
@@ -810,9 +810,9 @@ def mag_calc_AB(S, filt, NMONTE=1000, Ifun=Itrapz):
 
   SDSS:      ['u','g','r','i','z']
 
-  Spitzer:   ['S1','S2']
-
   Skymapper: ['sm(uvgriz)']
+
+  Spitzer:   ['S1','S2']
 
   Swift:     ['sw(U,UVW1,UVW2,UVM1)']
 
