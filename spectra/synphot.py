@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.integrate import trapz as Itrapz, simps as Isimps
-import os
+import os.path
 
 filters_dir = "{}/filt_profiles".format(os.path.dirname(__file__))
 
