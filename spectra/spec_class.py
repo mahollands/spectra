@@ -1,5 +1,6 @@
 """
 Contains the Spectrum class for working with astrophysical spectra.
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 import math
@@ -8,7 +9,7 @@ import astropy.constants as const
 from scipy.interpolate import interp1d, Akima1DInterpolator as Ak_i
 from .synphot import mag_calc_AB
 from .reddening import A_curve
-from .misc import *
+from .misc import vac_to_air, air_to_vac, convolve_gaussian, convolve_gaussian_R
 
 class Spectrum(object): 
   """

@@ -4,9 +4,9 @@ Spectrum class.
 """
 import numpy as np
 import os
+from sys import exit
 from trm import molly
 from astropy.io import fits
-from sys import exit
 from .spec_class import Spectrum
 
 def spec_from_txt(fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)', **kwargs):
