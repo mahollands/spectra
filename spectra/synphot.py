@@ -1,7 +1,8 @@
 import numpy as np
 from scipy.integrate import trapz as Itrapz, simps as Isimps
+import os
 
-filters_dir = "/home/astro/phujdu/Python/MH/mh/spectra/filt_profiles"
+filters_dir = "{}/filt_profiles".format(os.path.dirname(__file__))
 
 GaiaDict = {'G':'G', 'Bp':'Gbp', 'Rp':'Grp'}
 filter_paths = {
