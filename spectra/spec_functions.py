@@ -2,7 +2,9 @@
 Contains functions for generating spectra or operating on spectra
 """
 import numpy as np
+from scipy.optimize import leastsq
 from .spec_class import Spectrum
+from .misc import black_body
 
 __all__ = [
   "ZeroSpectrum",
@@ -95,3 +97,23 @@ def spectra_mean(SS):
   Ebar  = 1.0 / np.sqrt(IVbar)
 
   return Spectrum(Xbar, Ybar, Ebar, *S0.info)
+
+def sky_line_fwhm(S, x0, dx=5.):
+  """
+  Given a sky spectrum, this fits a Gaussian to a
+  sky line and returns the FWHM.
+  """
+  def sky_residual(params, S):
+    A, x0, fwhm, C = params
+    xw = fwhm /2.355
+    y_fit = A*np.exp(-0.5*((S.x-x0)/xw)**2) + C
+    return (S.y - y_fit)/S.e
+
+  Sc = S.clip(x0-dx, x0+dx)
+  guess = Sc.y.max(), x0, 2*np.diff(Sc.x).mean(), Sc.y.min()
+  res = leastsq(sky_residual, guess, args=(Sc,), full_output=True)
+  vec, err = res[0], np.sqrt(np.diag(res[1]))
+
+  return vec[2], err[2]
+#
+

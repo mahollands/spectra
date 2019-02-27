@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy.optimize import leastsq
 from scipy.special import wofz
 from functools import reduce
 import operator
@@ -12,7 +11,6 @@ __all__ = [
   "air_to_vac",
   "convolve_gaussian",
   "convolve_gaussian_R",
-  "black_body",
   "lanczos",
 ]
 
@@ -107,25 +105,6 @@ def black_body(x, T, norm=True):
   if norm:
     logf -= logf.max() #normalise to peak at 1.
   return np.exp( logf )
-#
-
-def sky_line_fwhm(S, x0, dx=5.):
-  """
-  Given a sky spectrum, this fits a Gaussian to a
-  sky line and returns the FWHM.
-  """
-  def sky_residual(params, S):
-    A, x0, fwhm, C = params
-    xw = fwhm /2.355
-    y_fit = A*np.exp(-0.5*((S.x-x0)/xw)**2) + C
-    return (S.y - y_fit)/S.e
-
-  Sc = S.clip(x0-dx, x0+dx)
-  guess = Sc.y.max(), x0, 2*np.diff(Sc.x).mean(), Sc.y.min()
-  res = leastsq(sky_residual, guess, args=(Sc,), full_output=True)
-  vec, err = res[0], np.sqrt(np.diag(res[1]))
-
-  return vec[2], err[2]
 #
 
 def keep_points(x, fname):
