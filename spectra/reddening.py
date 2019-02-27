@@ -1,5 +1,9 @@
 import numpy as np
 
+__all__ = [
+  "A_curve"
+]
+
 def A_curve(x, R=3.1):
   """
   Calculate CCM 1989 extinction curve. x is in units of 1/um.

@@ -11,6 +11,15 @@ from .synphot import mag_calc_AB
 from .reddening import A_curve
 from .misc import *
 
+__all__ = [
+  "Spectrum",
+  "ZeroSpectrum",
+  "UnitSpectrum",
+  "Black_body",
+  "join_spectra",
+  "spectra_mean",
+]
+
 class Spectrum(object): 
   """
   spectrum class contains wavelengths, fluxes, and flux errors.  Arithmetic

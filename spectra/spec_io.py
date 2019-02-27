@@ -9,6 +9,15 @@ from trm import molly
 from astropy.io import fits
 from .spec_class import Spectrum
 
+__all__ = [
+  "spec_from_txt",
+  "spec_from_npy",
+  "model_from_txt",
+  "model_from_dk",
+  "spec_from_sdss_fits",
+  "spec_list_from_molly",
+]
+
 def spec_from_txt(fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)', **kwargs):
   """
   Loads a text file with the first 3 columns as wavelengths, fluxes, errors.

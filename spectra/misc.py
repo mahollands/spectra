@@ -13,8 +13,6 @@ __all__ = [
   "convolve_gaussian",
   "convolve_gaussian_R",
   "black_body",
-  "sky_line_fwhm",
-  "keep_points",
   "lanczos",
 ]
 

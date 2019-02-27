@@ -2,6 +2,11 @@ import numpy as np
 from scipy.integrate import trapz as Itrapz, simps as Isimps
 import os.path
 
+__all__ = [
+  "load_transmission_curve",
+  "mag_calc_AB",
+]
+
 filters_dir = "{}/filt_profiles".format(os.path.dirname(__file__))
 
 GaiaDict = {'G':'G', 'Bp':'Gbp', 'Rp':'Grp'}
@@ -23,6 +28,7 @@ def load_transmission_curve(filt):
   """
   Loads the filter curves obtained from VOSA (SVO).
   """
+  from .spec_io import model_from_txt
 
   try:
     full_path = "{}/{}".format(filters_dir, filter_paths[filt])
@@ -30,7 +36,6 @@ def load_transmission_curve(filt):
     print('Invalid filter name: {}'.format(filt))
     exit()
 
-  from .spec_io import model_from_txt
   return model_from_txt(full_path, x_unit="AA", y_unit="")
 #
 
