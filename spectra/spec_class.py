@@ -563,6 +563,10 @@ class Spectrum(object):
       return self*A, A
     else:
       return self*A
+
+  def scale_to_AB_mag(self, filt, mag):
+    mag0 = self.mag_calc_AB(filt, NMONTE=0)
+    return self * 10**(0.4*(mag0-mag))
     
   def convolve_gaussian(self, fwhm):
     S = self.copy()
