@@ -15,9 +15,8 @@ __all__ = [
   "black_body",
   "sky_line_fwhm",
   "keep_points",
-  "Lanczos",
+  "lanczos",
 ]
-
 
 jangstrom = \
   "$\mathrm{erg}\;\mathrm{s}^{-1}\,\mathrm{cm}^{-2}\,\mathrm{\AA}^{-1}$"
@@ -144,7 +143,7 @@ def keep_points(x, fname):
   segments = (between(x, *line.split()) for line in lines)
   return reduce(operator.or_, segments)
 
-def Lanczos(x, y, xnew):
+def lanczos(x, y, xnew):
   n = _np.arange(len(x))
   Ni = interp1d(x, n, kind='linear', fill_value='extrapolate')(xnew)
   ynew = [_np.sum(y*_np.sinc(ni-n)) for ni in Ni]
