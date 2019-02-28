@@ -29,20 +29,14 @@ def Black_body(x, T, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)", norm=True
   Returns a Black body curve like black_body(), but the return value
   is a Spectrum class.
   """
-  zero_flux = np.zeros_like(x)
-  M = Spectrum(x, zero_flux, zero_flux, f'{T}K BlackBody', wave, x_unit, y_unit)
-  M.x_unit_to("AA")
-  M.y_unit_to("erg/(s cm2 AA)")
-  if wave=='air':
-    M.air_to_vac()
-  M.y = black_body(M.x, T, False)
-  if wave=='air':
-    M.vac_to_air()
-  M.x_unit_to(x_unit)
-  M.y_unit_to(y_unit)
+  BB = ZeroSpectrum(x, f'{T}K BlackBody', wave, x_unit, "erg/(s cm2 AA)")
+  BB.x_unit_to("AA")
+  BB += black_body(BB.x, T, False)
+  BB.x_unit_to(x_unit)
+  BB.y_unit_to(y_unit)
   if norm:
-    M /= M.y.max()
-  return M
+    BB /= BB.y.max()
+  return BB
 #
 
 #..............................................................................
