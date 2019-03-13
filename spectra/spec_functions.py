@@ -17,7 +17,7 @@ def Black_body(x, T, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)", norm=True
   Returns a Black body curve like black_body(), but the return value
   is a Spectrum class.
   """
-  BB = ZeroSpectrum(x, f'{T}K BlackBody', wave, x_unit, "erg/(s cm2 AA)")
+  BB = Spectrum(x, 0., 0., f'{T}K BlackBody', wave, x_unit, "erg/(s cm2 AA)")
   BB.x_unit_to("AA")
   BB += black_body(BB.x, T, False)
   BB.x_unit_to(x_unit)
