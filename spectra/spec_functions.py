@@ -7,8 +7,6 @@ from .spec_class import Spectrum
 from .misc import black_body
 
 __all__ = [
-  "ZeroSpectrum",
-  "UnitSpectrum",
   "Black_body",
   "join_spectra",
   "spectra_mean",
