@@ -14,16 +14,6 @@ __all__ = [
   "spectra_mean",
 ]
 
-def ZeroSpectrum(x, name="", wave='air', x_unit="AA", y_unit="erg/(s cm^2 AA)", head=None):
-  y = np.zeros_like(x)
-  e = np.zeros_like(x)
-  return Spectrum(x, y, e, name=name, wave=wave, x_unit=x_unit, y_unit=y_unit, head=head)
-
-def UnitSpectrum(x, name="", wave='air', x_unit="AA", head=None):
-  y = np.ones_like(x)
-  e = np.zeros_like(x)
-  return Spectrum(x, y, e, name=name, wave=wave, x_unit=x_unit, y_unit="", head=head)
-
 def Black_body(x, T, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)", norm=True):
   """
   Returns a Black body curve like black_body(), but the return value
