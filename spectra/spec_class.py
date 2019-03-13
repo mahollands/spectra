@@ -10,8 +10,6 @@ from scipy.interpolate import interp1d, Akima1DInterpolator as Ak_i
 from .synphot import mag_calc_AB
 from .reddening import A_curve
 from .misc import *
-from astropy import convolution
-
 
 __all__ = [
   "Spectrum",
