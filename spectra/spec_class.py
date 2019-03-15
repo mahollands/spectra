@@ -584,21 +584,6 @@ class Spectrum(object):
     mag0 = self.mag_calc_AB(filt, NMONTE=0)
     return self * 10**(0.4*(mag0-mag))
     
-  def convolve_gaussian2(self, fwhm):
-    sigma = fwhm/2.355
-
-    #oversample spectrum by at least a factor 10 
-    dx = 0.1*np.diff(self.x).min()
-    xi = np.arange(self.x[0], self.x[-1], dx)
-    yi = interp1d(self.x, self.y)(xi)
-    Si = self.interp_wave(xi)
-
-    G = convolution.Gaussian1DKernel(sigma/dx)
-
-    Si.y = convolution.convolve_fft(Si.y, G)
-    return Si.interp_wave(self)
-  #
-
   def convolve_gaussian(self, fwhm):
     S = self.copy()
     S.y = convolve_gaussian(S.x, S.y, fwhm)
