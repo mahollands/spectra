@@ -329,7 +329,7 @@ class Spectrum(object):
 
   def remove_mask(self, mask):
     """
-    Apply a mask to the spectral fluxes
+    Remove mask from spectral fluxes
     """
     self.x = np.array(self.x)
     self.y = np.array(self.y)
@@ -340,7 +340,7 @@ class Spectrum(object):
     Calculates the AB magnitude of a filter called 'filt'. Errors
     are calculated in Monte-Carlo fashion, and assume all fluxes
     are statistically independent (not that realistic). See the
-    definition of 'mag_clac_AB' for valid filter names.
+    definition of 'mag_calc_AB' for valid filter names.
     """
     S = self.copy()
     S.x_unit_to("AA")
