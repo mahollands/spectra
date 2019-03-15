@@ -101,7 +101,7 @@ class Spectrum(object):
     """
     Signal to noise ratio
     """
-    return self.y/self.e
+    return np.abs(self.y/self.e)
 
   @property
   def data(self):
