@@ -551,13 +551,9 @@ class Spectrum(object):
     S = other[other.e>0]
     M = self.interp_wave(S)
 
-    A_sm, A_mm = np.sum(S.y*M.y*S.ivar), np.sum(M.y**2*S.ivar)
-    A = A_sm/A_mm
+    A = np.sum(S.y*M.y*S.ivar)/np.sum(M.y**2*S.ivar)
 
-    if return_scaling_factor:
-      return self*A, A
-    else:
-      return self*A
+    return self*A, A if return_scaling_factor else self*A
     
   def scale_model_to_model(self, other, return_scaling_factor=False):
     """
@@ -572,13 +568,9 @@ class Spectrum(object):
     S = other
     M = self.interp_wave(S)
 
-    A_sm, A_mm = np.sum(S.y*M.y), np.sum(M.y)
-    A = A_sm/A_mm
+    A = np.sum(S.y*M.y)/np.sum(M.y)
 
-    if return_scaling_factor:
-      return self*A, A
-    else:
-      return self*A
+    return self*A, A if return_scaling_factor else self*A
 
   def scale_to_AB_mag(self, filt, mag):
     mag0 = self.mag_calc_AB(filt, NMONTE=0)
