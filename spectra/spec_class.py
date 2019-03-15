@@ -347,9 +347,8 @@ class Spectrum(object):
     S.y_unit_to("erg/(s cm2 AA)")
 
     if np.all(self.e == 0):
-      return mag_calc_AB(S, filt, NMONTE=0)
-    else:
-      return mag_calc_AB(S, filt, NMONTE=NMONTE)
+      NMONTE = 0 
+    return mag_calc_AB(S, filt, NMONTE)
 
   def interp_wave(self, X, kind='linear', **kwargs):
     """
