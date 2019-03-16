@@ -430,11 +430,8 @@ class Spectrum(object):
         else:
           for px in self: F.write("%9.3f %12.5E\n" %px[:2])
     elif fname.endswith(".npy"):
-      if errors:
-        data = np.array([self.x, self.y, self.e])
-      else:
-        data = np.array([self.x, self.y])
-      np.save(fname, data)
+      data = [*self.data] if errors else [self.x, self.y]
+      np.save(fname, np.array(data))
     else:
       print("Unrecognised File type")
       print("Save aborted")
