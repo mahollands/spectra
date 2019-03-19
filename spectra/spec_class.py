@@ -549,7 +549,7 @@ class Spectrum(object):
 
     A = np.sum(S.y*M.y*S.ivar)/np.sum(M.y**2*S.ivar)
 
-    return self*A, A if return_scaling_factor else self*A
+    return (self*A, A) if return_scaling_factor else self*A
     
   def scale_model_to_model(self, other, return_scaling_factor=False):
     """
@@ -566,7 +566,7 @@ class Spectrum(object):
 
     A = np.sum(S.y*M.y)/np.sum(M.y)
 
-    return self*A, A if return_scaling_factor else self*A
+    return (self*A, A) if return_scaling_factor else self*A
 
   def scale_to_AB_mag(self, filt, mag):
     mag0 = self.mag_calc_AB(filt, NMONTE=0)
