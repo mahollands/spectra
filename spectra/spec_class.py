@@ -377,7 +377,7 @@ class Spectrum(object):
       e2[nan] = 0.
     elif kind == "sinc":
       y2 = lanczos(self.x, self.y, x2)
-      e2 = lanczos(self.x, self.e, x2)
+      e2 = np.exp(lanczos(self.x, np.log(self.e), x2))
       extrap = (x2<self.x.min()) | (x2>self.x.max())
       y2[extrap] = 0.
       e2[extrap] = np.inf
