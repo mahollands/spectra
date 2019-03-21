@@ -63,9 +63,13 @@ class Spectrum(object):
 
   @x.setter
   def x(self, x):
-    assert isinstance(x, np.ndarray)
-    assert x.ndim == 1
-    self._x = x.astype(float)
+    if isinstance(x, np.ndarray):
+      if x.ndim == 1:
+        self._x = x.astype(float)
+      else:
+        raise ValueError
+    else:
+      raise TypeError
 
   @property
   def y(self):
@@ -103,8 +107,10 @@ class Spectrum(object):
 
   @name.setter
   def name(self, name):
-    assert isinstance(name, str)
-    self._name = name
+    if isinstance(name, str)
+      self._name = name
+    else:
+      raise TypeError
 
   @property
   def wave(self):
@@ -112,8 +118,10 @@ class Spectrum(object):
 
   @wave.setter
   def wave(self, wave):
-    assert wave in ('vac', 'air')
-    self._wave = wave
+    if wave in ('vac', 'air')
+      self._wave = wave
+    else:
+      raise ValueError
 
   @property
   def x_unit(self):
@@ -146,8 +154,10 @@ class Spectrum(object):
     if head is None:
       self._head = {}
     else:
-      assert isinstance(head, dict)
-      self._head = head
+      if isinstance(head, dict)
+        self._head = head
+      else:
+        raise ValueError
 
   @property
   def var(self):
@@ -205,7 +215,6 @@ class Spectrum(object):
     """
     Return number of pixels in spectrum
     """
-    assert len(self.x) == len(self.y) == len(self.e)
     return len(self.x)
 
   def __repr__(self):
@@ -246,13 +255,10 @@ class Spectrum(object):
     Return self + other (with standard error propagation)
     """
     if isinstance(other, (int, float, np.ndarray)):
-      if isinstance(other, np.ndarray):
-        assert len(self) == len(other)
       x2 = self.x.copy()
       y2 = self.y + other
       e2 = self.e.copy()
     elif isinstance(other, Spectrum):
-      assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
       assert self.x_unit == other.x_unit
       assert self.y_unit == other.y_unit
@@ -268,12 +274,10 @@ class Spectrum(object):
     Return self - other (with standard error propagation)
     """
     if isinstance(other, (int, float, np.ndarray)):
-      if isinstance(other, np.ndarray): assert len(self) == len(other)
       x2 = self.x.copy()
       y2 = self.y - other
       e2 = self.e.copy()
     elif isinstance(other, Spectrum):
-      assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
       assert self.x_unit == other.x_unit
       assert self.y_unit == other.y_unit
@@ -289,13 +293,11 @@ class Spectrum(object):
     Return self * other (with standard error propagation)
     """
     if isinstance(other, (int, float, np.ndarray)):
-      if isinstance(other, np.ndarray): assert len(self) == len(other)
       x2 = self.x.copy()
       y2 = self.y * other
       e2 = self.e * np.abs(other)
       yu2 = self._yu
     elif isinstance(other, Spectrum):
-      assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
       assert self.x_unit == other.x_unit
       x2 = 0.5*(self.x+other.x)
@@ -313,13 +315,11 @@ class Spectrum(object):
     Return self / other (with standard error propagation)
     """
     if isinstance(other, (int, float, np.ndarray)):
-      if isinstance(other, np.ndarray): assert len(self) == len(other)
       x2 = self.x.copy()
       y2 = self.y / other
       e2 = self.e / np.abs(other)
       yu2 = self._yu
     elif isinstance(other, Spectrum):
-      assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
       assert self.x_unit == other.x_unit
       x2 = 0.5*(self.x+other.x)
@@ -370,7 +370,6 @@ class Spectrum(object):
     Return other / self (with standard error propagation)
     """
     if isinstance(other, (int, float, np.ndarray)):
-      if isinstance(other, np.ndarray): assert len(self) == len(other)
       x2 = self.x.copy()
       y2 = other / self.y
       e2 = other * self.e /(self.y*self.y)
@@ -523,7 +522,7 @@ class Spectrum(object):
     """
     Changes air wavelengths to vaccuum wavelengths in place
     """
-    assert self._xu == u.Unit("AA")
+    assert self.x_unit == "AA"
     if self.wave == 'air':
       self.x = air_to_vac(self.x) 
       self.wave = 'vac'
@@ -536,7 +535,7 @@ class Spectrum(object):
     """
     Changes vaccuum wavelengths to air wavelengths in place
     """
-    assert self._xu == u.Unit("AA")
+    assert self.x_unit == "AA"
     if self.wave == 'vac':
       self.x = vac_to_air(self.x) 
       self.wave = 'air'
@@ -566,8 +565,6 @@ class Spectrum(object):
     Changes units of the x-data. Supports conversion between wavelength
     and energy etc. Argument should be a string.
     """
-    assert isinstance(new_unit, (str, u.Unit))
-
     x = self.x * self._xu
     x2 = x.to(new_unit, u.spectral())
     self.x = x2.value
@@ -578,7 +575,6 @@ class Spectrum(object):
     Changes units of the y-data. Supports conversion between Fnu
     and Flambda etc. Argument should be a string.
     """
-    assert isinstance(new_unit, (str, u.Unit))
     x = self.x * self._xu
     y = self.y * self._yu
     e = self.e * self._yu
