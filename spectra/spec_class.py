@@ -40,7 +40,7 @@ class Spectrum(object):
 
   .............................................................................
   """
-  __slots__ = ['name', 'head', 'x', 'y', 'e', 'wave', '_xu', '_yu']
+  __slots__ = ['_x', '_y', '_e', '_name', '_wave', '_xu', '_yu']
   def __init__(self, x, y, e, name="", wave='air', x_unit="AA", y_unit="erg/(s cm^2 AA)", head=None):
     """
     Initialise spectrum. Arbitrary header items can be added to self.head
@@ -73,15 +73,8 @@ class Spectrum(object):
     assert wave in ("air", "vac")
     self.name = name
     self.wave = wave
-    if isinstance(x_unit, (str, u.Unit))
-      self._xu = u.Unit(x_unit)
-    else:
-      raise TypeError
-
-    if isinstance(y_unit, (str, u.Unit))
-      self._yu = u.Unit(y_unit)
-    else:
-      raise TypeError
+    self.x_unit = x_unit
+    self.y_unit = y_unit
 
     if head is None:
       self.head = {}
@@ -90,12 +83,30 @@ class Spectrum(object):
       self.head = head
 
   @property
+  def x:
+    return self._x
+
+  @property
   def x_unit(self):
     return self._xu.to_string()
+
+  @x_unit.setter
+  def x_unit(self, x_unit):
+    if isinstance(x_unit, (str, u.Unit))
+      self._xu = u.Unit(x_unit)
+    else:
+      raise TypeError
 
   @property
   def y_unit(self):
     return self._yu.to_string()
+
+  @y_unit.setter
+  def y_unit(self):
+    if isinstance(y_unit, (str, u.Unit))
+      self._yu = u.Unit(y_unit)
+    else:
+      raise TypeError
 
   @property
   def var(self):
@@ -188,8 +199,8 @@ class Spectrum(object):
     elif isinstance(other, Spectrum):
       assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
-      assert self.x_unit == other.x_unit
-      assert self.y_unit == other.y_unit
+      assert self._xu == other._xu
+      assert self._yu == other._yu
       x2 = 0.5*(self.x+other.x)
       y2 = self.y+other.y
       e2 = np.hypot(self.e, other.e)
@@ -209,8 +220,8 @@ class Spectrum(object):
     elif isinstance(other, Spectrum):
       assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
-      assert self.x_unit == other.x_unit
-      assert self.y_unit == other.y_unit
+      assert self._xu == other._xu
+      assert self._yu == other._yu
       x2 = 0.5*(self.x+other.x)
       y2 = self.y - other.y
       e2 = np.hypot(self.e, other.e)
@@ -227,20 +238,19 @@ class Spectrum(object):
       x2 = self.x.copy()
       y2 = self.y * other
       e2 = self.e * np.abs(other)
-      y_unit = self.y_unit
+      yu2 = self._yu
     elif isinstance(other, Spectrum):
       assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
-      assert self.x_unit == other.x_unit
+      assert self._xu == other._xu
       x2 = 0.5*(self.x+other.x)
       y2 = self.y*other.y
       e2 = np.abs(y2)*np.hypot(self.e/self.y, other.e/other.y)
-      u1, u2 = u.Unit(self.y_unit), u.Unit(other.y_unit)
-      y_unit = (u1*u2).to_string()
+      yu2 = self._yu * other._yu
     else:
       raise TypeError
     S = Spectrum(x2, y2, e2, *self.info)
-    S.y_unit = y_unit
+    S._yu = yu2
     return S
 
   def __truediv__(self, other):
@@ -252,20 +262,19 @@ class Spectrum(object):
       x2 = self.x.copy()
       y2 = self.y / other
       e2 = self.e / np.abs(other)
-      y_unit = self.y_unit
+      yu2 = self._yu
     elif isinstance(other, Spectrum):
       assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
-      assert self.x_unit == other.x_unit
+      assert self._xu == other._xu
       x2 = 0.5*(self.x+other.x)
       y2 = self.y/other.y
       e2 = np.abs(y2)*np.hypot(self.e/self.y, other.e/other.y)
-      u1, u2 = u.Unit(self.y_unit), u.Unit(other.y_unit)
-      y_unit = (u1/u2).to_string()
+      yu2 = self._yu / other._yu
     else:
       raise TypeError
     S = Spectrum(x2, y2, e2, *self.info)
-    S.y_unit = y_unit
+    S._yu = yu2
     return S
 
   def __pow__(self,other):
@@ -276,9 +285,12 @@ class Spectrum(object):
       x2 = self.x.copy()
       y2 = self.y**other
       e2 = other * y2 * self.e/self.y
+      yu2 = self._yu**other
     else:
       raise TypeError
-    return Spectrum(x2, y2, e2, *self.info)
+    S = Spectrum(x2, y2, e2, *self.info)
+    S._yu = yu2
+    return S
 
   def __radd__(self, other):
     """
@@ -455,7 +467,7 @@ class Spectrum(object):
     """
     Changes air wavelengths to vaccuum wavelengths in place
     """
-    assert u.Unit(self.x_unit) == u.Unit("AA")
+    assert self._xu == u.Unit("AA")
     if self.wave == 'air':
       self.x = air_to_vac(self.x) 
       self.wave = 'vac'
@@ -468,7 +480,7 @@ class Spectrum(object):
     """
     Changes vaccuum wavelengths to air wavelengths in place
     """
-    assert u.Unit(self.x_unit) == u.Unit("AA")
+    assert self._xu == u.Unit("AA")
     if self.wave == 'vac':
       self.x = vac_to_air(self.x) 
       self.wave = 'air'
@@ -498,32 +510,28 @@ class Spectrum(object):
     Changes units of the x-data. Supports conversion between wavelength
     and energy etc. Argument should be a string.
     """
-    assert isinstance(new_unit, str)
+    assert isinstance(new_unit, (str, u.Unit))
 
-    x = self.x * u.Unit(self.x_unit)
-    x = x.to(new_unit, u.spectral())
-    self.x = x.value
-    self.x_unit = u.Unit(new_unit).to_string()
+    x = self.x * self._xu
+    x2 = x.to(new_unit, u.spectral())
+    self.x = x2.value
+    self._xu = u.Unit(new_unit)
     
   def y_unit_to(self, new_unit):
     """
     Changes units of the y-data. Supports conversion between Fnu
     and Flambda etc. Argument should be a string.
     """
-    assert isinstance(new_unit, str)
+    assert isinstance(new_unit, (str, u.Unit))
 
-    if new_unit == "mag":
-      self.to_y_unit("Jy")
-      self /= 3631
-    else:
-      x = self.x * u.Unit(self.x_unit)
-      y = self.y * u.Unit(self.y_unit)
-      e = self.e * u.Unit(self.y_unit)
-      y = y.to(new_unit, u.spectral_density(x))
-      e = e.to(new_unit, u.spectral_density(x))
-      self.y = y.value
-      self.e = e.value
-      self.y_unit = u.Unit(new_unit).to_string()
+    x = self.x * self._xu
+    y = self.y * self._yu
+    e = self.e * self._yu
+    y = y.to(new_unit, u.spectral_density(x))
+    e = e.to(new_unit, u.spectral_density(x))
+    self.y = y.value
+    self.e = e.value
+    self._yu = u.Unit(new_unit)
     
   def apply_redshift(self, v, v_unit="km/s"):
     """
@@ -555,8 +563,8 @@ class Spectrum(object):
     either before or after calling this function.
     """
     assert isinstance(other, Spectrum)
-    assert self.x_unit == other.x_unit
-    assert self.y_unit == other.y_unit
+    assert self._xu == other._xu
+    assert self._yu == other._yu
 
     #if M and S already have same x-axis, this won't do much.
     S = other[other.e>0]
@@ -572,8 +580,8 @@ class Spectrum(object):
     this is for the case when the argument doesn't have errors.
     """
     assert isinstance(other, Spectrum)
-    assert self.x_unit == other.x_unit
-    assert self.y_unit == other.y_unit
+    assert self._xu == other._xu
+    assert self._yu == other._yu
 
     #if M and S already have same x-axis, this won't do much.
     S = other
