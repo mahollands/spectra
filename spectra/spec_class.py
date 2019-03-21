@@ -107,7 +107,7 @@ class Spectrum(object):
 
   @name.setter
   def name(self, name):
-    if isinstance(name, str)
+    if isinstance(name, str):
       self._name = name
     else:
       raise TypeError
@@ -118,7 +118,7 @@ class Spectrum(object):
 
   @wave.setter
   def wave(self, wave):
-    if wave in ('vac', 'air')
+    if wave in ('vac', 'air'):
       self._wave = wave
     else:
       raise ValueError
@@ -154,7 +154,7 @@ class Spectrum(object):
     if head is None:
       self._head = {}
     else:
-      if isinstance(head, dict)
+      if isinstance(head, dict):
         self._head = head
       else:
         raise ValueError
@@ -408,7 +408,7 @@ class Spectrum(object):
     self.y = np.ma.masked_array(self.y, mask)
     self.e = np.ma.masked_array(self.e, mask)
 
-  def remove_mask(self, mask):
+  def remove_mask(self):
     """
     Remove mask from spectral fluxes
     """
