@@ -254,8 +254,8 @@ class Spectrum(object):
     elif isinstance(other, Spectrum):
       assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
-      assert self._xu == other._xu
-      assert self._yu == other._yu
+      assert self.x_unit == other.x_unit
+      assert self.y_unit == other.y_unit
       x2 = 0.5*(self.x+other.x)
       y2 = self.y+other.y
       e2 = np.hypot(self.e, other.e)
@@ -275,8 +275,8 @@ class Spectrum(object):
     elif isinstance(other, Spectrum):
       assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
-      assert self._xu == other._xu
-      assert self._yu == other._yu
+      assert self.x_unit == other.x_unit
+      assert self.y_unit == other.y_unit
       x2 = 0.5*(self.x+other.x)
       y2 = self.y - other.y
       e2 = np.hypot(self.e, other.e)
@@ -297,7 +297,7 @@ class Spectrum(object):
     elif isinstance(other, Spectrum):
       assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
-      assert self._xu == other._xu
+      assert self.x_unit == other.x_unit
       x2 = 0.5*(self.x+other.x)
       y2 = self.y*other.y
       e2 = np.abs(y2)*np.hypot(self.e/self.y, other.e/other.y)
@@ -321,7 +321,7 @@ class Spectrum(object):
     elif isinstance(other, Spectrum):
       assert len(self) == len(other)
       assert np.all(np.isclose(self.x, other.x))
-      assert self._xu == other._xu
+      assert self.x_unit == other.x_unit
       x2 = 0.5*(self.x+other.x)
       y2 = self.y/other.y
       e2 = np.abs(y2)*np.hypot(self.e/self.y, other.e/other.y)
@@ -460,7 +460,6 @@ class Spectrum(object):
     elif kind == "sinc":
       y2 = lanczos(self.x, self.y, x2)
       e2 = lanczos(self.x, np.log(self.e+1E-300), x2)
-      e2[e2 < 0] = 0.
       extrap = (x2<self.x.min()) | (x2>self.x.max())
       y2[extrap] = 0.
       e2[extrap] = np.inf
@@ -471,6 +470,7 @@ class Spectrum(object):
       e2 = interp1d(self.x, self.e, kind=kind, \
         bounds_error=False, fill_value=np.inf, **kwargs)(x2)
 
+    e2[e2 < 0] = 0.
     return Spectrum(x2, y2, e2, *self.info)
 
   def copy(self):
@@ -571,7 +571,7 @@ class Spectrum(object):
     x = self.x * self._xu
     x2 = x.to(new_unit, u.spectral())
     self.x = x2.value
-    self._xu = u.Unit(new_unit)
+    self.x_unit = new_unit
     
   def y_unit_to(self, new_unit):
     """
@@ -579,7 +579,6 @@ class Spectrum(object):
     and Flambda etc. Argument should be a string.
     """
     assert isinstance(new_unit, (str, u.Unit))
-
     x = self.x * self._xu
     y = self.y * self._yu
     e = self.e * self._yu
@@ -587,7 +586,7 @@ class Spectrum(object):
     e = e.to(new_unit, u.spectral_density(x))
     self.y = y.value
     self.e = e.value
-    self._yu = u.Unit(new_unit)
+    self.y_unit = new_unit
     
   def apply_redshift(self, v, v_unit="km/s"):
     """
@@ -595,7 +594,6 @@ class Spectrum(object):
     """
     v *= u.Unit(v_unit)
     assert v.si.unit == const.c.unit
-    assert self.wave in ('vac', 'air')
     beta = v/const.c
     beta = beta.decompose().value
     factor = math.sqrt((1+beta)/(1-beta))
@@ -619,8 +617,8 @@ class Spectrum(object):
     either before or after calling this function.
     """
     assert isinstance(other, Spectrum)
-    assert self._xu == other._xu
-    assert self._yu == other._yu
+    assert self.x_unit == other.x_unit
+    assert self.y_unit == other.y_unit
 
     #if M and S already have same x-axis, this won't do much.
     S = other[other.e>0]
@@ -636,8 +634,8 @@ class Spectrum(object):
     this is for the case when the argument doesn't have errors.
     """
     assert isinstance(other, Spectrum)
-    assert self._xu == other._xu
-    assert self._yu == other._yu
+    assert self.x_unit == other.x_unit
+    assert self.y_unit == other.y_unit
 
     #if M and S already have same x-axis, this won't do much.
     S = other
