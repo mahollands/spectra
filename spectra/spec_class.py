@@ -40,51 +40,80 @@ class Spectrum(object):
 
   .............................................................................
   """
-  __slots__ = ['_x', '_y', '_e', '_name', '_wave', '_xu', '_yu']
+  __slots__ = ['_x', '_y', '_e', '_name', '_wave', '_xu', '_yu', '_head']
   def __init__(self, x, y, e, name="", wave='air', x_unit="AA", y_unit="erg/(s cm^2 AA)", head=None):
     """
     Initialise spectrum. Arbitrary header items can be added to self.head
     x must be an ndarray. y and e can either by int/floats or ndarrays of
     the same length.
     """
-    assert isinstance(x, np.ndarray)
-    assert x.ndim == 1
-    self.x = x.astype(float)
 
-    if isinstance(y, (int, float, complex)):
-      self.y = y*np.ones_like(x)
-    elif isinstance(y, np.ndarray):
-      assert y.shape == x.shape
-      self.y = y
-    else:
-      raise TypeError
-
-    if isinstance(e, (int, float)):
-      assert e >= 0
-      self.e = e*np.ones_like(x) 
-    elif isinstance(e, np.ndarray):
-      assert e.shape == x.shape
-      assert np.all(e >= 0)
-      self.e = e
-    else:
-      raise TypeError
-
-    assert isinstance(name, str)
-    assert wave in ("air", "vac")
+    self.x = x
+    self.y = y
+    self.e = e
     self.name = name
     self.wave = wave
     self.x_unit = x_unit
     self.y_unit = y_unit
-
-    if head is None:
-      self.head = {}
-    else:
-      assert isinstance(head, dict)
-      self.head = head
+    self.head = head
 
   @property
-  def x:
+  def x(self):
     return self._x
+
+  @x.setter
+  def x(self, x):
+    assert isinstance(x, np.ndarray)
+    assert x.ndim == 1
+    self._x = x.astype(float)
+
+  @property
+  def y(self):
+    return self._y
+
+  @y.setter
+  def y(self, y):
+    if isinstance(y, (int, float, complex)):
+      self._y = y*np.ones_like(self.x)
+    elif isinstance(y, np.ndarray):
+      assert y.shape == self.x.shape
+      self._y = y
+    else:
+      raise TypeError
+
+  @property
+  def e(self):
+    return self._e
+  
+  @e.setter
+  def e(self, e):
+    if isinstance(e, (int, float)):
+      assert e >= 0
+      self._e = e*np.ones_like(self.x) 
+    elif isinstance(e, np.ndarray):
+      assert e.shape == self.x.shape
+      assert np.all(e >= 0)
+      self._e = e
+    else:
+      raise TypeError
+
+  @property
+  def name(self):
+    return self._name
+
+  @name.setter
+  def name(self, name):
+    assert isinstance(name, str)
+    self._name = name
+
+  @property
+  def wave(self):
+    return self._wave
+
+  @wave.setter
+  def wave(self, wave):
+    assert wave in ('vac', 'air')
+    self._wave = wave
 
   @property
   def x_unit(self):
@@ -92,7 +121,7 @@ class Spectrum(object):
 
   @x_unit.setter
   def x_unit(self, x_unit):
-    if isinstance(x_unit, (str, u.Unit))
+    if isinstance(x_unit, (str, u.Unit)):
       self._xu = u.Unit(x_unit)
     else:
       raise TypeError
@@ -102,11 +131,23 @@ class Spectrum(object):
     return self._yu.to_string()
 
   @y_unit.setter
-  def y_unit(self):
-    if isinstance(y_unit, (str, u.Unit))
+  def y_unit(self, y_unit):
+    if isinstance(y_unit, (str, u.Unit)):
       self._yu = u.Unit(y_unit)
     else:
       raise TypeError
+
+  @property
+  def head(self):
+    return self._head
+
+  @head.setter
+  def head(self, head):
+    if head is None:
+      self._head = {}
+    else:
+      assert isinstance(head, dict)
+      self._head = head
 
   @property
   def var(self):
@@ -115,12 +156,26 @@ class Spectrum(object):
     """
     return self.e**2
 
+  @var.setter
+  def var(self, value):
+    """
+    Variance property attribute from flux errors
+    """
+    self.e = np.sqrt(value)
+
   @property
   def ivar(self):
     """
     Inverse variance attribute from flux errors
     """
     return 1.0/self.var
+
+  @ivar.setter
+  def ivar(self, value):
+    """
+    Variance property attribute from flux errors
+    """
+    self.e = 1/np.sqrt(value)
 
   @property
   def SN(self):
@@ -404,7 +459,8 @@ class Spectrum(object):
       e2[nan] = 0.
     elif kind == "sinc":
       y2 = lanczos(self.x, self.y, x2)
-      e2 = np.exp(lanczos(self.x, np.log(self.e), x2))
+      e2 = lanczos(self.x, np.log(self.e+1E-300), x2)
+      e2[e2 < 0] = 0.
       extrap = (x2<self.x.min()) | (x2>self.x.max())
       y2[extrap] = 0.
       e2[extrap] = np.inf
