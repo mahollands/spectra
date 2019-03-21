@@ -40,7 +40,7 @@ class Spectrum(object):
 
   .............................................................................
   """
-  __slots__ = ['name', 'head', 'x', 'y', 'e', 'wave', 'x_unit', 'y_unit']
+  __slots__ = ['name', 'head', 'x', 'y', 'e', 'wave', '_xu', '_yu']
   def __init__(self, x, y, e, name="", wave='air', x_unit="AA", y_unit="erg/(s cm^2 AA)", head=None):
     """
     Initialise spectrum. Arbitrary header items can be added to self.head
@@ -73,14 +73,29 @@ class Spectrum(object):
     assert wave in ("air", "vac")
     self.name = name
     self.wave = wave
-    self.x_unit = u.Unit(x_unit).to_string()
-    self.y_unit = u.Unit(y_unit).to_string()
+    if isinstance(x_unit, (str, u.Unit))
+      self._xu = u.Unit(x_unit)
+    else:
+      raise TypeError
+
+    if isinstance(y_unit, (str, u.Unit))
+      self._yu = u.Unit(y_unit)
+    else:
+      raise TypeError
 
     if head is None:
       self.head = {}
     else:
       assert isinstance(head, dict)
       self.head = head
+
+  @property
+  def x_unit(self):
+    return self._xu.to_string()
+
+  @property
+  def y_unit(self):
+    return self._yu.to_string()
 
   @property
   def var(self):
