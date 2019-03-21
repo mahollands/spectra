@@ -195,6 +195,15 @@ class Spectrum(object):
     return np.abs(self.y/self.e)
 
   @property
+  def magAB(self):
+    """
+    Returns fluxes in terms of AB magnitudes
+    """
+    S = self.copy()
+    S.y_unit_to("Jy")
+    return -2.5*np.log10(S.y/3631)
+
+  @property
   def data(self):
     """
     Returns all three arrays as a tuple. Useful for creating new spectra, e.g.
