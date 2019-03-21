@@ -350,11 +350,11 @@ class Spectrum(object):
       y2 = self.y**other
       e2 = other * y2 * self.e/self.y
       yu2 = self._yu**other
+      S = Spectrum(x2, y2, e2, *self.info)
+      S.y_unit = yu2
+      return S
     else:
       raise TypeError
-    S = Spectrum(x2, y2, e2, *self.info)
-    S._yu = yu2
-    return S
 
   def __radd__(self, other):
     """
@@ -382,12 +382,12 @@ class Spectrum(object):
       x2 = self.x.copy()
       y2 = other / self.y
       e2 = other * self.e /(self.y*self.y)
+      yu2 = 1/self._yu
+      S = Spectrum(x2, y2, e2, *self.info)
+      S.y_unit = yu2
+      return S
     else:
       raise TypeError
-    y_unit = (1/u.Unit(self.y_unit)).to_string()
-    S = Spectrum(x2, y2, e2, *self.info)
-    S.y_unit = y_unit
-    return S
 
   def __neg__(self):
     """
