@@ -350,13 +350,13 @@ class Spectrum(object):
       NMONTE = 0 
     return mag_calc_AB(S, filt, NMONTE)
 
-  def interp_wave(self, X, kind='linear', **kwargs):
+  def interp(self, X, kind='linear', **kwargs):
     """
     Interpolates a spectrum onto the wavlength axis X, if X is a numpy array,
     or X.x if X is Spectrum type. This returns a new spectrum rather than
     updating a spectrum in place, however this can be acheived by
 
-    >>> S1 = S1.interp_wave(X)
+    >>> S1 = S1.interp(X)
 
     Wavelengths outside the range of the original spectrum are filled with
     zeroes. By default the interpolation is nearest neighbour.
@@ -536,7 +536,7 @@ class Spectrum(object):
     There is no requirement for either to have the same wavelengths as
     interpolation is performed. However the resulting scaled model will
     have the wavelengths of the original model, not the data. If you want
-    the model to share the same wavelengths, use model.interp_wave(),
+    the model to share the same wavelengths, use model.interp(),
     either before or after calling this function.
     """
     assert isinstance(other, Spectrum)
@@ -545,7 +545,7 @@ class Spectrum(object):
 
     #if M and S already have same x-axis, this won't do much.
     S = other[other.e>0]
-    M = self.interp_wave(S)
+    M = self.interp(S)
 
     A = np.sum(S.y*M.y*S.ivar)/np.sum(M.y**2*S.ivar)
 
@@ -562,7 +562,7 @@ class Spectrum(object):
 
     #if M and S already have same x-axis, this won't do much.
     S = other
-    M = self.interp_wave(S)
+    M = self.interp(S)
 
     A = np.sum(S.y*M.y)/np.sum(M.y)
 
