@@ -268,9 +268,9 @@ class Spectrum(object):
       y2 = self.y + other
       e2 = self.e.copy()
     elif isinstance(other, Spectrum):
-      assert np.all(np.isclose(self.x, other.x))
       assert self.x_unit == other.x_unit
       assert self.y_unit == other.y_unit
+      assert np.all(np.isclose(self.x, other.x))
       x2 = 0.5*(self.x+other.x)
       y2 = self.y+other.y
       e2 = np.hypot(self.e, other.e)
@@ -287,9 +287,9 @@ class Spectrum(object):
       y2 = self.y - other
       e2 = self.e.copy()
     elif isinstance(other, Spectrum):
-      assert np.all(np.isclose(self.x, other.x))
       assert self.x_unit == other.x_unit
       assert self.y_unit == other.y_unit
+      assert np.all(np.isclose(self.x, other.x))
       x2 = 0.5*(self.x+other.x)
       y2 = self.y - other.y
       e2 = np.hypot(self.e, other.e)
@@ -307,8 +307,8 @@ class Spectrum(object):
       e2 = self.e * np.abs(other)
       yu2 = self._yu
     elif isinstance(other, Spectrum):
-      assert np.all(np.isclose(self.x, other.x))
       assert self.x_unit == other.x_unit
+      assert np.all(np.isclose(self.x, other.x))
       x2 = 0.5*(self.x+other.x)
       y2 = self.y*other.y
       e2 = np.abs(y2)*np.hypot(self.e/self.y, other.e/other.y)
@@ -329,8 +329,8 @@ class Spectrum(object):
       e2 = self.e / np.abs(other)
       yu2 = self._yu
     elif isinstance(other, Spectrum):
-      assert np.all(np.isclose(self.x, other.x))
       assert self.x_unit == other.x_unit
+      assert np.all(np.isclose(self.x, other.x))
       x2 = 0.5*(self.x+other.x)
       y2 = self.y/other.y
       e2 = np.abs(y2)*np.hypot(self.e/self.y, other.e/other.y)
@@ -454,6 +454,8 @@ class Spectrum(object):
     if isinstance(X, np.ndarray):
       x2 = 1*X
     elif isinstance(X, Spectrum):
+      assert self.x_unit == X.x_unit
+      assert self.y_unit == X.y_unit
       assert self.wave == X.wave
       x2 = 1*X.x
     else:
@@ -685,6 +687,9 @@ class Spectrum(object):
     >>> S = S1.join(S2).join(S3)
     """
     assert isinstance(other, Spectrum)
+    assert self.x_unit == other.x_unit
+    assert self.y_unit == other.y_unit
+    assert self.wave == other.wave
     return join_spectra((self, other), sort=sort)
 
   def closest_wave(self, x0):
