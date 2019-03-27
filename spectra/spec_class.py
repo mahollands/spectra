@@ -480,12 +480,12 @@ class Spectrum(object):
     >>> S1 = S1.interp(X)
 
     Wavelengths outside the range of the original spectrum are filled with
-    zeroes. By default the interpolation is nearest neighbour.
+    zeroes.
     """
     if isinstance(X, np.ndarray):
       x2 = 1*X
     elif isinstance(X, Spectrum):
-      self._compare_units(X, 'xy')
+      self._compare_units(X, 'x')
       if self.wave != X.wave:
         raise ValueError("wavelengths differ between spectra")
       x2 = 1*X.x
@@ -516,7 +516,7 @@ class Spectrum(object):
 
   def copy(self):
     """
-    Retrurns a copy of self
+    Returns a copy of self
     """
     return 1.*self
 
