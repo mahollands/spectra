@@ -722,4 +722,9 @@ class Spectrum(object):
     return np.argmin(np.abs(self.x-x0))
 
   def plot(self, *args, errors=False, **kwargs):
-    plt.plot(self.x, self.e if errors else self.y, *args, **kwargs)
+    """
+    Plots the spectrum with matplotlib and passes *args/**kwargs.
+    plt.show() and other mpl functions still need to be used separately.
+    """
+    y_plot = self.e if errors else self.y
+    plt.plot(self.x, y_plot, *args, **kwargs)
