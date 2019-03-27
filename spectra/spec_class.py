@@ -47,7 +47,6 @@ class Spectrum(object):
     x must be an ndarray. y and e can either by int/floats or ndarrays of
     the same length.
     """
-
     self.x = x
     self.y = y
     self.e = e
@@ -67,9 +66,9 @@ class Spectrum(object):
       if x.ndim == 1:
         self._x = x.astype(float)
       else:
-        raise ValueError
+        raise ValueError("x arrays must be 1D")
     else:
-      raise TypeError
+      raise TypeError("x must be an ndarray")
 
   @property
   def y(self):
@@ -77,13 +76,14 @@ class Spectrum(object):
 
   @y.setter
   def y(self, y):
-    if isinstance(y, (int, float, complex)):
+    if isinstance(y, (int, float)):
       self._y = y*np.ones_like(self.x)
     elif isinstance(y, np.ndarray):
-      assert y.shape == self.x.shape
-      self._y = y
+      if(y.shape != self.x.shape):
+        raise ValueError("for ndarrays, y must be the same shape as x")
+      self._y = y.astype(float)
     else:
-      raise TypeError
+      raise TypeError("y must be of type int/float/ndarray")
 
   @property
   def e(self):
@@ -92,14 +92,17 @@ class Spectrum(object):
   @e.setter
   def e(self, e):
     if isinstance(e, (int, float)):
-      assert e >= 0
+      if e < 0:
+        raise ValueError("Uncertainties cannot be negative")
       self._e = e*np.ones_like(self.x) 
     elif isinstance(e, np.ndarray):
-      assert e.shape == self.x.shape
-      assert np.all(e >= 0)
-      self._e = e
+      if e.shape != self.x.shape:
+        raise ValueError("for ndarrays, e must be the same shape as x")
+      if np.any(e < 0):
+        raise ValueError("Uncertainties cannot be negative")
+      self._e = e.astype(float)
     else:
-      raise TypeError
+      raise TypeError("y must be of type int/float/ndarray")
 
   @property
   def name(self):
@@ -110,7 +113,7 @@ class Spectrum(object):
     if isinstance(name, str):
       self._name = name
     else:
-      raise TypeError
+      raise TypeError("name must be a string")
 
   @property
   def wave(self):
@@ -121,7 +124,7 @@ class Spectrum(object):
     if wave in ('vac', 'air'):
       self._wave = wave
     else:
-      raise ValueError
+      raise ValueError("wave must be 'vac' or 'air'")
 
   @property
   def x_unit(self):
@@ -132,7 +135,7 @@ class Spectrum(object):
     if isinstance(x_unit, (str, u.Unit)):
       self._xu = u.Unit(x_unit)
     else:
-      raise TypeError
+      raise TypeError("x_unit must be str or Unit type")
 
   @property
   def y_unit(self):
@@ -143,7 +146,7 @@ class Spectrum(object):
     if isinstance(y_unit, (str, u.Unit)):
       self._yu = u.Unit(y_unit)
     else:
-      raise TypeError
+      raise TypeError("y_unit must be str or Unit type")
 
   @property
   def head(self):
@@ -157,20 +160,17 @@ class Spectrum(object):
       if isinstance(head, dict):
         self._head = head
       else:
-        raise ValueError
+        raise ValueError("head must be a dictionary")
 
   @property
   def var(self):
     """
-    Variance property attribute from flux errors
+    Variance attribute from flux errors
     """
     return self.e**2
 
   @var.setter
   def var(self, value):
-    """
-    Variance property attribute from flux errors
-    """
     self.e = np.sqrt(value)
 
   @property
@@ -182,10 +182,7 @@ class Spectrum(object):
 
   @ivar.setter
   def ivar(self, value):
-    """
-    Variance property attribute from flux errors
-    """
-    self.e = 1/np.sqrt(value)
+    self.var = 1.0/value
 
   @property
   def SN(self):
@@ -251,7 +248,7 @@ class Spectrum(object):
       else:
         return Spectrum(*indexed_data, *self.info)
     else:
-      raise TypeError
+      raise TypeError("spectra must be indexed with int/slice/ndarray types")
 
   def __iter__(self):
     """
@@ -268,14 +265,14 @@ class Spectrum(object):
       y2 = self.y + other
       e2 = self.e.copy()
     elif isinstance(other, Spectrum):
-      assert self.x_unit == other.x_unit
-      assert self.y_unit == other.y_unit
-      assert np.all(np.isclose(self.x, other.x))
+      self._check_units(other, 'xy')
+      if np.any(~np.isclose(self.x, other.x)):
+        raise ValueError("Spectra must have same x values")
       x2 = 0.5*(self.x+other.x)
       y2 = self.y+other.y
       e2 = np.hypot(self.e, other.e)
     else:
-      raise TypeError
+      raise TypeError("other must be int/float/ndarray/Spectrum")
     return Spectrum(x2, y2, e2, *self.info)
 
   def __sub__(self, other):
@@ -287,14 +284,14 @@ class Spectrum(object):
       y2 = self.y - other
       e2 = self.e.copy()
     elif isinstance(other, Spectrum):
-      assert self.x_unit == other.x_unit
-      assert self.y_unit == other.y_unit
-      assert np.all(np.isclose(self.x, other.x))
+      self._check_units(other, 'xy')
+      if np.any(~np.isclose(self.x, other.x)):
+        raise ValueError("Spectra must have same x values")
       x2 = 0.5*(self.x+other.x)
       y2 = self.y - other.y
       e2 = np.hypot(self.e, other.e)
     else:
-      raise TypeError
+      raise TypeError("other must be int/float/ndarray/Spectrum")
     return Spectrum(x2, y2, e2, *self.info)
       
   def __mul__(self, other):
@@ -307,14 +304,15 @@ class Spectrum(object):
       e2 = self.e * np.abs(other)
       yu2 = self._yu
     elif isinstance(other, Spectrum):
-      assert self.x_unit == other.x_unit
-      assert np.all(np.isclose(self.x, other.x))
+      self._check_units(other, 'x')
+      if np.any(~np.isclose(self.x, other.x)):
+        raise ValueError("Spectra must have same x values")
       x2 = 0.5*(self.x+other.x)
       y2 = self.y*other.y
       e2 = np.abs(y2)*np.hypot(self.e/self.y, other.e/other.y)
       yu2 = self._yu * other._yu
     else:
-      raise TypeError
+      raise TypeError("other must be int/float/ndarray/Spectrum")
     S = Spectrum(x2, y2, e2, *self.info)
     S._yu = yu2
     return S
@@ -329,14 +327,15 @@ class Spectrum(object):
       e2 = self.e / np.abs(other)
       yu2 = self._yu
     elif isinstance(other, Spectrum):
-      assert self.x_unit == other.x_unit
-      assert np.all(np.isclose(self.x, other.x))
+      self._check_units(other, 'x')
+      if np.any(~np.isclose(self.x, other.x)):
+        raise ValueError("Spectra must have same x values")
       x2 = 0.5*(self.x+other.x)
       y2 = self.y/other.y
       e2 = np.abs(y2)*np.hypot(self.e/self.y, other.e/other.y)
       yu2 = self._yu / other._yu
     else:
-      raise TypeError
+      raise TypeError("other must be int/float/ndarray/Spectrum")
     S = Spectrum(x2, y2, e2, *self.info)
     S._yu = yu2
     return S
@@ -354,7 +353,7 @@ class Spectrum(object):
       S.y_unit = yu2
       return S
     else:
-      raise TypeError
+      raise TypeError("other must be int/float")
 
   def __radd__(self, other):
     """
@@ -387,7 +386,7 @@ class Spectrum(object):
       S.y_unit = yu2
       return S
     else:
-      raise TypeError
+      raise TypeError("other must be int/float/ndarray")
 
   def __neg__(self):
     """
@@ -408,6 +407,38 @@ class Spectrum(object):
     S = self.copy()
     S.y = np.abs(S.y)
     return S
+
+  def _check_units(self, other, xy):
+    """
+    Check units match another spectrum or kind of unit
+    """
+    if isinstance(other, (str, u.Unit)):
+      #check specific unit
+      if xy == 'x':
+        if self.x_unit != u.Unit(other):
+          raise u.UnitError("x_units differ")
+      elif xy == 'y':
+        if self.y_unit != u.Unit(other):
+          raise u.UnitError("y_units differ")
+      else:
+        raise ValueError("xy not 'x' or 'y'")
+    elif isinstance(other, Spectrum):
+      #compare two spectra
+      if xy == 'x':
+        if self.x_unit != other.x_unit:
+          raise u.UnitError("x_units differ")
+      elif xy == 'y', :
+        if self.y_unit != other.y_unit:
+          raise u.UnitError("y_units differ")
+      elif xy == 'xy':
+        if self.x_unit != other.x_unit:
+          raise u.UnitError("x_units differ")
+        if self.y_unit != other.y_unit:
+          raise u.UnitError("y_units differ")
+      else:
+        raise ValueError("xy not 'x', 'y', or 'xy'")
+    else:
+      raise TypeError("other was not Spectrum or interpretable as a unit")
 
   def apply_mask(self, mask):
     """
@@ -454,12 +485,12 @@ class Spectrum(object):
     if isinstance(X, np.ndarray):
       x2 = 1*X
     elif isinstance(X, Spectrum):
-      assert self.x_unit == X.x_unit
-      assert self.y_unit == X.y_unit
-      assert self.wave == X.wave
+      self._check_units(X, 'xy')
+      if self.wave != X.wave:
+        raise ValueError("wavelengths differ between spectra")
       x2 = 1*X.x
     else:
-      raise TypeError
+      raise TypeError("interpolant was not ndarray/Spectrum type")
 
     if kind == "Akima":
       y2 = Ak_i(self.x, self.y)(x2)
@@ -526,34 +557,25 @@ class Spectrum(object):
       data = [*self.data] if errors else [self.x, self.y]
       np.save(fname, np.array(data))
     else:
-      print("Unrecognised File type")
-      print("Save aborted")
+      raise ValueError("file name must be of type .txt/.dat/.npy")
 
   def air_to_vac(self):
     """
     Changes air wavelengths to vaccuum wavelengths in place
     """
-    assert self.x_unit == "AA"
+    self._check_units("AA", 'x')
     if self.wave == 'air':
       self.x = air_to_vac(self.x) 
       self.wave = 'vac'
-    elif self.wave == 'vac':
-      print("wavelengths already vac")
-    else:
-      raise ValueError
 
   def vac_to_air(self):
     """
     Changes vaccuum wavelengths to air wavelengths in place
     """
-    assert self.x_unit == "AA"
+    self._check_units("AA", 'x')
     if self.wave == 'vac':
       self.x = vac_to_air(self.x) 
       self.wave = 'air'
-    elif self.wave == 'air':
-      print("wavelengths already air")
-    else:
-      raise ValueError
 
   def redden(self, E_BV, Rv=3.1):
     """
@@ -574,7 +596,7 @@ class Spectrum(object):
   def x_unit_to(self, new_unit):
     """
     Changes units of the x-data. Supports conversion between wavelength
-    and energy etc. Argument should be a string.
+    and energy etc. Argument should be a string or Unit.
     """
     x = self.x * self._xu
     x2 = x.to(new_unit, u.spectral())
@@ -584,7 +606,7 @@ class Spectrum(object):
   def y_unit_to(self, new_unit):
     """
     Changes units of the y-data. Supports conversion between Fnu
-    and Flambda etc. Argument should be a string.
+    and Flambda etc. Argument should be a string or Unit.
     """
     x = self.x * self._xu
     y = self.y * self._yu
@@ -600,7 +622,8 @@ class Spectrum(object):
     Applies redshift of v km/s to spectrum for "air" or "vac" wavelengths
     """
     v *= u.Unit(v_unit)
-    assert v.si.unit == const.c.unit
+    if v.si.unit != const.c.unit:
+      raise u.UnitsError("v must have velocity units")
     beta = v/const.c
     beta = beta.decompose().value
     factor = math.sqrt((1+beta)/(1-beta))
@@ -608,10 +631,8 @@ class Spectrum(object):
       self.x = air_to_vac(self.x) 
       self.x *= factor
       self.x = vac_to_air(self.x) 
-    elif self.wave == "vac":
-      self.x *= factor
     else:
-      raise ValueError("self.wave should be in ['vac', 'air']")
+      self.x *= factor
 
   def scale_model(self, other, return_scaling_factor=False):
     """
@@ -623,9 +644,9 @@ class Spectrum(object):
     the model to share the same wavelengths, use model.interp(),
     either before or after calling this function.
     """
-    assert isinstance(other, Spectrum)
-    assert self.x_unit == other.x_unit
-    assert self.y_unit == other.y_unit
+    if not isinstance(other, Spectrum):
+      raise TypeError
+    self._check_units(other, 'xy')
 
     #if M and S already have same x-axis, this won't do much.
     S = other[other.e>0]
@@ -640,9 +661,9 @@ class Spectrum(object):
     Similar to scale_model, but for scaling one model to another. Essentially
     this is for the case when the argument doesn't have errors.
     """
-    assert isinstance(other, Spectrum)
-    assert self.x_unit == other.x_unit
-    assert self.y_unit == other.y_unit
+    if not isinstance(other, Spectrum):
+      raise TypeError
+    self._check_units(other, 'xy')
 
     #if M and S already have same x-axis, this won't do much.
     S = other
@@ -674,10 +695,11 @@ class Spectrum(object):
     if isinstance(W, (int, float)):
       W = -np.inf, W, np.inf
     elif isinstance(W, (list, tuple, np.ndarray)):
-      if not all([isinstance(w, (int, float)) for w in W]): raise TypeError
+      if not all([isinstance(w, (int, float)) for w in W]):
+        raise TypeError("w must all be of type int/float")
       W = -np.inf, *sorted(W), np.inf
     else:
-      raise TypeError
+      raise TypeError("W must be int/float or iterable of those types")
     return tuple(self.clip(*pair) for pair in zip(W[:-1], W[1:]))
 
   def join(self, other, sort=False):
@@ -686,10 +708,11 @@ class Spectrum(object):
     rescursively, i.e.
     >>> S = S1.join(S2).join(S3)
     """
-    assert isinstance(other, Spectrum)
-    assert self.x_unit == other.x_unit
-    assert self.y_unit == other.y_unit
-    assert self.wave == other.wave
+    if not isinstance(other, Spectrum):
+      raise TypeError("can only join Spectrum type to other spectra")
+    self._check_units(other, 'xy')
+    if self.wave != other.wave:
+      raise ValueError("cannot join spectra with different wavelengths")
     return join_spectra((self, other), sort=sort)
 
   def closest_wave(self, x0):
@@ -700,4 +723,3 @@ class Spectrum(object):
 
   def plot(self, *args, errors=False, **kwargs):
     plt.plot(self.x, self.e if errors else self.y, *args, **kwargs)
-
