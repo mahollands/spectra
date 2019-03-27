@@ -265,7 +265,7 @@ class Spectrum(object):
       y2 = self.y + other
       e2 = self.e.copy()
     elif isinstance(other, Spectrum):
-      self._check_units(other, 'xy')
+      self._compare_units(other, 'xy')
       if np.any(~np.isclose(self.x, other.x)):
         raise ValueError("Spectra must have same x values")
       x2 = 0.5*(self.x+other.x)
@@ -284,7 +284,7 @@ class Spectrum(object):
       y2 = self.y - other
       e2 = self.e.copy()
     elif isinstance(other, Spectrum):
-      self._check_units(other, 'xy')
+      self._compare_units(other, 'xy')
       if np.any(~np.isclose(self.x, other.x)):
         raise ValueError("Spectra must have same x values")
       x2 = 0.5*(self.x+other.x)
@@ -304,7 +304,7 @@ class Spectrum(object):
       e2 = self.e * np.abs(other)
       yu2 = self._yu
     elif isinstance(other, Spectrum):
-      self._check_units(other, 'x')
+      self._compare_units(other, 'x')
       if np.any(~np.isclose(self.x, other.x)):
         raise ValueError("Spectra must have same x values")
       x2 = 0.5*(self.x+other.x)
@@ -327,7 +327,7 @@ class Spectrum(object):
       e2 = self.e / np.abs(other)
       yu2 = self._yu
     elif isinstance(other, Spectrum):
-      self._check_units(other, 'x')
+      self._compare_units(other, 'x')
       if np.any(~np.isclose(self.x, other.x)):
         raise ValueError("Spectra must have same x values")
       x2 = 0.5*(self.x+other.x)
@@ -408,7 +408,7 @@ class Spectrum(object):
     S.y = np.abs(S.y)
     return S
 
-  def _check_units(self, other, xy):
+  def _compare_units(self, other, xy):
     """
     Check units match another spectrum or kind of unit
     """
@@ -485,7 +485,7 @@ class Spectrum(object):
     if isinstance(X, np.ndarray):
       x2 = 1*X
     elif isinstance(X, Spectrum):
-      self._check_units(X, 'xy')
+      self._compare_units(X, 'xy')
       if self.wave != X.wave:
         raise ValueError("wavelengths differ between spectra")
       x2 = 1*X.x
@@ -563,7 +563,7 @@ class Spectrum(object):
     """
     Changes air wavelengths to vaccuum wavelengths in place
     """
-    self._check_units("AA", 'x')
+    self._compare_units("AA", 'x')
     if self.wave == 'air':
       self.x = air_to_vac(self.x) 
       self.wave = 'vac'
@@ -572,7 +572,7 @@ class Spectrum(object):
     """
     Changes vaccuum wavelengths to air wavelengths in place
     """
-    self._check_units("AA", 'x')
+    self._compare_units("AA", 'x')
     if self.wave == 'vac':
       self.x = vac_to_air(self.x) 
       self.wave = 'air'
@@ -646,7 +646,7 @@ class Spectrum(object):
     """
     if not isinstance(other, Spectrum):
       raise TypeError
-    self._check_units(other, 'xy')
+    self._compare_units(other, 'xy')
 
     #if M and S already have same x-axis, this won't do much.
     S = other[other.e>0]
@@ -663,7 +663,7 @@ class Spectrum(object):
     """
     if not isinstance(other, Spectrum):
       raise TypeError
-    self._check_units(other, 'xy')
+    self._compare_units(other, 'xy')
 
     #if M and S already have same x-axis, this won't do much.
     S = other
@@ -710,7 +710,7 @@ class Spectrum(object):
     """
     if not isinstance(other, Spectrum):
       raise TypeError("can only join Spectrum type to other spectra")
-    self._check_units(other, 'xy')
+    self._compare_units(other, 'xy')
     if self.wave != other.wave:
       raise ValueError("cannot join spectra with different wavelengths")
     return join_spectra((self, other), sort=sort)
