@@ -427,7 +427,7 @@ class Spectrum(object):
       if xy == 'x':
         if self.x_unit != other.x_unit:
           raise u.UnitError("x_units differ")
-      elif xy == 'y', :
+      elif xy == 'y':
         if self.y_unit != other.y_unit:
           raise u.UnitError("y_units differ")
       elif xy == 'xy':
