@@ -58,7 +58,8 @@ def spec_from_npy(fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)'):
   Loads a npy file with 2 or 3 columns as wavelengths, fluxes(, errors).
   """
   data = np.load(fname)
-  assert data.ndim == 2, "Data must be 2D"
+  if data.ndim != 2:
+    raise ValueError("Data must be 2D")
 
   if data.shape[0] == 2:
     x, y = data
