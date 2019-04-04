@@ -40,14 +40,11 @@ def model_from_dk(fname, x_unit='AA', y_unit='erg/(s cm2 AA)', **kwargs):
   """
   Similar to model_from_txt, but will autoskip past the DK header. Units are converted 
   """
-  with open(fname, 'r') as F:
-    skip = 1
-    while True:
-      line = F.readline()
+  #Measure header first
+  with open(fname, 'r') as Fdk:
+    for skip, line in enumerate(Fdk, 1):
       if line.startswith("END"):
         break
-      else:
-        skip += 1
   M = model_from_txt(fname, 'vac', 'AA', 'erg/(s cm3)', skiprows=skip)
   M.x_unit_to(x_unit)
   M.y_unit_to(y_unit)

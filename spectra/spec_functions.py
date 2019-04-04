@@ -38,7 +38,7 @@ def join_spectra(SS, sort=False, name=None):
   S0 = SS[0]
   
   for S in SS:
-    if not isinstance(S, Spectrum)
+    if not isinstance(S, Spectrum):
       raise TypeError('item is not Spectrum')
     if S.wave != S0.wave:
       raise ValueError("Spectra must have same wavelengths")
@@ -63,7 +63,7 @@ def spectra_mean(SS):
   """
   S0 = SS[0]
   for S in SS:
-    if not isinstance(S, Spectrum)
+    if not isinstance(S, Spectrum):
       raise TypeError('item is not Spectrum')
     if S.wave != S0.wave:
       raise ValueError("Spectra must have same wavelengths")
