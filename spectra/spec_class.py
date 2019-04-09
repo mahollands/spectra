@@ -266,7 +266,7 @@ class Spectrum(object):
       e2 = self.e.copy()
     elif isinstance(other, Spectrum):
       self._compare_units(other, 'xy')
-      if np.any(~np.isclose(self.x, other.x)):
+      if not np.allclose(self.x, other.x):
         raise ValueError("Spectra must have same x values")
       x2 = 0.5*(self.x+other.x)
       y2 = self.y+other.y
@@ -285,7 +285,7 @@ class Spectrum(object):
       e2 = self.e.copy()
     elif isinstance(other, Spectrum):
       self._compare_units(other, 'xy')
-      if np.any(~np.isclose(self.x, other.x)):
+      if not np.allclose(self.x, other.x):
         raise ValueError("Spectra must have same x values")
       x2 = 0.5*(self.x+other.x)
       y2 = self.y - other.y
@@ -305,7 +305,7 @@ class Spectrum(object):
       yu2 = self._yu
     elif isinstance(other, Spectrum):
       self._compare_units(other, 'x')
-      if np.any(~np.isclose(self.x, other.x)):
+      if not np.allclose(self.x, other.x):
         raise ValueError("Spectra must have same x values")
       x2 = 0.5*(self.x+other.x)
       y2 = self.y*other.y
@@ -328,7 +328,7 @@ class Spectrum(object):
       yu2 = self._yu
     elif isinstance(other, Spectrum):
       self._compare_units(other, 'x')
-      if np.any(~np.isclose(self.x, other.x)):
+      if not np.allclose(self.x, other.x):
         raise ValueError("Spectra must have same x values")
       x2 = 0.5*(self.x+other.x)
       y2 = self.y/other.y

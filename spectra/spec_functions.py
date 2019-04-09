@@ -68,7 +68,7 @@ def spectra_mean(SS):
     if S.wave != S0.wave:
       raise ValueError("Spectra must have same wavelengths")
     S._compare_units(S0, xy='xy')
-    if np.any(~np.isclose(S.x, S0.x)):
+    if not np.allclose(S.x, S0.x):
       raise ValueError("Spectra must have same x-axis")
 
   X, Y, IV = np.array([S.x    for S in SS]), \
