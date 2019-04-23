@@ -132,7 +132,7 @@ class Spectrum(object):
 
   @x_unit.setter
   def x_unit(self, x_unit):
-    if isinstance(x_unit, (str, u.Unit)):
+    if isinstance(x_unit, (str, u.UnitBase)):
       self._xu = u.Unit(x_unit)
     else:
       raise TypeError("x_unit must be str or Unit type")
@@ -143,7 +143,7 @@ class Spectrum(object):
 
   @y_unit.setter
   def y_unit(self, y_unit):
-    if isinstance(y_unit, (str, u.Unit)):
+    if isinstance(y_unit, (str, u.UnitBase)):
       self._yu = u.Unit(y_unit)
     else:
       raise TypeError("y_unit must be str or Unit type")
@@ -256,104 +256,87 @@ class Spectrum(object):
     """
     return zip(*self.data)
 
+  def _promote_to_spectrum(self, other, mul_or_div=False):
+    """
+    Promote non-Spectrum objects (int/float/ndarray/quantity) to a Spectrum
+    with similar properties to self. Simplifies arithmetic implementation.
+    """
+    if isinstance(other, u.Quantity):
+      S = Spectrum(self.x, other.value, 0, *self.info)
+      S.y_unit = other.unit
+    else:
+      S = Spectrum(self.x, other, 0, *self.info)
+      if mul_or_div:
+        S.y_unit = u.dimensionless_unscaled
+    return S
+
   def __add__(self, other):
     """
     Return self + other (with standard error propagation)
     """
-    if isinstance(other, (int, float, np.ndarray)):
-      x2 = self.x.copy()
-      y2 = self.y + other
-      e2 = self.e.copy()
-    elif isinstance(other, Spectrum):
+    if isinstance(other, Spectrum):
       self._compare_units(other, 'xy')
       if not np.allclose(self.x, other.x):
         raise ValueError("Spectra must have same x values")
-      x2 = 0.5*(self.x+other.x)
-      y2 = self.y+other.y
-      e2 = np.hypot(self.e, other.e)
+      xnew = 0.5*(self.x+other.x)
+      ynew = self.y + other.y
+      enew = np.hypot(self.e, other.e)
+      return Spectrum(xnew, ynew, enew, *self.info)
     else:
-      raise TypeError("other must be int/float/ndarray/Spectrum")
-    return Spectrum(x2, y2, e2, *self.info)
+      Sother = self._promote_to_spectrum(other)
+      return self + Sother
 
   def __sub__(self, other):
     """
     Return self - other (with standard error propagation)
     """
-    if isinstance(other, (int, float, np.ndarray)):
-      x2 = self.x.copy()
-      y2 = self.y - other
-      e2 = self.e.copy()
-    elif isinstance(other, Spectrum):
+    if isinstance(other, Spectrum):
       self._compare_units(other, 'xy')
       if not np.allclose(self.x, other.x):
         raise ValueError("Spectra must have same x values")
-      x2 = 0.5*(self.x+other.x)
-      y2 = self.y - other.y
-      e2 = np.hypot(self.e, other.e)
+      xnew = 0.5*(self.x+other.x)
+      ynew = self.y - other.y
+      enew = np.hypot(self.e, other.e)
+      return Spectrum(xnew, ynew, enew, *self.info)
     else:
-      raise TypeError("other must be int/float/ndarray/Spectrum")
-    return Spectrum(x2, y2, e2, *self.info)
+      Sother = self._promote_to_spectrum(other)
+      return self - Sother
       
   def __mul__(self, other):
     """
     Return self * other (with standard error propagation)
     """
-    if isinstance(other, (int, float, np.ndarray)):
-      x2 = self.x.copy()
-      y2 = self.y * other
-      e2 = self.e * np.abs(other)
-      yu2 = self._yu
-    elif isinstance(other, Spectrum):
+    if isinstance(other, Spectrum):
       self._compare_units(other, 'x')
       if not np.allclose(self.x, other.x):
         raise ValueError("Spectra must have same x values")
-      x2 = 0.5*(self.x+other.x)
-      y2 = self.y*other.y
-      e2 = np.abs(y2)*np.hypot(self.e/self.y, other.e/other.y)
-      yu2 = self._yu * other._yu
+      xnew = 0.5*(self.x+other.x)
+      ynew = self.y * other.y
+      enew = np.abs(ynew)*np.hypot(self.e/self.y, other.e/other.y)
+      Snew = Spectrum(xnew, ynew, enew, *self.info)
+      Snew.y_unit = self._yu * other._yu
+      return Snew
     else:
-      raise TypeError("other must be int/float/ndarray/Spectrum")
-    S = Spectrum(x2, y2, e2, *self.info)
-    S._yu = yu2
-    return S
-
+      Sother = self._promote_to_spectrum(other, True)
+      return self * Sother
+      
   def __truediv__(self, other):
     """
     Return self / other (with standard error propagation)
     """
-    if isinstance(other, (int, float, np.ndarray)):
-      x2 = self.x.copy()
-      y2 = self.y / other
-      e2 = self.e / np.abs(other)
-      yu2 = self._yu
-    elif isinstance(other, Spectrum):
+    if isinstance(other, Spectrum):
       self._compare_units(other, 'x')
       if not np.allclose(self.x, other.x):
         raise ValueError("Spectra must have same x values")
-      x2 = 0.5*(self.x+other.x)
-      y2 = self.y/other.y
-      e2 = np.abs(y2)*np.hypot(self.e/self.y, other.e/other.y)
-      yu2 = self._yu / other._yu
+      xnew = 0.5*(self.x+other.x)
+      ynew = self.y / other.y
+      enew = np.abs(ynew)*np.hypot(self.e/self.y, other.e/other.y)
+      Snew = Spectrum(xnew, ynew, enew, *self.info)
+      Snew.y_unit = self._yu * other._yu
+      return Snew
     else:
-      raise TypeError("other must be int/float/ndarray/Spectrum")
-    S = Spectrum(x2, y2, e2, *self.info)
-    S._yu = yu2
-    return S
-
-  def __pow__(self,other):
-    """
-    Return S**other (with standard error propagation)
-    """
-    if isinstance(other, (int, float)):
-      x2 = self.x.copy()
-      y2 = self.y**other
-      e2 = other * y2 * self.e/self.y
-      yu2 = self._yu**other
-      S = Spectrum(x2, y2, e2, *self.info)
-      S.y_unit = yu2
-      return S
-    else:
-      raise TypeError("other must be int/float")
+      Sother = self._promote_to_spectrum(other, True)
+      return self / Sother
 
   def __radd__(self, other):
     """
@@ -377,16 +360,22 @@ class Spectrum(object):
     """
     Return other / self (with standard error propagation)
     """
-    if isinstance(other, (int, float, np.ndarray)):
-      x2 = self.x.copy()
-      y2 = other / self.y
-      e2 = other * self.e /(self.y*self.y)
-      yu2 = 1/self._yu
-      S = Spectrum(x2, y2, e2, *self.info)
-      S.y_unit = yu2
+    Sother = self._promote_to_spectrum(other, True)
+    return Sother / self
+
+  def __pow__(self,other):
+    """
+    Return S**other (with standard error propagation)
+    """
+    if isinstance(other, (int, float)):
+      ynew = self.y**other
+      enew = np.abs(other * ynew * self.e/self.y)
+      S = Spectrum(self.x, ynew, enew, *self.info)
+      S.y_unit = self._yu**other
       return S
     else:
-      raise TypeError("other must be int/float/ndarray")
+      raise TypeError("other must be int/float")
+
 
   def __neg__(self):
     """
@@ -412,29 +401,31 @@ class Spectrum(object):
     """
     Check units match another spectrum or kind of unit
     """
-    if isinstance(other, (str, u.Unit)):
+    if isinstance(other, (str, u.UnitBase)):
       #check specific unit
       if xy == 'x':
         if self.x_unit != u.Unit(other):
-          raise u.UnitError("x_units differ")
+          raise u.UnitsError("x_units differ")
       elif xy == 'y':
         if self.y_unit != u.Unit(other):
-          raise u.UnitError("y_units differ")
+          raise u.UnitsError("y_units differ")
       else:
         raise ValueError("xy not 'x' or 'y'")
+    elif isinstance(other, u.Quantity):
+      _compare_units(self, other.unit, xy)
     elif isinstance(other, Spectrum):
       #compare two spectra
       if xy == 'x':
         if self.x_unit != other.x_unit:
-          raise u.UnitError("x_units differ")
+          raise u.UnitsError("x_units differ")
       elif xy == 'y':
         if self.y_unit != other.y_unit:
-          raise u.UnitError("y_units differ")
+          raise u.UnitsError("y_units differ")
       elif xy == 'xy':
         if self.x_unit != other.x_unit:
-          raise u.UnitError("x_units differ")
+          raise u.UnitsError("x_units differ")
         if self.y_unit != other.y_unit:
-          raise u.UnitError("y_units differ")
+          raise u.UnitsError("y_units differ")
       else:
         raise ValueError("xy not 'x', 'y', or 'xy'")
     else:
