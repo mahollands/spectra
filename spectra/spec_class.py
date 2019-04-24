@@ -285,8 +285,7 @@ class Spectrum(object):
     """
     if isinstance(other, Spectrum):
       self._compare_units(other, 'xy')
-      if not np.allclose(self.x, other.x):
-        raise ValueError("Spectra must have same x values")
+      self._compare_x(other)
       xnew = 0.5*(self.x+other.x)
       ynew = self.y + other.y
       enew = np.hypot(self.e, other.e)
@@ -301,8 +300,7 @@ class Spectrum(object):
     """
     if isinstance(other, Spectrum):
       self._compare_units(other, 'xy')
-      if not np.allclose(self.x, other.x):
-        raise ValueError("Spectra must have same x values")
+      self._compare_x(other)
       xnew = 0.5*(self.x+other.x)
       ynew = self.y - other.y
       enew = np.hypot(self.e, other.e)
@@ -317,8 +315,7 @@ class Spectrum(object):
     """
     if isinstance(other, Spectrum):
       self._compare_units(other, 'x')
-      if not np.allclose(self.x, other.x):
-        raise ValueError("Spectra must have same x values")
+      self._compare_x(other)
       xnew = 0.5*(self.x+other.x)
       ynew = self.y * other.y
       enew = np.abs(ynew)*np.hypot(self.e/self.y, other.e/other.y)
@@ -335,13 +332,12 @@ class Spectrum(object):
     """
     if isinstance(other, Spectrum):
       self._compare_units(other, 'x')
-      if not np.allclose(self.x, other.x):
-        raise ValueError("Spectra must have same x values")
+      self._compare_x(other)
       xnew = 0.5*(self.x+other.x)
       ynew = self.y / other.y
       enew = np.abs(ynew)*np.hypot(self.e/self.y, other.e/other.y)
       Snew = Spectrum(xnew, ynew, enew, *self.info)
-      Snew.y_unit = self._yu * other._yu
+      Snew.y_unit = self._yu / other._yu
       return Snew
     else:
       Sother = self.promote_to_spectrum(other, True)
@@ -384,7 +380,6 @@ class Spectrum(object):
       return S
     else:
       raise TypeError("other must be int/float")
-
 
   def __neg__(self):
     """
@@ -439,6 +434,12 @@ class Spectrum(object):
         raise ValueError("xy not 'x', 'y', or 'xy'")
     else:
       raise TypeError("other was not Spectrum or interpretable as a unit")
+
+  def _compare_x(self, other):
+    if self.wave != other.wave:
+      raise ValueError("Spectra must have same wavelengths (air/vac)")
+    if not np.allclose(self.x, other.x):
+      raise ValueError("Spectra must have same x values")
 
   def apply_mask(self, mask):
     """
