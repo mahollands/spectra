@@ -519,9 +519,9 @@ class Spectrum(object):
     """
     Returns a copy of self
     """
-    return 1.*self
+    return Spectrum(*self.data, *self.info)
 
-  def sect(self,x0,x1):
+  def sect(self, x0, x1):
     """
     Returns a truth array for wavelengths between x0 and x1.
     """
