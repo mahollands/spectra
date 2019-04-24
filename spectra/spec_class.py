@@ -24,7 +24,7 @@ class Spectrum(object):
 
   Example:
   >>> S1 = Spectrum(x1, y1, e1)
-  >>> S2 = Spectrum(x1, y1, e1)
+  >>> S2 = Spectrum(x2, y2, e2)
   >>> S3 = S1 - S2
 
   .............................................................................
@@ -39,6 +39,13 @@ class Spectrum(object):
   >>> plt.show()
 
   .............................................................................
+  Note that for operations of the form
+  >>> S + a ;  S - a ;  S * a ;  S / a
+  >>> a + S ;  a - S ;  a * S ;  a / S
+
+  both rows work as expected if 'a' is an int/float. However if 'a' is an
+  ndarray or Quantity object, the second row (__radd__ etc) is overridden
+  by undefined behaviour of numpy/astropy implementations.
   """
   __slots__ = ['_x', '_y', '_e', '_name', '_wave', '_xu', '_yu', '_head']
   def __init__(self, x, y, e, name="", wave='air', x_unit="AA", y_unit="erg/(s cm^2 AA)", head=None):
@@ -256,19 +263,21 @@ class Spectrum(object):
     """
     return zip(*self.data)
 
-  def _promote_to_spectrum(self, other, mul_or_div=False):
+  def promote_to_spectrum(self, other, dimensionless_y=False):
     """
     Promote non-Spectrum objects (int/float/ndarray/quantity) to a Spectrum
-    with similar properties to self. Simplifies arithmetic implementation.
+    with similar properties to self. This is used internally to simplify
+    arithmetic implementation, but also necessary for reverse arithmetic
+    operations using ndarrays and quantities, e.g. ndarray / Spectrum.
     """
     if isinstance(other, u.Quantity):
-      S = Spectrum(self.x, other.value, 0, *self.info)
-      S.y_unit = other.unit
+      Sother = Spectrum(self.x, other.value, 0, *self.info)
+      Sother.y_unit = other.unit
     else:
-      S = Spectrum(self.x, other, 0, *self.info)
-      if mul_or_div:
-        S.y_unit = u.dimensionless_unscaled
-    return S
+      Sother = Spectrum(self.x, other, 0, *self.info)
+      if dimensionless_y:
+        Sother.y_unit = u.dimensionless_unscaled
+    return Sother
 
   def __add__(self, other):
     """
@@ -283,7 +292,7 @@ class Spectrum(object):
       enew = np.hypot(self.e, other.e)
       return Spectrum(xnew, ynew, enew, *self.info)
     else:
-      Sother = self._promote_to_spectrum(other)
+      Sother = self.promote_to_spectrum(other)
       return self + Sother
 
   def __sub__(self, other):
@@ -299,7 +308,7 @@ class Spectrum(object):
       enew = np.hypot(self.e, other.e)
       return Spectrum(xnew, ynew, enew, *self.info)
     else:
-      Sother = self._promote_to_spectrum(other)
+      Sother = self.promote_to_spectrum(other)
       return self - Sother
       
   def __mul__(self, other):
@@ -317,7 +326,7 @@ class Spectrum(object):
       Snew.y_unit = self._yu * other._yu
       return Snew
     else:
-      Sother = self._promote_to_spectrum(other, True)
+      Sother = self.promote_to_spectrum(other, True)
       return self * Sother
       
   def __truediv__(self, other):
@@ -335,7 +344,7 @@ class Spectrum(object):
       Snew.y_unit = self._yu * other._yu
       return Snew
     else:
-      Sother = self._promote_to_spectrum(other, True)
+      Sother = self.promote_to_spectrum(other, True)
       return self / Sother
 
   def __radd__(self, other):
@@ -360,7 +369,7 @@ class Spectrum(object):
     """
     Return other / self (with standard error propagation)
     """
-    Sother = self._promote_to_spectrum(other, True)
+    Sother = self.promote_to_spectrum(other, True)
     return Sother / self
 
   def __pow__(self,other):
