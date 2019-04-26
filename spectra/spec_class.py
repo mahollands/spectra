@@ -286,10 +286,9 @@ class Spectrum(object):
     if isinstance(other, Spectrum):
       self._compare_units(other, 'xy')
       self._compare_x(other)
-      xnew = 0.5*(self.x+other.x)
       ynew = self.y + other.y
       enew = np.hypot(self.e, other.e)
-      return Spectrum(xnew, ynew, enew, *self.info)
+      return Spectrum(self.x, ynew, enew, *self.info)
     else:
       Sother = self.promote_to_spectrum(other)
       return self + Sother
@@ -301,10 +300,9 @@ class Spectrum(object):
     if isinstance(other, Spectrum):
       self._compare_units(other, 'xy')
       self._compare_x(other)
-      xnew = 0.5*(self.x+other.x)
       ynew = self.y - other.y
       enew = np.hypot(self.e, other.e)
-      return Spectrum(xnew, ynew, enew, *self.info)
+      return Spectrum(self.x, ynew, enew, *self.info)
     else:
       Sother = self.promote_to_spectrum(other)
       return self - Sother
@@ -316,10 +314,9 @@ class Spectrum(object):
     if isinstance(other, Spectrum):
       self._compare_units(other, 'x')
       self._compare_x(other)
-      xnew = 0.5*(self.x+other.x)
       ynew = self.y * other.y
       enew = np.abs(ynew)*np.hypot(self.e/self.y, other.e/other.y)
-      Snew = Spectrum(xnew, ynew, enew, *self.info)
+      Snew = Spectrum(self.x, ynew, enew, *self.info)
       Snew.y_unit = self._yu * other._yu
       return Snew
     else:
@@ -333,10 +330,9 @@ class Spectrum(object):
     if isinstance(other, Spectrum):
       self._compare_units(other, 'x')
       self._compare_x(other)
-      xnew = 0.5*(self.x+other.x)
       ynew = self.y / other.y
       enew = np.abs(ynew)*np.hypot(self.e/self.y, other.e/other.y)
-      Snew = Spectrum(xnew, ynew, enew, *self.info)
+      Snew = Spectrum(self.x, ynew, enew, *self.info)
       Snew.y_unit = self._yu / other._yu
       return Snew
     else:
