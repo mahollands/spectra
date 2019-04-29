@@ -714,7 +714,7 @@ class Spectrum(object):
       raise ValueError("cannot join spectra with different wavelengths")
     return join_spectra((self, other), sort=sort)
 
-  def closest_wave(self, x0):
+  def closest_x(self, x0):
     """
     Returns the pixel index closest in wavelength to x0
     """
