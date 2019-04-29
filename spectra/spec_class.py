@@ -268,15 +268,17 @@ class Spectrum(object):
     Promote non-Spectrum objects (int/float/ndarray/quantity) to a Spectrum
     with similar properties to self. This is used internally to simplify
     arithmetic implementation, but also necessary for reverse arithmetic
-    operations using ndarrays and quantities, e.g. ndarray / Spectrum.
+    operations using ndarrays and quantities, e.g. 1 / Spectrum.
     """
     if isinstance(other, u.Quantity):
       Sother = Spectrum(self.x, other.value, 0, *self.info)
       Sother.y_unit = other.unit
-    else:
+    elif isinstance(other, (int, float, np.ndarray)):
       Sother = Spectrum(self.x, other, 0, *self.info)
       if dimensionless_y:
         Sother.y_unit = u.dimensionless_unscaled
+    else:
+      raise NotImplementedError("Cannot cast object to Spectrum")
     return Sother
 
   def __add__(self, other):
