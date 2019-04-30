@@ -50,7 +50,7 @@ def model_from_dk(fname, x_unit='AA', y_unit='erg/(s cm2 AA)', **kwargs):
   Similar to model_from_txt, but will autoskip past the DK header. Units are converted 
   """
   #extract header first
-  hdr = {}
+  hdr = {'el':{}}
   with open(fname, 'r') as Fdk:
     for skip, line in enumerate(Fdk, 1):
       if line.startswith("TEFF"):
@@ -62,8 +62,10 @@ def model_from_dk(fname, x_unit='AA', y_unit='erg/(s cm2 AA)', **kwargs):
       elif line.startswith("COMMENT   el"):
         *_, Z, logZ = line.split() 
         Z = int(Z)
+        if Z >= 100: #compatability with older dk files
+          Z //= 100
         logZ = float(logZ)
-        hdr[el_dict[Z]] = logZ
+        hdr['el'][el_dict[Z]] = logZ
       elif line.startswith("END"):
         break
       else:
