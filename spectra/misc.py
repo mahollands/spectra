@@ -13,6 +13,7 @@ __all__ = [
   "convolve_gaussian_R",
   "lanczos",
   "logarange",
+  "keep_points",
 ]
 
 jangstrom = \
