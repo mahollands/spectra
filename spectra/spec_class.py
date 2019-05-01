@@ -199,6 +199,13 @@ class Spectrum(object):
     return np.abs(self.y/self.e)
 
   @property
+  def SN(self, value):
+    """
+    Set errors for desired sn
+    """
+    M.e = np.abs(M.y/value)
+
+  @property
   def magAB(self):
     """
     Returns fluxes in terms of AB magnitudes
