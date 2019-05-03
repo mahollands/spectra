@@ -198,7 +198,7 @@ class Spectrum(object):
     """
     return np.abs(self.y/self.e)
 
-  @property
+  @SN.setter
   def SN(self, value):
     """
     Set errors for desired sn
