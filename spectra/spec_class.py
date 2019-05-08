@@ -693,6 +693,24 @@ class Spectrum(object):
     S.y = convolve_gaussian_R(S.x, S.y, res)
     return S
 
+  def polyfit(self, deg, weighted=True, logx=False, logy=False):
+    """
+    Fits a polynomial to a spectrum object.
+    """
+    x = np.log(self.x) if logx else self.x
+    y = np.log(np.abs(self.y)) if logy else self.y
+    e = np.abs(self.e/self.y) if logy else self.e
+    return np.polyfit(x, y, deg, w=1/e) if weighted else np.polyfit(x, y, deg)
+
+  def polyval(self, poly, logx=False, logy=False):
+    """
+    Generates a spectrum from polynomial coefficients with the same shape/units as self.
+    """
+    x = np.log(self.x) if logx else self.x
+    y = np.polyval(poly, x)
+    y = np.exp(y) if logy else y
+    return Spectrum(x, y, 0, *self.info)
+
   def split(self, W):
     """
     If W is an int/float, splits spectrum in two around W. If W is an
