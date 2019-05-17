@@ -68,16 +68,14 @@ def spectra_mean(SS):
     S._compare_units(S0, xy='xy')
     S._compare_x(S0)
 
-  X, Y, IV = np.array([S.x    for S in SS]), \
-             np.array([S.y    for S in SS]), \
-             np.array([S.ivar for S in SS])
+  Y  = np.array([S.y    for S in SS])
+  IV = np.array([S.ivar for S in SS])
 
-  Xbar  = np.mean(X,axis=0)
   IVbar = np.sum(IV, axis=0)
   Ybar  = np.sum(Y*IV, axis=0) / IVbar
   Ebar  = 1.0 / np.sqrt(IVbar)
 
-  return Spectrum(Xbar, Ybar, Ebar, *S0.info)
+  return Spectrum(S0.x, Ybar, Ebar, *S0.info)
 
 def sky_line_fwhm(S, x0, dx=5.):
   """
