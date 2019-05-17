@@ -65,11 +65,8 @@ def spectra_mean(SS):
   for S in SS:
     if not isinstance(S, Spectrum):
       raise TypeError('item is not Spectrum')
-    if S.wave != S0.wave:
-      raise ValueError("Spectra must have same wavelengths")
     S._compare_units(S0, xy='xy')
-    if not np.allclose(S.x, S0.x):
-      raise ValueError("Spectra must have same x-axis")
+    S._compare_x(S0)
 
   X, Y, IV = np.array([S.x    for S in SS]), \
              np.array([S.y    for S in SS]), \
