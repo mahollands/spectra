@@ -700,16 +700,19 @@ class Spectrum(object):
     x = np.log(self.x) if logx else self.x
     y = np.log(np.abs(self.y)) if logy else self.y
     e = np.abs(self.e/self.y) if logy else self.e
-    return np.polyfit(x, y, deg, w=1/e) if weighted else np.polyfit(x, y, deg)
+    poly = np.polyfit(x, y, deg, w=1/e) if weighted else np.polyfit(x, y, deg)
+    return poly, self.y_unit
 
   def polyval(self, poly, logx=False, logy=False):
     """
     Generates a spectrum from polynomial coefficients with the same shape/units as self.
     """
+    poly, y_unit = poly
     x = np.log(self.x) if logx else self.x
     y = np.polyval(poly, x)
     y = np.exp(y) if logy else y
-    return Spectrum(x, y, 0, *self.info)
+    S = Spectrum(self.x, y, 0, *self.info)
+    S.y_unit = y_unit
 
   def split(self, W):
     """
