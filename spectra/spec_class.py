@@ -676,7 +676,7 @@ class Spectrum(object):
     S = other
     M = self.interp(S)
 
-    A = np.sum(S.y*M.y)/np.sum(M.y)
+    A = np.sum(S.y*M.y)/np.sum(M.y**2)
 
     return (self*A, A) if return_scaling_factor else self*A
 
