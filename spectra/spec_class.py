@@ -7,6 +7,7 @@ import math
 import astropy.units as u
 import astropy.constants as const
 from scipy.interpolate import interp1d, Akima1DInterpolator as Ak_i
+from scipy.optimize import minimize
 from .synphot import mag_calc_AB
 from .reddening import A_curve
 from .misc import *
@@ -676,6 +677,29 @@ class Spectrum(object):
     M = self.interp(S)
 
     A = np.sum(S.y*M.y)/np.sum(M.y)
+
+    return (self*A, A) if return_scaling_factor else self*A
+
+  def scale_spectrum_to_spectrum(self, other, return_scaling_factor=False):
+    """
+    Scales self to best fit other in their mutually overlapping region.
+    """
+    if not isinstance(other, Spectrum):
+      raise TypeError
+    self._compare_units(other, 'xy')
+
+    x0 = max(S.x.min() for S in (self, other))
+    x1 = min(S.x.max() for S in (self, other))
+    Soc = other.clip(x0, x1)
+    Ssi = self.interp(Soc, kind='cubic')
+
+    def chi2(A, S1, S2):
+      top = (S1.y - A*S2.y)**2
+      bot = (S1.e**2 + (A*S2.e)**2)
+      return np.sum(top / bot)
+
+    res = minimize(chi2, (1.0), args=(Soc, Ssi))  
+    A = float(res['x'][0])
 
     return (self*A, A) if return_scaling_factor else self*A
 
