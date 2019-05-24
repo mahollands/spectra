@@ -444,7 +444,7 @@ class Spectrum(object):
   def _compare_x(self, other):
     if self.wave != other.wave:
       raise ValueError("Spectra must have same wavelengths (air/vac)")
-    if not np.array_equal(self.x, other.x):
+    if not np.allclose(self.x, other.x):
       raise ValueError("Spectra must have same x values")
 
   def apply_mask(self, mask):
