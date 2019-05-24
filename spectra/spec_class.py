@@ -275,7 +275,7 @@ class Spectrum(object):
     """
     Return whether value is in the x-range of self
     """
-    return S.x.min() < value < S.x.max()
+    return self.x.min() < value < self.x.max()
 
   def promote_to_spectrum(self, other, dimensionless_y=False):
     """
