@@ -271,6 +271,12 @@ class Spectrum(object):
     """
     return zip(*self.data)
 
+  def __contains__(self, value):
+    """
+    Return whether value is in the x-range of self
+    """
+    return S.x.min() < value < S.x.max()
+
   def promote_to_spectrum(self, other, dimensionless_y=False):
     """
     Promote non-Spectrum objects (int/float/ndarray/quantity) to a Spectrum
