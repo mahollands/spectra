@@ -478,7 +478,7 @@ class Spectrum(object):
       NMONTE = 0 
     return mag_calc_AB(S, filt, NMONTE)
 
-  def interp(self, X, kind='linear', **kwargs):
+  def interp(self, X, kind='cubic', **kwargs):
     """
     Interpolates a spectrum onto the wavlength axis X, if X is a numpy array,
     or X.x if X is Spectrum type. This returns a new spectrum rather than
