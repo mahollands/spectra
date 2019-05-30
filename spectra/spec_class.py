@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import math
 import astropy.units as u
 import astropy.constants as const
+from astropy.convolution import convolve
 from scipy.interpolate import interp1d, Akima1DInterpolator as Ak_i
 from scipy.optimize import minimize
 from .synphot import mag_calc_AB
@@ -721,6 +722,29 @@ class Spectrum(object):
   def convolve_gaussian_R(self, res):
     S = self.copy()
     S.y = convolve_gaussian_R(S.x, S.y, res)
+    return S
+
+  def rot_broaden(self, vsini, dv=1.0):
+    """
+    Apply rotational broadening in km/s. The dv parameter sets the resolution
+    that convolution is performed at.
+    """
+    xu, yu = self.x_unit, self.y_unit
+    S = self.copy()
+    S.x_unit_to(u.AA)
+    S.y_unit_to("erg/(s cm2)")
+    logx = np.log(S.x)
+    logx = np.arange(logx[0], logx[-1], dv/3e5)
+    xnew = np.exp(logx) #0.1km/s resolution
+    S = S.interp(xnew, kind='cubic')
+    kxR = np.arange(0, vsini, dv)
+    kxL = -kxR[:0:-1]
+    kx = np.hstack([kxL,kxR])
+    ky = np.sqrt(1-(kx/vsini)**2)
+    S.y = convolve(S.y, ky)
+    S = S.interp(self, kind='cubic')
+    S.x_unit_to(xu)
+    S.y_unit_to(yu)
     return S
 
   def polyfit(self, deg, weighted=True, logx=False, logy=False):
