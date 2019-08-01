@@ -114,7 +114,7 @@ def spec_list_from_molly(fname):
   def convert_mol(molsp):
     x, y, e = molsp.wave, molsp.f, molsp.fe
     name = molsp.head['Object']
-    S = Spectrum(x, y, e, name, y_unit="mJy")
+    S = Spectrum(x, y, np.abs(e), name, y_unit="mJy")
     S.head = molsp.head
     return S
   
