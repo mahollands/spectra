@@ -258,11 +258,8 @@ class Spectrum(object):
     Return self[key]
     """
     if isinstance(key, (int, slice, np.ndarray)):
-      indexed_data = self.x[key], self.y[key], self.e[key]
-      if isinstance(key, int):
-        return indexed_data
-      else:
-        return Spectrum(*indexed_data, *self.info)
+      data_key = self.x[key], self.y[key], self.e[key]
+      return data_key if isinstance(key, int) else Spectrum(*data_key, *self.info)
     else:
       raise TypeError("spectra must be indexed with int/slice/ndarray types")
 
