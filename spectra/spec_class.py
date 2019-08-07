@@ -205,7 +205,7 @@ class Spectrum(object):
     """
     Set errors for desired sn
     """
-    M.e = np.abs(M.y/value)
+    self.e = np.abs(self.y/value)
 
   @property
   def magAB(self):
