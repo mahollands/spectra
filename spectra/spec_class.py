@@ -807,6 +807,12 @@ class Spectrum(object):
     """
     return np.isnan(self.x) | np.isnan(self.y) | np.isnan(self.e)
 
+  def isinf(self):
+    """
+    Returns truth-array showing pixels with infs (either x, y, or e)
+    """
+    return np.isinf(self.x) | np.isinf(self.y) | np.isinf(self.e)
+
   def plot(self, *args, errors=False, **kwargs):
     """
     Plots the spectrum with matplotlib and passes *args/**kwargs.
