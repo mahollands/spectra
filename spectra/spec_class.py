@@ -834,3 +834,14 @@ class Spectrum(object):
 
     y_plot = getattr(self, kind)
     plt.plot(self.x, y_plot, *args, **kwargs)
+
+    #default y limits (if not already set)
+    ax = plt.gca()
+    if ax.get_autoscaley_on():
+      ylo, yhi = ax.get_ylim()
+      if kind.startswith('magAB'):
+        if ylo < yhi:
+          plt.ylim(yhi, ylo)
+      else:
+        plt.ylim(0, yhi)
+      ax.set_autoscaley_on(True)
