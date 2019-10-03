@@ -816,7 +816,7 @@ class Spectrum(object):
   def plot(self, *args, kind="y", **kwargs):
     """
     Plots the spectrum with matplotlib and passes *args/**kwargs.
-    'kind' should be one of 'y', 'e', 'SN', 'magAB'.
+    'kind' should be one of 'y', 'e', 'var', 'ivar', 'SN', 'magAB'.
     plt.show() and other mpl functions still need to be used separately.
     """
     if kind not in "y e var ivar SN magAB".split(): 
