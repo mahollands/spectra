@@ -217,6 +217,15 @@ class Spectrum(object):
     return -2.5*np.log10(S.y/3631)
 
   @property
+  def magABe(self):
+    """
+    Returns fluxe errors in terms of AB magnitudes
+    """
+    S = self.copy()
+    S.y_unit_to("Jy")
+    return -2.5*np.log10(S.e/3631)
+
+  @property
   def data(self):
     """
     Returns all three arrays as a tuple. Useful for creating new spectra, e.g.
