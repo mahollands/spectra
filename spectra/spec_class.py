@@ -822,14 +822,15 @@ class Spectrum(object):
     """
     return np.isinf(self.x) | np.isinf(self.y) | np.isinf(self.e)
 
-  def plot(self, *args, kind="y", **kwargs):
+  def plot(self, *args, kind='y', **kwargs):
     """
     Plots the spectrum with matplotlib and passes *args/**kwargs.
-    'kind' should be one of 'y', 'e', 'var', 'ivar', 'SN', 'magAB'.
+    'kind' should be one of 'y', 'e', 'var', 'ivar', 'SN', 'magAB', 'magABe'.
     plt.show() and other mpl functions still need to be used separately.
     """
-    if kind not in "y e var ivar SN magAB".split(): 
-      raise ValueError("kind must be one of: y, e, var, ivar SN, magAB")
+    allowed = "y e var ivar SN magAB magABe"
+    if kind not in allowed.split(): 
+      raise ValueError(f"kind must be one of: {allowed}")
 
     y_plot = getattr(self, kind)
     plt.plot(self.x, y_plot, *args, **kwargs)
