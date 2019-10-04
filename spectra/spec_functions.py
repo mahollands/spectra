@@ -47,7 +47,7 @@ def join_spectra(SS, sort=False, name=None):
   x = np.hstack([S.x for S in SS])
   y = np.hstack([S.y for S in SS])
   e = np.hstack([S.e for S in SS])
-  S = Spectrum(x, y, e, *S0.info)
+  S = Spectrum(x, y, e, **S0.info)
   
   if name is not None:
     S.name = name
@@ -75,7 +75,7 @@ def spectra_mean(SS):
   Ybar  = np.sum(Y*IV, axis=0) / IVbar
   Ebar  = 1.0 / np.sqrt(IVbar)
 
-  return Spectrum(S0.x, Ybar, Ebar, *S0.info)
+  return Spectrum(S0.x, Ybar, Ebar, **S0.info)
 
 def sky_line_fwhm(S, x0, dx=5.):
   """

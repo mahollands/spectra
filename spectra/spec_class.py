@@ -236,11 +236,18 @@ class Spectrum(object):
   @property
   def info(self):
     """
-    Returns non-array attributes (in same order as __init__). This can be
+    Returns non-array attributes as a dictionary. This can be
     used to create new spectra with the same information, e.g.
-    >>> Spectrum(x, y, e, *S.info)
+    >>> Spectrum(x, y, e, **S.info)
     """
-    return self.name, self.wave, self.x_unit, self.y_unit, self.head
+    kwargs = {
+      'name'   : self.name,
+      'wave'   : self.wave,
+      'x_unit' : self.x_unit,
+      'y_unit' : self.y_unit,
+      'head'   : self.head,
+    }
+    return kwargs
 
   def __len__(self):
     """
@@ -268,7 +275,7 @@ class Spectrum(object):
     """
     if isinstance(key, (int, slice, np.ndarray)):
       data_key = self.x[key], self.y[key], self.e[key]
-      return data_key if isinstance(key, int) else Spectrum(*data_key, *self.info)
+      return data_key if isinstance(key, int) else Spectrum(*data_key, **self.info)
     else:
       raise TypeError("spectra must be indexed with int/slice/ndarray types")
 
@@ -291,16 +298,17 @@ class Spectrum(object):
     arithmetic implementation, but also necessary for reverse arithmetic
     operations using ndarrays and quantities, e.g. 1 / Spectrum.
     """
+    info = self.info
     if isinstance(other, u.Quantity):
-      Sother = Spectrum(self.x, other.value, 0, *self.info)
-      Sother.y_unit = other.unit
+      ynew = other.value
+      info['y_unit'] = other.unit
     elif isinstance(other, (int, float, np.ndarray)):
-      Sother = Spectrum(self.x, other, 0, *self.info)
+      ynew = other
       if dimensionless_y:
-        Sother.y_unit = u.dimensionless_unscaled
+        info['y_unit'] = u.dimensionless_unscaled
     else:
       raise NotImplementedError("Cannot cast object to Spectrum")
-    return Sother
+    return Spectrum(self.x, ynew, 0, **info)
 
   def __add__(self, other):
     """
@@ -311,7 +319,7 @@ class Spectrum(object):
       self._compare_x(other)
       ynew = self.y + other.y
       enew = np.hypot(self.e, other.e)
-      return Spectrum(self.x, ynew, enew, *self.info)
+      return Spectrum(self.x, ynew, enew, **self.info)
     else:
       Sother = self.promote_to_spectrum(other)
       return self + Sother
@@ -325,7 +333,7 @@ class Spectrum(object):
       self._compare_x(other)
       ynew = self.y - other.y
       enew = np.hypot(self.e, other.e)
-      return Spectrum(self.x, ynew, enew, *self.info)
+      return Spectrum(self.x, ynew, enew, **self.info)
     else:
       Sother = self.promote_to_spectrum(other)
       return self - Sother
@@ -337,11 +345,11 @@ class Spectrum(object):
     if isinstance(other, Spectrum):
       self._compare_units(other, 'x')
       self._compare_x(other)
+      infonew = self.info
+      infonew['y_unit'] = self._yu * other._yu
       ynew = self.y * other.y
       enew = np.abs(ynew)*np.hypot(self.e/self.y, other.e/other.y)
-      Snew = Spectrum(self.x, ynew, enew, *self.info)
-      Snew.y_unit = self._yu * other._yu
-      return Snew
+      return Spectrum(self.x, ynew, enew, **infonew)
     else:
       Sother = self.promote_to_spectrum(other, True)
       return self * Sother
@@ -353,11 +361,11 @@ class Spectrum(object):
     if isinstance(other, Spectrum):
       self._compare_units(other, 'x')
       self._compare_x(other)
+      infonew = self.info
+      infonew['y_unit'] = self._yu / other._yu
       ynew = self.y / other.y
       enew = np.abs(ynew)*np.hypot(self.e/self.y, other.e/other.y)
-      Snew = Spectrum(self.x, ynew, enew, *self.info)
-      Snew.y_unit = self._yu / other._yu
-      return Snew
+      return Spectrum(self.x, ynew, enew, **infonew)
     else:
       Sother = self.promote_to_spectrum(other, True)
       return self / Sother
@@ -392,11 +400,11 @@ class Spectrum(object):
     Return S**other (with standard error propagation)
     """
     if isinstance(other, (int, float)):
+      infonew = self.info
+      infonew['y_unit'] = self._yu**other
       ynew = self.y**other
       enew = np.abs(other * ynew * self.e/self.y)
-      S = Spectrum(self.x, ynew, enew, *self.info)
-      S.y_unit = self._yu**other
-      return S
+      return Spectrum(self.x, ynew, enew, **infonew)
     else:
       raise TypeError("other must be int/float")
 
@@ -532,13 +540,13 @@ class Spectrum(object):
         bounds_error=False, fill_value=np.inf, **kwargs)(x2)
 
     e2[e2 < 0] = 0.
-    return Spectrum(x2, y2, e2, *self.info)
+    return Spectrum(x2, y2, e2, **self.info)
 
   def copy(self):
     """
     Returns a copy of self
     """
-    return Spectrum(*self.data, *self.info)
+    return Spectrum(*self.data, **self.info)
 
   def sect(self, x0, x1):
     """
@@ -772,9 +780,9 @@ class Spectrum(object):
     x = np.log(self.x) if logx else self.x
     y = np.polyval(poly, x)
     y = np.exp(y) if logy else y
-    S = Spectrum(self.x, y, 0, *self.info)
-    S.y_unit = y_unit
-    return S
+    infonew = self.info
+    infonew['y_unit'] = y_unit
+    return Spectrum(self.x, y, 0, **infonew)
 
   def split(self, W):
     """
