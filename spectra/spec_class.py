@@ -260,11 +260,12 @@ class Spectrum(object):
     Return spectrum representation
     """
     ret = "\n".join([
-      "Spectrum class with {} pixels".format(len(self)),
-      "Name: {}".format(self.name),
-      "x-unit: {}".format(self.x_unit),
-      "y-unit: {}".format(self.y_unit),
-      "wavelengths: {}".format(self.wave),
+      f"Spectrum class with {len(self)} pixels",
+      f"name: {self.name}",
+      f"x-unit: {self.x_unit}",
+      f"y-unit: {self.y_unit}",
+      f"wavelengths: {self.wave}",
+      f"header: {self.head}",
     ])
 
     return ret
