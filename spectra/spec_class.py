@@ -265,7 +265,7 @@ class Spectrum(object):
       f"x-unit: {self.x_unit}",
       f"y-unit: {self.y_unit}",
       f"wavelengths: {self.wave}",
-      f"header: {self.head}",
+      f"header items: {len(self.head)}",
     ])
 
     return ret
