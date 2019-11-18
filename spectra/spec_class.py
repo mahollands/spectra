@@ -194,11 +194,24 @@ class Spectrum(object):
     self.var = 1.0/value
 
   @property
+  def y_e(self):
+    """
+    fluxes divided by errors. SN is just the modulus of this.
+    This can be useful calculating residuals when a model is
+    subtracted off the data, e.g.
+    >>> (S-M).y_e == (S.y - M.y)/S.e
+
+    Can be used for making residual plots
+    >>> (S-M).plot(kind='y_e')
+    """
+    return self.y/self.e
+
+  @property
   def SN(self):
     """
-    Signal to noise ratio
+    Signal to noise ratio (modulus of y_e property)
     """
-    return np.abs(self.y/self.e)
+    return np.abs(self.y_e)
 
   @SN.setter
   def SN(self, value):
@@ -206,6 +219,7 @@ class Spectrum(object):
     Set errors for desired sn
     """
     self.e = np.abs(self.y/value)
+
 
   @property
   def magAB(self):
@@ -834,11 +848,11 @@ class Spectrum(object):
   def plot(self, *args, kind='y', **kwargs):
     """
     Plots the spectrum with matplotlib and passes *args/**kwargs.
-    'kind' should be one of 'y', 'e', 'var', 'ivar', 'SN', 'magAB', 'magABe'.
+    'kind' should be one of 'y', 'e', 'var', 'ivar', 'y_e', 'SN', 'magAB', 'magABe'.
     plt.show() and other mpl functions still need to be used separately.
     """
-    allowed = "y e var ivar SN magAB magABe"
-    if kind not in allowed.split(): 
+    allowed = "y e var ivar y_e SN magAB magABe".split()
+    if kind not in allowed: 
       raise ValueError(f"kind must be one of: {allowed}")
 
     y_plot = getattr(self, kind)
