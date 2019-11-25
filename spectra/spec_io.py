@@ -112,6 +112,7 @@ def spec_from_fits_generic(fname, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA
   hdr = dict(hdulist[0].header)
   data = hdulist[1].data
   x, y, e = [data[col] for col in ("Wavelength","Flux","Error")]
+  e[e<0] = np.inf
   name = hdr['OBJECT'] if 'OBJECT' in hdr else fname
   return Spectrum(x, y, e, name, wave, x_unit, y_unit, hdr)
 
