@@ -201,6 +201,8 @@ class Spectrum(object):
     subtracted off the data, e.g.
     >>> (S-M).y_e == (S.y - M.y)/S.e
 
+    where M.e are all zero.
+
     Can be used for making residual plots
     >>> (S-M).plot(kind='y_e')
     """
@@ -548,11 +550,16 @@ class Spectrum(object):
       y2[extrap] = 0.
       e2[extrap] = np.inf
     else:
-      extrap_y, extrap_e = (self.y[0],self.y[-1]), (self.e[0],self.e[-1])
       y2 = interp1d(self.x, self.y, kind=kind, \
         bounds_error=False, fill_value=0., **kwargs)(x2)
-      e2 = interp1d(self.x, self.e, kind=kind, \
+      #If any errors were inf (zero weight) we need to make
+      #sure the interpolated range stays inf
+      inf = np.isinf(self.e)
+      e2 = interp1d(self.x[~inf], self.e[~inf], kind=kind, \
         bounds_error=False, fill_value=np.inf, **kwargs)(x2)
+      inf2 = interp1d(self.x, inf, kind='nearest', \
+        bounds_error=False, fill_value=0)(x2).astype(bool)
+      e2[inf2] = np.inf
 
     e2[e2 < 0] = 0.
     return Spectrum(x2, y2, e2, **self.info)
