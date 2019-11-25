@@ -15,6 +15,7 @@ __all__ = [
   "model_from_txt",
   "model_from_dk",
   "spec_from_sdss_fits",
+  "spec_from_fits_generic",
   "spec_list_from_molly",
 ]
 
@@ -105,6 +106,15 @@ def spec_from_sdss_fits(fname, **kwargs):
   err = 1/np.sqrt(ivar)
   name = os.path.splitext(os.path.basename(fname))[0]
   return Spectrum(lam, flux, err, name, 'vac')*1e-17
+
+def spec_from_fits_generic(fname, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)"):
+  hdulist = fits.open(fname)
+  hdr = dict(hdulist[0].header)
+  data = hdulist[1].data
+  x, y, e = [data[col] for col in ("Wavelength","Flux","Error")]
+  name = hdr['OBJECT'] if 'OBJECT' in hdr else fname
+  return Spectrum(x, y, e, name, wave, x_unit, y_unit, hdr)
+
 
 def spec_list_from_molly(fname):
   """
