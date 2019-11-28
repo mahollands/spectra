@@ -564,6 +564,32 @@ class Spectrum(object):
     e2[e2 < 0] = 0.
     return Spectrum(x2, y2, e2, **self.info)
 
+  def interp_nan(self, interp_e=False):
+    """
+    Linearly interpolate over values with NaNs.
+    If interp_e is set, these are also interpolated over, otherwise they are set to np.inf.
+    """
+    S = self.copy()
+    bad = S.isnan()
+    kwargs = {'kind':'linear', 'bounds_error':False}
+    S.y[bad] = interp1d(S.x[~bad], S.y[~bad],  fill_value=0, **kwargs)(S.x[bad])
+    if interp_e:
+      S.e[bad] = interp1d(S.x[~bad], S.e[~bad], fill_value=np.inf, **kwargs)(S.x[bad])
+    else:
+      S.e[bad] = np.inf
+    assert np.any(S.isnan()) == False
+    return S
+
+  def interp_inf(self):
+    """
+    Linearly interpolate over values with infs
+    """
+    S = self.copy()
+    bad = S.isinf()
+    S.y[bad] = interp1d(S.x[~bad], S.y[~bad], bounds_error=False, fill_value=0)(S.x[bad])
+    S.e[bad] = interp1d(S.x[~bad], S.e[~bad], bounds_error=False, fill_value=0)(S.x[bad])
+    return S
+
   def copy(self):
     """
     Returns a copy of self
