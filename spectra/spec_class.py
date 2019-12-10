@@ -247,8 +247,8 @@ class Spectrum(object):
     Returns the lowest and highest x-values,
     e.g. for setting plot xlims
     """
-    x0, x1 = self.x[0], self.x[1]
-    return x0, x1 if x1 > x0 else x1, x0
+    x0, x1 = self.x[0], self.x[-1]
+    return (x0, x1) if x1 > x0 else (x1, x0)
 
   @property
   def data(self):
