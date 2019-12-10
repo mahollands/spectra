@@ -242,6 +242,15 @@ class Spectrum(object):
     return -2.5*np.log10(S.e/3631)
 
   @property
+  def x01(self):
+    """
+    Returns the lowest and highest x-values,
+    e.g. for setting plot xlims
+    """
+    x0, x1 = self.x[0], self.x[1]
+    return x0, x1 if x1 > x0 else x1, x0
+
+  @property
   def data(self):
     """
     Returns all three arrays as a tuple. Useful for creating new spectra, e.g.
