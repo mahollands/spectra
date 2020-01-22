@@ -103,27 +103,8 @@ def mag_calc_AB(S, filt, NMONTE=1000, Ifun=Itrapz):
 
 def lambda_mean(filt, Ifun=Itrapz):
   """
-  Given one of the filter-names used for 
+  Calculates lambda_mean for one of the filter-names used for mag_calc_AB
   """
-
-  #load filter
   R = load_transmission_curve(filt)
-  R.wave = S.wave
-
-  #Convert Spectra/filter-curve to Hz/Jy for integrals
-  R.x_unit_to("Hz")
-  S.x_unit_to("Hz")
-  S.y_unit_to("Jy")
-
-  #clip data to filter range and interpolate filter to data axis
-  S = S.clip(np.min(R.x), np.max(R.x))
-  R = R.interp(S)
-
-  #Calculate AB magnitudes, potentially including flux errors
-  if NMONTE == 0:
-    return m_AB_int(S.x, S.y, R.y, Ifun)
-  else:
-    y_mc = lambda S: np.random.normal(S.y, S.e)
-    m = np.array([m_AB_int(S.x, y_mc(S), R.y, Ifun) for i in range(NMONTE)])
-    return np.mean(m), np.std(m)
+  return Ifun(R.y*R.x, R.x) / Ifun(R.y, R.x)
 #
