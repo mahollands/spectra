@@ -849,7 +849,7 @@ class Spectrum(object):
     if isinstance(W, (int, float)):
       W = -np.inf, W, np.inf
     elif isinstance(W, (list, tuple, np.ndarray)):
-      if not all([isinstance(w, (int, float)) for w in W]):
+      if not all(isinstance(w, (int, float)) for w in W):
         raise TypeError("w must all be of type int/float")
       W = -np.inf, *sorted(W), np.inf
     else:
