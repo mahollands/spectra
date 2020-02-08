@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import math
 import astropy.units as u
 import astropy.constants as const
+from itertools import starmap
 from astropy.convolution import convolve
 from scipy.interpolate import interp1d, Akima1DInterpolator as Ak_i
 from scipy.optimize import minimize
@@ -854,7 +855,7 @@ class Spectrum(object):
       W = -np.inf, *sorted(W), np.inf
     else:
       raise TypeError("W must be int/float or iterable of those types")
-    return tuple(self.clip(*pair) for pair in zip(W[:-1], W[1:]))
+    return tuple(starmap(self.clip, zip(W[:-1], W[1:])))
 
   def join(self, other, sort=False):
     """
