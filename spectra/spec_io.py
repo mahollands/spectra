@@ -128,5 +128,4 @@ def spec_list_from_molly(fname):
     S.head = molsp.head
     return S
   
-  return [convert_mol(molsp) for molsp in molly.gmolly(fname)]
-
+  return list(map(convert_mol, molly.gmolly(fname)))
