@@ -114,8 +114,18 @@ def mag_calc_AB(S, filt, NMONTE=1000, Ifun=Itrapz):
 
 def lambda_mean(filt, Ifun=Itrapz):
   """
-  Calculates lambda_mean for one of the filter-names used for mag_calc_AB
+  Calculates lambda_mean for one of the filters
   """
   R = load_transmission_curve(filt)
   return Ifun(R.y*R.x, R.x) / Ifun(R.y, R.x)
+#
+
+def lambda_eff(filt, Ifun=Itrapz):
+  """
+  Calculates lambda_eff for one of the filters, integrated
+  over the spectrum of Vega.
+  """
+  R = load_transmission_curve(filt)
+  V = load_Vega().interp(R)
+  return Ifun(R.y*V.y*R.x, R.x) / Ifun(R.y*V.y, R.x)
 #
