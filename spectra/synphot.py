@@ -13,19 +13,19 @@ filters_dir = "{}/filt_profiles".format(os.path.dirname(__file__))
 GaiaDict = {'G':'G', 'Bp':'Gbp', 'Rp':'Grp'}
 JPLUS = "gSDSS iSDSS J0378 J0395 J0410 J0430 J0515 J0660 J0861 rSDSS uJAVA zSDSS".split()
 filter_paths = {
-  **{f"2m{b}"    : f"2MASS_2MASS.{b}.dat" for b in "JHK"}, #2Mass
-  **{f"Denis{b}" : f"DENIS_DENIS.{b}.dat" for b in "I"}, #DENIS
-  **{f"Gaia{b}"  : f"GAIA_GAIA2r.{GaiaDict[b]}.dat" for b in ("G","Bp","Rp")}, #Gaia
-  **{f"Galex{b}" : f"GALEX_GALEX.{b}.dat" for b in ("NUV", "FUV")}, #GALEX
-  **{b           : f"Generic_Johnson.{b}.dat" for b in "UBVRI"}, #Generic Johnson
-  **{f"JPLUS-{b}": f"JPLUS/OAJ_JPLUS.{b}.dat" for b in JPLUS}, #JPLUS
-  **{f"ps{b}"    : f"PAN-STARRS_PS1.{b}.dat" for b in "grizy"}, #PanStarrs
-  **{b           : f"SLOAN_SDSS.{b}.dat" for b in "ugriz"}, #SDSS
-  **{f"sm{b}"    : f"SkyMapper_SkyMapper.{b}.dat" for b in "uvgriz"}, #SkyMapper
-  **{f"S{b}"     : f"Spitzer_IRAC.I{b}.dat" for b in "12"}, #Spitzer
-  **{f"sw{b}"    : f"Swift_UVOT.{b}.dat" for b in ("U","UVW1","UVW2","UVM2")}, #Swift
-  **{f"UK{b}"    : f"UKIRT_UKIDSS.{b}.dat" for b in "ZYJHK"}, #UKIRT
-  **{f"W{b}"     : f"WISE_WISE.W{b}.dat" for b in "12"}, #Wise
+  **{f"2m{b}"    : f"2MASS_2MASS.{b}.npy" for b in "JHK"}, #2Mass
+  **{f"Denis{b}" : f"DENIS_DENIS.{b}.npy" for b in "I"}, #DENIS
+  **{f"Gaia{b}"  : f"GAIA_GAIA2r.{GaiaDict[b]}.npy" for b in ("G","Bp","Rp")}, #Gaia
+  **{f"Galex{b}" : f"GALEX_GALEX.{b}.npy" for b in ("NUV", "FUV")}, #GALEX
+  **{b           : f"Generic_Johnson.{b}.npy" for b in "UBVRI"}, #Generic Johnson
+  **{f"JPLUS-{b}": f"JPLUS/OAJ_JPLUS.{b}.npy" for b in JPLUS}, #JPLUS
+  **{f"ps{b}"    : f"PAN-STARRS_PS1.{b}.npy" for b in "grizy"}, #PanStarrs
+  **{b           : f"SLOAN_SDSS.{b}.npy" for b in "ugriz"}, #SDSS
+  **{f"sm{b}"    : f"SkyMapper_SkyMapper.{b}.npy" for b in "uvgriz"}, #SkyMapper
+  **{f"S{b}"     : f"Spitzer_IRAC.I{b}.npy" for b in "12"}, #Spitzer
+  **{f"sw{b}"    : f"Swift_UVOT.{b}.npy" for b in ("U","UVW1","UVW2","UVM2")}, #Swift
+  **{f"UK{b}"    : f"UKIRT_UKIDSS.{b}.npy" for b in "ZYJHK"}, #UKIRT
+  **{f"W{b}"     : f"WISE_WISE.W{b}.npy" for b in "12"}, #Wise
 }
 filter_names = list(filter_paths)
 
@@ -33,7 +33,7 @@ def load_transmission_curve(filt):
   """
   Loads the filter curves obtained from VOSA (SVO).
   """
-  from .spec_io import model_from_txt
+  from .spec_io import spec_from_npy
 
   try:
     full_path = "{}/{}".format(filters_dir, filter_paths[filt])
@@ -41,7 +41,7 @@ def load_transmission_curve(filt):
     print('Invalid filter name: {}'.format(filt))
     exit()
 
-  return model_from_txt(full_path, x_unit="AA", y_unit="")
+  return spec_from_npy(full_path, wave="vac", x_unit="AA", y_unit="")
 #
 
 def load_Vega():
