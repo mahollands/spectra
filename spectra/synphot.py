@@ -44,6 +44,17 @@ def load_transmission_curve(filt):
   return model_from_txt(full_path, x_unit="AA", y_unit="")
 #
 
+def load_Vega():
+  """
+  Loads the filter curves obtained from VOSA (SVO).
+  """
+  from .spec_io import spec_from_npy
+
+  full_path = "{}/alpha_lyr_mod_003.npy".format(filters_dir)
+
+  return spec_from_npy(full_path, wave='vac', x_unit="AA", y_unit="")
+#
+
 def m_AB_int(X, Y, R, Ifun):
   y_nu = Ifun(Y*R/X, X)/Ifun(R/X, X) 
   m = -2.5 * np.log10(y_nu) + 8.90
