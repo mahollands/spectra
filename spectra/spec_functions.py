@@ -2,6 +2,7 @@
 Contains functions for generating spectra or operating on spectra
 """
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.optimize import leastsq
 from .spec_class import Spectrum
 from .misc import black_body
@@ -77,17 +78,23 @@ def spectra_mean(SS):
 
   return Spectrum(S0.x, Ybar, Ebar, **S0.info)
 
-def sky_line_fwhm(S, x0, dx=5.):
+def sky_line_fwhm(S, x0, dx=5., return_model=False):
   """
   Given a sky spectrum, this fits a Gaussian to a
   sky line and returns the FWHM. The window width
   is 2*dx wide, centred on x0. The 
   """
-  def sky_residual(params, S):
+  def sky_line_model(params, S):
     x0, fwhm, A, C = params
     xw = fwhm /2.355
-    y_fit = A*np.exp(-0.5*((S.x-x0)/xw)**2) + C
-    return (S.y - y_fit)/S.e
+    ymod = A*np.exp(-0.5*((S.x-x0)/xw)**2) + C
+    info = S.info
+    info.pop('name')
+    info.pop('head')
+    return Spectrum(S.x, ymod, 0, **info)
+    
+  def sky_residual(params, S):
+    return (S - sky_line_model(params, S)).y_e
 
   Sc = S.clip(x0-dx, x0+dx)
   guess = x0, 2*np.diff(Sc.x).mean(), Sc.y.max(), Sc.y.min()
@@ -95,6 +102,8 @@ def sky_line_fwhm(S, x0, dx=5.):
   vec, err = res[0], np.sqrt(np.diag(res[1]))
 
   Pnames = "x0 fwhm A C".split()
-  return {p : (v, e) for p, v, e in zip(Pnames, vec, err)}
+  res = {p : (v, e) for p, v, e in zip(Pnames, vec, err)}
+
+  return res, sky_line_model(vec, S) if return_model else res
 #
 
