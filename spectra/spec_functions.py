@@ -81,7 +81,7 @@ def sky_line_fwhm(S, x0, dx=5.):
   """
   Given a sky spectrum, this fits a Gaussian to a
   sky line and returns the FWHM. The window width
-  is 2*dx wide, centred on x0.
+  is 2*dx wide, centred on x0. The 
   """
   def sky_residual(params, S):
     x0, fwhm, A, C = params
@@ -94,6 +94,7 @@ def sky_line_fwhm(S, x0, dx=5.):
   res = leastsq(sky_residual, guess, args=(Sc,), full_output=True)
   vec, err = res[0], np.sqrt(np.diag(res[1]))
 
-  return vec[0], vec[2]+vec[3], (vec[1], err[1])
+  Pnames = "x0 fwhm A C".split()
+  return {p : (v, e) for p, v, e in zip(Pnames, vec, err)}
 #
 
