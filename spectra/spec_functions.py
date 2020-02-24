@@ -80,7 +80,8 @@ def spectra_mean(SS):
 def sky_line_fwhm(S, x0, dx=5.):
   """
   Given a sky spectrum, this fits a Gaussian to a
-  sky line and returns the FWHM.
+  sky line and returns the FWHM. The window width
+  is 2*dx wide, centred on x0.
   """
   def sky_residual(params, S):
     x0, fwhm, A, C = params
