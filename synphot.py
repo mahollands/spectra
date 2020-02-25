@@ -101,7 +101,7 @@ def mag_calc_AB(S, filt, NMONTE=1000, Ifun=Itrapz):
 
   #clip data to filter range and interpolate filter to data axis
   S = S.clip(np.min(R.x), np.max(R.x))
-  R = R.interp(S)
+  R = R.interp(S, kind='linear')
 
   #Calculate AB magnitudes, potentially including flux errors
   if NMONTE == 0:
