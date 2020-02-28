@@ -684,7 +684,7 @@ class Spectrum(object):
     Changes units of the x-data. Supports conversion between wavelength
     and energy etc. Argument should be a string or Unit.
     """
-    x = self.x * self._xu
+    x = self.x << self._xu
     x2 = x.to(new_unit, u.spectral())
     self.x = x2.value
     self.x_unit = new_unit
@@ -694,9 +694,9 @@ class Spectrum(object):
     Changes units of the y-data. Supports conversion between Fnu
     and Flambda etc. Argument should be a string or Unit.
     """
-    x = self.x * self._xu
-    y = self.y * self._yu
-    e = self.e * self._yu
+    x = self.x << self._xu
+    y = self.y << self._yu
+    e = self.e << self._yu
     y = y.to(new_unit, u.spectral_density(x))
     e = e.to(new_unit, u.spectral_density(x))
     self.y = y.value
