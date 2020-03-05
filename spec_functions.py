@@ -84,7 +84,7 @@ def sky_line_fwhm(S, x0, dx=5., return_model=False):
   sky line and returns the FWHM. The window width
   is 2*dx wide, centred on x0. The 
   """
-  def sky_line_model(params, S):
+  def sl_model(params, S):
     x0, fwhm, A, C = params
     xw = fwhm /2.355
     ymod = A*np.exp(-0.5*((S.x-x0)/xw)**2) + C
@@ -93,12 +93,9 @@ def sky_line_fwhm(S, x0, dx=5., return_model=False):
     info.pop('head')
     return Spectrum(S.x, ymod, 0, **info)
     
-  def sky_residual(params, S):
-    return (S - sky_line_model(params, S)).y_e
-
   Sc = S.clip(x0-dx, x0+dx)
   guess = x0, 2*np.diff(Sc.x).mean(), Sc.y.max(), Sc.y.min()
-  res = leastsq(sky_residual, guess, args=(Sc,), full_output=True)
+  res = leastsq(lambda p, S: (S - sl_model(p, S)).y_e, guess, args=(Sc,), full_output=True)
   vec, err = res[0], np.sqrt(np.diag(res[1]))
 
   Pnames = "x0 fwhm A C".split()
