@@ -101,6 +101,6 @@ def sky_line_fwhm(S, x0, dx=5., return_model=False):
   Pnames = "x0 fwhm A C".split()
   res = {p : (v, e) for p, v, e in zip(Pnames, vec, err)}
 
-  return (res, sky_line_model(vec, S)) if return_model else res
+  return (res, sl_model(vec, S)) if return_model else res
 #
 
