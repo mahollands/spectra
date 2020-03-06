@@ -94,7 +94,7 @@ def sky_line_fwhm(S, x0, dx=5., return_model=False):
     return Spectrum(S.x, ymod, 0, **info)
     
   Sc = S.clip(x0-dx, x0+dx)
-  guess = x0, 2*np.diff(Sc.x).mean(), Sc.y.max(), Sc.y.min()
+  guess = x0, 2*np.diff(Sc.x).mean(), Sc.y.max()-Sc.y.min(), Sc.y.min()
   res = leastsq(lambda p, S: (S - sl_model(p, S)).y_e, guess, args=(Sc,), full_output=True)
   vec, err = res[0], np.sqrt(np.diag(res[1]))
 
