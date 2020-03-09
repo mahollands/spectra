@@ -96,7 +96,11 @@ def sky_line_fwhm(S, x0, dx=5., return_model=False):
   Sc = S.clip(x0-dx, x0+dx)
   guess = x0, 2*np.diff(Sc.x).mean(), Sc.y.max()-Sc.y.min(), Sc.y.min()
   res = leastsq(lambda p, S: (S - sl_model(p, S)).y_e, guess, args=(Sc,), full_output=True)
-  vec, err = res[0], np.sqrt(np.diag(res[1]))
+  try:
+    vec, err = res[0], np.sqrt(np.diag(res[1]))
+  except ValueError:
+    print(f"Fit did not converge for line at wavelength {x0}")
+    return (None, None) if return_model else None
 
   Pnames = "x0 fwhm A C".split()
   res = {p : (v, e) for p, v, e in zip(Pnames, vec, err)}
