@@ -85,16 +85,17 @@ def sky_line_fwhm(S, x0, dx=5., return_model=False):
   is 2*dx wide, centred on x0. The 
   """
   def sl_model(params, S):
-    x0, fwhm, A, C = params
+    x0, fwhm, A, M, C = params
     xw = fwhm /2.355
-    ymod = A*np.exp(-0.5*((S.x-x0)/xw)**2) + C
+    xx = S.x-x0
+    ymod = A*np.exp(-0.5*(xx/xw)**2) + M*xx + C
     info = S.info
     info.pop('name')
     info.pop('head')
     return Spectrum(S.x, ymod, 0, **info)
     
   Sc = S.clip(x0-dx, x0+dx)
-  guess = x0, 2*np.diff(Sc.x).mean(), Sc.y.max()-Sc.y.min(), Sc.y.min()
+  guess = x0, 2*np.diff(Sc.x).mean(), Sc.y.max()-Sc.y.min(), 0., Sc.y.min()
   res = leastsq(lambda p, S: (S - sl_model(p, S)).y_e, guess, args=(Sc,), full_output=True)
   try:
     vec, err = res[0], np.sqrt(np.diag(res[1]))
@@ -102,7 +103,7 @@ def sky_line_fwhm(S, x0, dx=5., return_model=False):
     print(f"Fit did not converge for line at wavelength {x0}")
     return (None, None) if return_model else None
 
-  Pnames = "x0 fwhm A C".split()
+  Pnames = "x0 fwhm A M C".split()
   res = {p : (v, e) for p, v, e in zip(Pnames, vec, err)}
 
   return (res, sl_model(vec, Sc)) if return_model else res
