@@ -94,7 +94,11 @@ def sky_line_fwhm(S, x0, dx=5., return_model=False):
     info.pop('head')
     return Spectrum(S.x, ymod, 0, **info)
     
+  #intial pass to refine center
   Sc = S.clip(x0-dx, x0+dx)
+  x0 = Sc.x[np.argmax(Sc.y)]
+  Sc = S.clip(x0-dx, x0+dx)
+
   guess = x0, 2*np.diff(Sc.x).mean(), Sc.y.max()-Sc.y.min(), 0., Sc.y.min()
   res = leastsq(lambda p, S: (S - sl_model(p, S)).y_e, guess, args=(Sc,), full_output=True)
   try:
