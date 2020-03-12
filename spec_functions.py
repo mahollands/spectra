@@ -99,7 +99,13 @@ def sky_line_fwhm(S, x0, dx=5., return_model=False):
   x0 = Sc.x[np.argmax(Sc.y)]
   Sc = S.clip(x0-dx, x0+dx)
 
-  guess = x0, 2*np.diff(Sc.x).mean(), Sc.y.max()-Sc.y.min(), 0., Sc.y.min()
+  guess = (
+    x0,
+    2*np.diff(Sc.x).mean(), #fwhm ~2pixels
+    Sc.y.max()-Sc.y.min(), #A
+    (S.y[-1]-S.y[0])/(S.x[-1]-S.x[0]), #M
+    0.5*(S.y[-1]+S.y[0]) #C
+  )
   res = leastsq(lambda p, S: (S - sl_model(p, S)).y_e, guess, args=(Sc,), full_output=True)
   try:
     vec, err = res[0], np.sqrt(np.diag(res[1]))
