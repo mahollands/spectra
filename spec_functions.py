@@ -101,7 +101,7 @@ def sky_line_fwhm(S, x0, dx=5., return_model=False):
 
   guess = (
     x0,
-    2*np.diff(Sc.x).mean(), #fwhm ~2pixels
+    2*Sc.dx.mean(), #fwhm ~2pixels
     Sc.y.max()-Sc.y.min(), #A
     (S.y[-1]-S.y[0])/(S.x[-1]-S.x[0]), #M
     0.5*(S.y[-1]+S.y[0]) #C

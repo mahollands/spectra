@@ -81,6 +81,13 @@ class Spectrum(object):
       raise TypeError("x must be an ndarray")
 
   @property
+  def dx(self):
+    """
+    derivative of x-values per pixel
+    """
+    return np.diff(self.x)
+
+  @property
   def y(self):
     return self._y
 
