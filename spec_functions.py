@@ -15,7 +15,7 @@ __all__ = [
   "spectra_mean",
 ]
 
-def Black_body(x, T, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)", norm=True):
+def Black_body(x, T, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)", norm=False):
   """
   Returns a Black body curve like black_body(), but the return value
   is a Spectrum class.
