@@ -7,7 +7,6 @@ import astropy.units as u
 from astropy.constants import h, c, k_B
 from scipy.optimize import leastsq
 from .spec_class import Spectrum
-from .misc import black_body
 
 __all__ = [
   "Black_body",
