@@ -3,6 +3,8 @@ Contains functions for generating spectra or operating on spectra
 """
 import numpy as np
 import matplotlib.pyplot as plt
+import astropy.units as u
+from astropy.constants import h, c, k_B
 from scipy.optimize import leastsq
 from .spec_class import Spectrum
 from .misc import black_body
@@ -18,9 +20,12 @@ def Black_body(x, T, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)", norm=True
   Returns a Black body curve like black_body(), but the return value
   is a Spectrum class.
   """
-  BB = Spectrum(x, 0., 0., f'{T}K BlackBody', wave, x_unit, "erg/(s cm2 AA)")
-  BB.x_unit_to("AA")
-  BB += black_body(BB.x, T, False)
+  BB = Spectrum(x, 0., 0., f'{T}K BlackBody', wave, x_unit, "W/(m2 Hz)")
+  BB.x_unit_to("Hz")
+  nu = BB.x * u.Hz
+  T *= u.K
+  bb = 2*h*nu**3/(c**2*np.expm1(h*nu/(k_B*T)))
+  BB += bb.to("W/(m2 Hz)")
   BB.x_unit_to(x_unit)
   BB.y_unit_to(y_unit)
   if norm:
