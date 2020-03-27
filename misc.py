@@ -90,25 +90,6 @@ def convolve_gaussian_R(x, y, R):
   return convolve_gaussian(np.log(x), y, 1./R)
 #
 
-def black_body(x, T, norm=True):
-  """
-  x in angstroms
-  T in Kelvin
-  returns un-normed spectrum
-  """
-  logf = np.empty_like(x,dtype='float')
-  Q = 143877516. /(x*T) # const. = ( h * c )/( 1e-10 * kB )
-  lo = Q < 10.
-  hi = ~lo
-  #log form needed to stop overflow in x**-5
-  #for Q>7. exp(Q)==expm1(Q) to better than 0.1%.
-  logf[lo] = -5. * np.log( x[lo] ) - np.log( np.expm1(Q[lo]) )
-  logf[hi] = -5. * np.log( x[hi] ) - Q[hi]
-  if norm:
-    logf -= logf.max() #normalise to peak at 1.
-  return np.exp( logf )
-#
-
 def keep_points(x, fname):
   """
   creates a mask for a spectrum that regions between pairs from a file
