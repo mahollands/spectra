@@ -55,7 +55,7 @@ def JuraDisc(x, Tstar, Rstar, Tin, Tout, D, inc):
   Tout <<= u.K
   D <<= u.pc
   
-  I = np.array([_JuraIntegral(nu_i, Tin, Tout) for nu_i in nu]).T[0]
+  I = np.fromiter((_JuraIntegral(nu_i, Tin, Tout) for nu_i in nu), np.float64)
 
   t1 = 12*np.pi**(1/3)
   t2 = np.cos(inc) * (Rstar/D)**2
@@ -67,8 +67,12 @@ def JuraDisc(x, Tstar, Rstar, Tin, Tout, D, inc):
   return S
 
 def _JuraIntegral(nu, Tin, Tout):
+  """
+  Integral from equation 3 of Jura et al. (2003).
+  The upper integral limit is capped to 500 to avoid numerical overflow.
+  """
   Xin, Xout = [(h*nu/(k_B*T)).si.value for T in (Tin, Tout)]
-  return quad(lambda X: X**(5/3)/np.expm1(X), Xin, Xout)
+  return quad(lambda X: X**(5/3)/np.expm1(X), Xin, min(Xout, 500))[0]
     
 
 #..............................................................................
