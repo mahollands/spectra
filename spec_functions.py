@@ -6,10 +6,12 @@ import matplotlib.pyplot as plt
 import astropy.units as u
 from astropy.constants import h, c, k_B
 from scipy.optimize import leastsq
+from scipy.integrate import quad
 from .spec_class import Spectrum
 
 __all__ = [
   "Black_body",
+  "JuraDisc",
   "join_spectra",
   "spectra_mean",
 ]
@@ -30,7 +32,44 @@ def Black_body(x, T, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)", norm=Fals
   if norm:
     BB /= BB.y.max()
   return BB
+
 #
+
+def JuraDisc(x, Tstar, Rstar, Tin, Tout, D, inc):
+  """
+  Generates the irradiated disc model of Jura (2003).
+  Inputs are:
+  x: wavlength [AA]
+  Tstar: stellar effective temperature [K]
+  Rstar: stellar radius [Rsun]
+  Tin: temperature of disc inner edge [K]
+  Tout: temperature of disc outer edge [K]
+  D: Distance to star from the Sun [pc]
+  inc: inclination angle of disc [radians]
+  """
+  
+  nu = (x * u.AA).to(u.Hz, equivalencies=u.spectral())
+  Tstar <<= u.K
+  Rstar <<= u.Rsun
+  Tin <<= u.K
+  Tout <<= u.K
+  D <<= u.pc
+  
+  I = np.array([_JuraIntegral(nu_i, Tin, Tout) for nu_i in nu]).T[0]
+
+  t1 = 12*np.pi**(1/3)
+  t2 = np.cos(inc) * (Rstar/D)**2
+  t3 = ((2*k_B*Tstar)/(3*h*nu))**(8/3)
+  t4 = h*nu**3/c**2
+  Fring = t1*t2*t3*t4*I
+  S = Spectrum(x, Fring.value, 0., name="Disc", wave='vac', x_unit="AA", y_unit=Fring.unit)
+  S.y_unit_to("erg/(s cm2 AA)")
+  return S
+
+def _JuraIntegral(nu, Tin, Tout):
+  Xin, Xout = [(h*nu/(k_B*T)).si.value for T in (Tin, Tout)]
+  return quad(lambda X: X**(5/3)/np.expm1(X), Xin, Xout)
+    
 
 #..............................................................................
 
@@ -122,4 +161,3 @@ def sky_line_fwhm(S, x0, dx=5., return_model=False):
 
   return (res, sl_model(vec, Sc)) if return_model else res
 #
-
