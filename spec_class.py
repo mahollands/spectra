@@ -895,7 +895,7 @@ class Spectrum(object):
     """
     return np.isinf(self.x) | np.isinf(self.y) | np.isinf(self.e)
 
-  def plot(self, *args, kind='y', **kwargs):
+  def plot(self, *args, kind='y', scale=1, **kwargs):
     """
     Plots the spectrum with matplotlib and passes *args/**kwargs.
     'kind' should be one of 'y', 'e', 'var', 'ivar', 'y_e', 'SN', 'magAB', 'magABe'.
@@ -905,8 +905,11 @@ class Spectrum(object):
     if kind not in allowed: 
       raise ValueError(f"kind must be one of: {allowed}")
 
+    if kind not in ("y", "e") and scale != 1:
+        raise ValueError("Only flux can be rescaled")
+
     y_plot = getattr(self, kind)
-    plt.plot(self.x, y_plot, *args, **kwargs)
+    plt.plot(self.x, scale*y_plot, *args, **kwargs)
 
     #default y limits (if not already set)
     ax = plt.gca()
