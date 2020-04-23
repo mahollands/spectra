@@ -575,7 +575,7 @@ class Spectrum(object):
       e2 = interp1d(self.x[~inf], self.e[~inf], kind=kind, \
         bounds_error=False, fill_value=np.inf, **kwargs)(x2)
       inf2 = interp1d(self.x, inf, kind='nearest', \
-        bounds_error=False, fill_value=0)(x2).astype(bool)
+        bounds_error=False, fill_value=0, **kwargs)(x2).astype(bool)
       e2[inf2] = np.inf
 
     e2[e2 < 0] = 0.
