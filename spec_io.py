@@ -29,22 +29,22 @@ el_dict = {
   31:'Ga', 32:'Ge', 38:'Sr', 56:'Ba',
 }
 
-def spec_from_txt(fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)', **kwargs):
+def spec_from_txt(fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)', delimiter='\s+', **kwargs):
   """
   Loads a text file with the first 3 columns as wavelengths, fluxes, errors.
   kwargs are passed to pd.read_csv.
   """
-  x, y, e = pd.read_csv(fname, delimiter='\s+', usecols=(0,1,2), **kwargs).values.T
+  x, y, e = pd.read_csv(fname, delimiter=delimiter, usecols=(0,1,2), **kwargs).values.T
   name = os.path.splitext(os.path.basename(fname))[0]
   return Spectrum(x, y, e, name, wave, x_unit, y_unit)
     
-def model_from_txt(fname, wave='vac', x_unit='AA', y_unit='erg/(s cm2 AA)', **kwargs):
+def model_from_txt(fname, wave='vac', x_unit='AA', y_unit='erg/(s cm2 AA)', delimiter='\s+', **kwargs):
   """
   Loads a text file with the first 2 columns as wavelengths and fluxes.
   This produces a spectrum object where the errors are just set to zero.
   This is therefore good to use for models. kwargs are passed to pd.read_csv.
   """
-  x, y = pd.read_csv(fname, delimiter='\s+', usecols=(0,1), **kwargs).values.T
+  x, y = pd.read_csv(fname, delimiter=delimiter, usecols=(0,1), **kwargs).values.T
   name = os.path.splitext(os.path.basename(fname))[0]
   return Spectrum(x, y, 0, name, wave, x_unit, y_unit)
 
