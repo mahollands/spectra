@@ -727,7 +727,7 @@ class Spectrum(object):
     else:
       self.x *= factor
 
-  def scale_model(self, other, return_scaling_factor=False):
+  def scale_model(self, other, return_scaling_factor=False, assume_same_x=False):
     """
     If self is model spectrum (errors are presumably zero), and S is a data
     spectrum (has errors) then this reproduces a scaled version of M2.
@@ -743,13 +743,13 @@ class Spectrum(object):
 
     #if M and S already have same x-axis, this won't do much.
     S = other[other.e>0]
-    M = self.interp(S)
+    M = self if assume_same_x else self.interp(S)
 
     A = np.sum(S.y*M.y*S.ivar)/np.sum(M.y**2*S.ivar)
 
     return (self*A, A) if return_scaling_factor else self*A
     
-  def scale_model_to_model(self, other, return_scaling_factor=False):
+  def scale_model_to_model(self, other, return_scaling_factor=False, assume_same_x=False):
     """
     Similar to scale_model, but for scaling one model to another. Essentially
     this is for the case when the argument doesn't have errors.
@@ -760,13 +760,13 @@ class Spectrum(object):
 
     #if M and S already have same x-axis, this won't do much.
     S = other
-    M = self.interp(S)
+    M = self if assume_same_x else self.interp(S)
 
     A = np.sum(S.y*M.y)/np.sum(M.y**2)
 
     return (self*A, A) if return_scaling_factor else self*A
 
-  def scale_spectrum_to_spectrum(self, other, return_scaling_factor=False):
+  def scale_spectrum_to_spectrum(self, other, return_scaling_factor=False, assume_same_x=False):
     """
     Scales self to best fit other in their mutually overlapping region.
     """
@@ -777,7 +777,7 @@ class Spectrum(object):
     x0 = max(S.x.min() for S in (self, other))
     x1 = min(S.x.max() for S in (self, other))
     Soc = other.clip(x0, x1)
-    Ssi = self.interp(Soc, kind='cubic')
+    Ssi = self if assume_same_x else self.interp(Soc, kind='cubic')
 
     def chi2(A, S1, S2):
       top = (S1.y - A*S2.y)**2
