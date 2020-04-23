@@ -4,6 +4,7 @@ Spectrum class.
 """
 import numpy as np
 import os
+import pandas as pd
 from sys import exit
 from trm import molly
 from astropy.io import fits
@@ -31,9 +32,9 @@ el_dict = {
 def spec_from_txt(fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)', **kwargs):
   """
   Loads a text file with the first 3 columns as wavelengths, fluxes, errors.
-  kwargs are passed to np.loadtxt.
+  kwargs are passed to pd.read_csv.
   """
-  x, y, e = np.loadtxt(fname, unpack=True, usecols=(0,1,2), **kwargs)
+  x, y, e = pd.read_csv(fname, delimiter='\s+', usecols=(0,1,2), **kwargs).values.T
   name = os.path.splitext(os.path.basename(fname))[0]
   return Spectrum(x, y, e, name, wave, x_unit, y_unit)
     
@@ -41,9 +42,9 @@ def model_from_txt(fname, wave='vac', x_unit='AA', y_unit='erg/(s cm2 AA)', **kw
   """
   Loads a text file with the first 2 columns as wavelengths and fluxes.
   This produces a spectrum object where the errors are just set to zero.
-  This is therefore good to use for models. kwargs are passed to np.loadtxt.
+  This is therefore good to use for models. kwargs are passed to pd.read_csv.
   """
-  x, y = np.loadtxt(fname, unpack=True, usecols=(0,1), **kwargs)
+  x, y = pd.read_csv(fname, delimiter='\s+', usecols=(0,1), **kwargs).values.T
   name = os.path.splitext(os.path.basename(fname))[0]
   return Spectrum(x, y, 0, name, wave, x_unit, y_unit)
 
