@@ -576,7 +576,7 @@ class Spectrum(object):
         bounds_error=False, fill_value=np.inf, **kwargs)(x2)
       inf2 = interp1d(self.x, inf, kind='nearest', \
         bounds_error=False, fill_value=0, **kwargs)(x2).astype(bool)
-      e2[inf2] = np.inf
+      #e2[inf2] = np.inf
 
     e2[e2 < 0] = 0.
     return Spectrum(x2, y2, e2, **self.info)
@@ -619,11 +619,23 @@ class Spectrum(object):
     """
     return (self.x>x0) & (self.x<x1)
 
+  def sect2(self, x0, dx):
+    """
+    Returns a truth array for wavelengths between x0-dx and x0+dx.
+    """
+    return self.sect(x0-dx, x0+dx)
+
   def clip(self, x0, x1): 
     """
     Returns Spectrum clipped between x0 and x1.
     """
     return self[self.sect(x0, x1)]
+
+  def clip2(self, x0, dx): 
+    """
+    Returns Spectrum clipped between x0-dx and x0+dx.
+    """
+    return self[self.sect2(x0, dx)]
 
   def norm_percentile(self, pc):
     """
