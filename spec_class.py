@@ -545,41 +545,54 @@ class Spectrum(object):
     zeroes.
     """
     if isinstance(X, np.ndarray):
-      x2 = 1*X
+      xi = X
     elif isinstance(X, Spectrum):
       self._compare_units(X, 'x')
       if self.wave != X.wave:
         raise ValueError("wavelengths differ between spectra")
-      x2 = 1*X.x
+      xi = X.x
     else:
       raise TypeError("interpolant was not ndarray/Spectrum type")
 
-    if kind == "Akima":
-      y2 = Ak_i(self.x, self.y)(x2)
-      e2 = Ak_i(self.x, self.e)(x2)
-      nan = np.isnan(y2) | np.isnan(e2)
-      y2[nan] = 0.
-      e2[nan] = 0.
-    elif kind == "sinc":
-      y2 = lanczos(self.x, self.y, x2)
-      e2 = lanczos(self.x, np.log(self.e+1E-300), x2)
-      extrap = (x2<self.x.min()) | (x2>self.x.max())
-      y2[extrap] = 0.
-      e2[extrap] = np.inf
-    else:
-      y2 = interp1d(self.x, self.y, kind=kind, \
-        bounds_error=False, fill_value=0., **kwargs)(x2)
-      #If any errors were inf (zero weight) we need to make
-      #sure the interpolated range stays inf
-      inf = np.isinf(self.e)
-      e2 = interp1d(self.x[~inf], self.e[~inf], kind=kind, \
-        bounds_error=False, fill_value=np.inf, **kwargs)(x2)
-      inf2 = interp1d(self.x, inf, kind='nearest', \
-        bounds_error=False, fill_value=0, **kwargs)(x2).astype(bool)
-      #e2[inf2] = np.inf
+    #Check whether we're interpolating a model
+    model = np.allclose(self.e, 0)
 
-    e2[e2 < 0] = 0.
-    return Spectrum(x2, y2, e2, **self.info)
+    if kind == "Akima":
+      yi = Ak_i(self.x, self.y)(xi)
+      nan = np.isnan(yi) | np.isnan(ei)
+      yi[nan] = 0.
+      if not model:
+        ei = Ak_i(self.x, self.e)(xi)
+        ei[nan] = 0.
+    elif kind == "sinc":
+      yi = lanczos(self.x, self.y, xi)
+      extrap = (xi<self.x.min()) | (xi>self.x.max())
+      yi[extrap] = 0.
+      if not model:
+        ei = lanczos(self.x, np.log(self.e+1E-300), xi)
+        ei[extrap] = np.inf
+    else:
+      yi = interp1d(self.x, self.y, kind=kind, \
+        bounds_error=False, fill_value=0., **kwargs)(xi)
+      if not model:
+        #If any errors were inf (zero weight) we need to make
+        #sure the interpolated range stays inf
+        inf = np.isinf(self.e)
+        if np.any(inf):
+          ei = interp1d(self.x[~inf], self.e[~inf], kind=kind, \
+            bounds_error=False, fill_value=np.inf, **kwargs)(xi)
+          inf2 = interp1d(self.x, inf, kind='nearest', \
+            bounds_error=False, fill_value=0, **kwargs)(x2).astype(bool)
+          ei[inf2] = np.inf
+        else:
+          ei = interp1d(self.x, self.e, kind=kind, \
+            bounds_error=False, fill_value=np.inf, **kwargs)(xi)
+
+    if model:
+      ei = np.zeros_like(xi) 
+    else:
+      ei[ei < 0] = 0.
+    return Spectrum(xi, yi, ei, **self.info)
 
   def interp_nan(self, interp_e=False):
     """
