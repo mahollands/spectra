@@ -555,7 +555,7 @@ class Spectrum(object):
       raise TypeError("interpolant was not ndarray/Spectrum type")
 
     #Check whether we're interpolating a model
-    model = np.allclose(self.e, 0)
+    model = np.allclose(self.e, 0, atol=1e-100)
 
     if kind == "Akima":
       yi = Ak_i(self.x, self.y)(xi)
@@ -589,7 +589,7 @@ class Spectrum(object):
             bounds_error=False, fill_value=np.inf, **kwargs)(xi)
 
     if model:
-      ei = np.zeros_like(xi) 
+      ei = 0.
     else:
       ei[ei < 0] = 0.
     return Spectrum(xi, yi, ei, **self.info)
