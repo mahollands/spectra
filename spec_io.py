@@ -15,6 +15,7 @@ __all__ = [
   "spec_from_npy",
   "model_from_txt",
   "model_from_dk",
+  "head_from_dk",
   "spec_from_sdss_fits",
   "spec_from_fits_generic",
   "spec_list_from_molly",
@@ -48,12 +49,11 @@ def model_from_txt(fname, wave='vac', x_unit='AA', y_unit='erg/(s cm2 AA)', deli
   name = os.path.splitext(os.path.basename(fname))[0]
   return Spectrum(x, y, 0, name, wave, x_unit, y_unit)
 
-def model_from_dk(fname, x_unit='AA', y_unit='erg/(s cm2 AA)'):
+def head_from_dk(fname, return_skip=False):
   """
-  Similar to model_from_txt, but will autoskip past the DK header.
-  Units are converted to those specified.
+  Return the header from a DK file, optionally the number of rows to skip
+  for reading the data after.
   """
-  #extract header first
   hdr = {'el':{}}
   with open(fname, 'r') as Fdk:
     for skip, line in enumerate(Fdk, 1):
@@ -72,6 +72,15 @@ def model_from_dk(fname, x_unit='AA', y_unit='erg/(s cm2 AA)'):
         break
       else:
         continue
+  return (hdr, skip) if return_skip else hdr
+
+def model_from_dk(fname, x_unit='AA', y_unit='erg/(s cm2 AA)'):
+  """
+  Similar to model_from_txt, but will autoskip past the DK header.
+  Units are converted to those specified.
+  """
+  #extract header first
+  hdr, skip = head_from_dk(fname, True)
   M = model_from_txt(fname, 'vac', 'AA', 'erg/(s cm3)', skiprows=skip)
   M.x_unit_to(x_unit)
   M.y_unit_to(y_unit)
