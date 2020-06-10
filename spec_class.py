@@ -8,7 +8,7 @@ import astropy.units as u
 import astropy.constants as const
 from itertools import starmap
 from astropy.convolution import convolve
-from scipy.interpolate import interp1d, Akima1DInterpolator as Ak_i
+from scipy.interpolate import interp1d, Akima1DInterpolator as Ak_i, LSQUnivariateSpline
 from scipy.optimize import minimize
 from .synphot import mag_calc_AB
 from .reddening import A_curve
@@ -873,6 +873,24 @@ class Spectrum(object):
     infonew = self.info
     infonew['y_unit'] = y_unit
     return Spectrum(self.x, y, 0, **infonew)
+
+  def splfit(self, knots, weighted=True):
+    """
+    Fits a spline to a spectrum object. The returned object is a function for which
+    wavelengths should be passed. Knots may be an integer for equidistantly spaced
+    knots, or an interable of specified knots.
+    """
+    if isinstance(knots, int):
+      #space knots equidistantly
+      knots = np.linspace(*ratio.x01, knots+2)[1:-2]
+    elif isinstance(knots, (tuple, list, np.ndarray)):
+      #list of knot points
+      pass  
+    else:
+      raise TypeError
+
+    w = 1/ratio.e if weighted else 1
+    return LSQUnivariateSpline(ratio.x, ratio.y, knots, w)
 
   def split(self, W):
     """
