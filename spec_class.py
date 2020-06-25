@@ -102,6 +102,8 @@ class Spectrum(object):
       self._y = y.astype(float)
     else:
       raise TypeError("y must be of type int/float/ndarray")
+    #Add tiny flux to avoid div0 problems with models
+    self.y[(self.y == 0) ] += 1E-100
 
   @property
   def e(self):
