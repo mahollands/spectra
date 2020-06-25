@@ -50,7 +50,7 @@ class Spectrum(object):
   ndarray or Quantity object, the second row (__radd__ etc) is overridden
   by undefined behaviour of numpy/astropy implementations.
   """
-  __slots__ = ['_x', '_y', '_e', '_name', '_wave', '_xu', '_yu', '_head']
+  __slots__ = ['_x', '_y', '_e', '_name', '_wave', '_xu', '_yu', '_head', '_model']
   def __init__(self, x, y, e, name="", wave='air', x_unit="AA", y_unit="erg/(s cm^2 AA)", head=None):
     """
     Initialise spectrum. Arbitrary header items can be added to self.head
@@ -65,6 +65,7 @@ class Spectrum(object):
     self.x_unit = x_unit
     self.y_unit = y_unit
     self.head = head
+    self._model = np.all(self.e == 0)
 
   @property
   def x(self):
@@ -529,7 +530,7 @@ class Spectrum(object):
     S.x_unit_to("AA")
     S.y_unit_to("erg/(s cm2 AA)")
 
-    if np.all(self.e == 0):
+    if self._model:
       NMONTE = 0 
     return mag_calc_AB(S, filt, NMONTE)
 
@@ -554,27 +555,24 @@ class Spectrum(object):
     else:
       raise TypeError("interpolant was not ndarray/Spectrum type")
 
-    #Check whether we're interpolating a model
-    model = np.allclose(self.e, 0, atol=1e-100)
-
     if kind == "Akima":
       yi = Ak_i(self.x, self.y)(xi)
       nan = np.isnan(yi) | np.isnan(ei)
       yi[nan] = 0.
-      if not model:
+      if not self._model:
         ei = Ak_i(self.x, self.e)(xi)
         ei[nan] = 0.
     elif kind == "sinc":
       yi = lanczos(self.x, self.y, xi)
       extrap = (xi<self.x.min()) | (xi>self.x.max())
       yi[extrap] = 0.
-      if not model:
+      if not self._model:
         ei = lanczos(self.x, np.log(self.e+1E-300), xi)
         ei[extrap] = np.inf
     else:
       yi = interp1d(self.x, self.y, kind=kind, \
         bounds_error=False, fill_value=0., **kwargs)(xi)
-      if not model:
+      if not self._model:
         #If any errors were inf (zero weight) we need to make
         #sure the interpolated range stays inf
         inf = np.isinf(self.e)
@@ -588,7 +586,7 @@ class Spectrum(object):
           ei = interp1d(self.x, self.e, kind=kind, \
             bounds_error=False, fill_value=np.inf, **kwargs)(xi)
 
-    if model:
+    if self._model:
       ei = 0.
     else:
       ei[ei < 0] = 0.
@@ -649,6 +647,9 @@ class Spectrum(object):
     Returns Spectrum clipped between x0-dx and x0+dx.
     """
     return self[self.sect2(x0, dx)]
+
+  def remove_noisy_end(self, sigma=1.0):
+    highSN = np.where(self.SN > sigma)
 
   def norm_percentile(self, pc):
     """
@@ -882,15 +883,15 @@ class Spectrum(object):
     """
     if isinstance(knots, int):
       #space knots equidistantly
-      knots = np.linspace(*ratio.x01, knots+2)[1:-2]
+      knots = np.linspace(*self.x01, knots+2)[1:-2]
     elif isinstance(knots, (tuple, list, np.ndarray)):
       #list of knot points
       pass  
     else:
       raise TypeError
 
-    w = 1/ratio.e if weighted else 1
-    return LSQUnivariateSpline(ratio.x, ratio.y, knots, w)
+    w = 1/self.e if weighted else 1
+    return LSQUnivariateSpline(self.x, self.y, knots, w)
 
   def split(self, W):
     """
