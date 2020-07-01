@@ -35,7 +35,7 @@ def spec_from_txt(fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)', delim
   Loads a text file with the first 3 columns as wavelengths, fluxes, errors.
   kwargs are passed to pd.read_csv.
   """
-  x, y, e = pd.read_csv(fname, delimiter=delimiter, usecols=(0,1,2), **kwargs).values.T
+  x, y, e = pd.read_csv(fname, delimiter=delimiter, usecols=(0,1,2), na_values="NAN", **kwargs).values.T
   name = os.path.splitext(os.path.basename(fname))[0]
   return Spectrum(x, y, e, name, wave, x_unit, y_unit)
     
