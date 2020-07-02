@@ -29,6 +29,8 @@ filter_paths = {
 }
 filter_names = list(filter_paths)
 
+loaded_filters = {}
+
 def load_transmission_curve(filt):
   """
   Loads the filter curves obtained from VOSA (SVO).
@@ -91,7 +93,9 @@ def mag_calc_AB(S, filt, NMONTE=1000, Ifun=Itrapz):
   """
 
   #load filter
-  R = load_transmission_curve(filt)
+  if filt not in loaded_filters:
+    loaded_filters[filt] = load_transmission_curve(filt)
+  R  = loaded_filters[filt]
   R.wave = S.wave
 
   #Convert Spectra/filter-curve to Hz/Jy for integrals
