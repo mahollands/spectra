@@ -87,8 +87,7 @@ def join_spectra(SS, sort=False, name=None):
     for S in SS:
         if not isinstance(S, Spectrum):
             raise TypeError('item is not Spectrum')
-        if S.wave != S0.wave:
-            raise ValueError("Spectra must have same wavelengths")
+        S._compare_wave(S0)
         S._compare_units(S0, xy='xy')
 
     x = np.hstack([S.x for S in SS])

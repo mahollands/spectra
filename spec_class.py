@@ -500,9 +500,12 @@ class Spectrum():
         else:
             raise TypeError("other was not Spectrum or interpretable as a unit")
 
-    def _compare_x(self, other):
+    def _compare_wave(self, other):
         if self.wave != other.wave:
             raise ValueError("Spectra must have same wavelengths (air/vac)")
+
+    def _compare_x(self, other):
+        self.compare_wave(other)
         if not np.allclose(self.x, other.x):
             raise ValueError("Spectra must have same x values")
 
@@ -552,8 +555,7 @@ class Spectrum():
             xi = X
         elif isinstance(X, Spectrum):
             self._compare_units(X, 'x')
-            if self.wave != X.wave:
-                raise ValueError("wavelengths differ between spectra")
+            self._compare_wave(X)
             xi = X.x
         else:
             raise TypeError("interpolant was not ndarray/Spectrum type")
@@ -932,8 +934,7 @@ class Spectrum():
         if not isinstance(other, Spectrum):
             raise TypeError("can only join Spectrum type to other spectra")
         self._compare_units(other, 'xy')
-        if self.wave != other.wave:
-            raise ValueError("cannot join spectra with different wavelengths")
+        self._compare_wave(other)
         return join_spectra((self, other), sort=sort)
 
     def closest_x(self, x0):
