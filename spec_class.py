@@ -2,7 +2,6 @@
 Contains the Spectrum class for working with astrophysical spectra.
 """
 import math
-from itertools import starmap
 import numpy as np
 import matplotlib.pyplot as plt
 import astropy.units as u
@@ -922,7 +921,7 @@ class Spectrum():
             W = -np.inf, *sorted(W), np.inf
         else:
             raise TypeError("W must be int/float or iterable of those types")
-        return tuple(starmap(self.clip, zip(W[:-1], W[1:])))
+        return [self.clip(*w_pair) for w_pair in zip(W[:-1], W[1:])]
 
     def join(self, other, sort=False):
         """
