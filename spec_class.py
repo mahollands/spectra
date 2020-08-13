@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import astropy.units as u
 import astropy.constants as const
 from astropy.convolution import convolve
-from scipy.interpolate import interp1d, Akima1DInterpolator as Ak_i, LSQUnivariateSpline
+from scipy.interpolate import interp1d, Akima1DInterpolator, LSQUnivariateSpline
 from scipy.optimize import minimize
 from .synphot import mag_calc_AB
 from .reddening import A_curve
@@ -582,12 +582,11 @@ class Spectrum():
             raise TypeError("interpolant was not ndarray/Spectrum type")
 
         if kind == "Akima":
-            yi = Ak_i(self.x, self.y)(xi)
-            ei = Ak_i(self.x, self.e)(xi)
+            yi = Akima1DInterpolator(self.x, self.y)(xi)
+            ei = Akima1DInterpolator(self.x, self.e)(xi)
             nan = np.isnan(yi) | np.isnan(ei)
             yi[nan] = 0.
             if not self._model:
-                ei = Ak_i(self.x, self.e)(xi)
                 ei[nan] = 0.
         elif kind == "sinc":
             yi = lanczos(self.x, self.y, xi)
