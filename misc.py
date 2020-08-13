@@ -16,7 +16,6 @@ __all__ = [
     "vac_to_air",
     "air_to_vac",
     "convolve_gaussian",
-    "convolve_gaussian_R",
     "lanczos",
     "logarange",
     "keep_points",
@@ -90,15 +89,6 @@ def convolve_gaussian(x, y, FWHM):
     yic = np.fft.ifft(yiF * ygF).real
 
     return interp1d(xi, yic)(x)
-#
-
-def convolve_gaussian_R(x, y, R):
-    """
-    Similar to convolve_gaussian, but convolves to a specified resolution
-    rather than a specfied FWHM. Essentially this amounts to convolving along a
-    log-uniform x-axis instead.
-    """
-    return convolve_gaussian(np.log(x), y, 1./R)
 #
 
 def _between(x, x1, x2):

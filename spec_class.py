@@ -13,8 +13,7 @@ from scipy.optimize import minimize
 from .synphot import mag_calc_AB
 from .reddening import A_curve
 from .spec_functions import join_spectra
-from .misc import vac_to_air, air_to_vac, convolve_gaussian, \
-    convolve_gaussian_R, lanczos
+from .misc import vac_to_air, air_to_vac, convolve_gaussian, lanczos
 
 __all__ = [
     "Spectrum",
@@ -866,7 +865,7 @@ class Spectrum():
         Convolves spectrum with a Gaussian of specified resolving power
         """
         S = self.copy()
-        S.y = convolve_gaussian_R(S.x, S.y, res)
+        S.y = convolve_gaussian(np.log(S.x), S.y, 1/res)
         return S
 
     def rot_broaden(self, vsini, dv=1.0):
