@@ -483,31 +483,22 @@ class Spectrum():
         """
         if isinstance(other, (str, u.UnitBase)):
             #check specific unit
-            if xy == 'x':
-                if self.x_unit != u.Unit(other):
-                    raise u.UnitsError("x_units differ")
-            elif xy == 'y':
-                if self.y_unit != u.Unit(other):
-                    raise u.UnitsError("y_units differ")
-            else:
+            if xy not in ('x', 'y'):
                 raise ValueError("xy not 'x' or 'y'")
+            if xy == 'x' and self.x_unit != u.Unit(other):
+                raise u.UnitsError("x_units differ")
+            if xy == 'y' and self.y_unit != u.Unit(other):
+                raise u.UnitsError("y_units differ")
         elif isinstance(other, u.Quantity):
             self._compare_units(other.unit, xy)
         elif isinstance(other, Spectrum):
             #compare two spectra
-            if xy == 'x':
-                if self.x_unit != other.x_unit:
-                    raise u.UnitsError("x_units differ")
-            elif xy == 'y':
-                if self.y_unit != other.y_unit:
-                    raise u.UnitsError("y_units differ")
-            elif xy == 'xy':
-                if self.x_unit != other.x_unit:
-                    raise u.UnitsError("x_units differ")
-                if self.y_unit != other.y_unit:
-                    raise u.UnitsError("y_units differ")
-            else:
+            if xy not in ('x', 'y', 'xy'):
                 raise ValueError("xy not 'x', 'y', or 'xy'")
+            if xy in ('x', 'xy') and self.x_unit != other.x_unit:
+                raise u.UnitsError("x_units differ")
+            if xy in ('y', 'xy') and self.y_unit != other.y_unit:
+                raise u.UnitsError("y_units differ")
         else:
             raise TypeError("other was not Spectrum or interpretable as a unit")
 
