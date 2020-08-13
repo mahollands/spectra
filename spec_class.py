@@ -367,11 +367,11 @@ class Spectrum():
         """
         Return self + other (with standard error propagation)
         """
-        if not isinstance(other, Spectrum):
+        if isinstance(other, Spectrum):
+            self._compare_units(other, 'xy')
+            self._compare_x(other)
+        else:
             other = self.promote_to_spectrum(other)
-
-        self._compare_units(other, 'xy')
-        self._compare_x(other)
         ynew = self.y + other.y
         enew = np.hypot(self.e, other.e)
         return Spectrum(self.x, ynew, enew, **self.info)
@@ -380,11 +380,11 @@ class Spectrum():
         """
         Return self - other (with standard error propagation)
         """
-        if not isinstance(other, Spectrum):
+        if isinstance(other, Spectrum):
+            self._compare_units(other, 'xy')
+            self._compare_x(other)
+        else:
             other = self.promote_to_spectrum(other)
-
-        self._compare_units(other, 'xy')
-        self._compare_x(other)
         ynew = self.y - other.y
         enew = np.hypot(self.e, other.e)
         return Spectrum(self.x, ynew, enew, **self.info)
@@ -393,11 +393,11 @@ class Spectrum():
         """
         Return self * other (with standard error propagation)
         """
-        if not isinstance(other, Spectrum):
+        if isinstance(other, Spectrum):
+            self._compare_units(other, 'x')
+            self._compare_x(other)
+        else:
             other = self.promote_to_spectrum(other, True)
-
-        self._compare_units(other, 'x')
-        self._compare_x(other)
         infonew = self.info
         infonew['y_unit'] = self._yu * other._yu
         ynew = self.y * other.y
@@ -408,11 +408,11 @@ class Spectrum():
         """
         Return self / other (with standard error propagation)
         """
-        if not isinstance(other, Spectrum):
+        if isinstance(other, Spectrum):
+            self._compare_units(other, 'x')
+            self._compare_x(other)
+        else:
             other = self.promote_to_spectrum(other, True)
-
-        self._compare_units(other, 'x')
-        self._compare_x(other)
         infonew = self.info
         infonew['y_unit'] = self._yu / other._yu
         ynew = self.y / other.y
@@ -450,7 +450,6 @@ class Spectrum():
         """
         if not isinstance(other, (int, float)):
             raise TypeError("other must be int/float")
-
         infonew = self.info
         infonew['y_unit'] = self._yu**other
         ynew = self.y**other
