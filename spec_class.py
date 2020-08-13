@@ -78,13 +78,11 @@ class Spectrum():
 
     @x.setter
     def x(self, x):
-        if isinstance(x, np.ndarray):
-            if x.ndim == 1:
-                self._x = x.astype(float)
-            else:
-                raise ValueError("x arrays must be 1D")
-        else:
+        if not isinstance(x, np.ndarray):
             raise TypeError("x must be an ndarray")
+        if x.ndim != 1:
+            raise ValueError("x arrays must be 1D")
+        self._x = x.astype(float)
 
     @property
     def dx(self):
@@ -144,10 +142,9 @@ class Spectrum():
 
     @name.setter
     def name(self, name):
-        if isinstance(name, str):
-            self._name = name
-        else:
+        if not isinstance(name, str):
             raise TypeError("name must be a string")
+        self._name = name
 
     @property
     def wave(self):
@@ -158,10 +155,9 @@ class Spectrum():
 
     @wave.setter
     def wave(self, wave):
-        if wave in ('vac', 'air'):
-            self._wave = wave
-        else:
+        if wave not in ('vac', 'air'):
             raise ValueError("wave must be 'vac' or 'air'")
+        self._wave = wave
 
     @property
     def x_unit(self):
@@ -172,10 +168,9 @@ class Spectrum():
 
     @x_unit.setter
     def x_unit(self, x_unit):
-        if isinstance(x_unit, (str, u.UnitBase)):
-            self._xu = u.Unit(x_unit)
-        else:
+        if not isinstance(x_unit, (str, u.UnitBase)):
             raise TypeError("x_unit must be str or Unit type")
+        self._xu = u.Unit(x_unit)
 
     @property
     def y_unit(self):
@@ -186,10 +181,9 @@ class Spectrum():
 
     @y_unit.setter
     def y_unit(self, y_unit):
-        if isinstance(y_unit, (str, u.UnitBase)):
-            self._yu = u.Unit(y_unit)
-        else:
+        if not isinstance(y_unit, (str, u.UnitBase)):
             raise TypeError("y_unit must be str or Unit type")
+        self._yu = u.Unit(y_unit)
 
     @property
     def head(self):
@@ -203,10 +197,9 @@ class Spectrum():
         if head is None:
             self._head = {}
         else:
-            if isinstance(head, dict):
-                self._head = head
-            else:
+            if not isinstance(head, dict):
                 raise ValueError("head must be a dictionary")
+            self._head = head
 
     @property
     def var(self):
@@ -334,11 +327,10 @@ class Spectrum():
         """
         Return self[key]
         """
-        if isinstance(key, (int, slice, np.ndarray)):
-            data_key = self.x[key], self.y[key], self.e[key]
-            return data_key if isinstance(key, int) else Spectrum(*data_key, **self.info)
-
-        raise TypeError("spectra must be indexed with int/slice/ndarray types")
+        if not isinstance(key, (int, slice, np.ndarray)):
+            raise TypeError("spectra must be indexed with int/slice/ndarray types")
+        data_key = self.x[key], self.y[key], self.e[key]
+        return data_key if isinstance(key, int) else Spectrum(*data_key, **self.info)
 
     def __iter__(self):
         """
@@ -375,61 +367,57 @@ class Spectrum():
         """
         Return self + other (with standard error propagation)
         """
-        if isinstance(other, Spectrum):
-            self._compare_units(other, 'xy')
-            self._compare_x(other)
-            ynew = self.y + other.y
-            enew = np.hypot(self.e, other.e)
-            return Spectrum(self.x, ynew, enew, **self.info)
+        if not isinstance(other, Spectrum):
+            other = self.promote_to_spectrum(other)
 
-        Sother = self.promote_to_spectrum(other)
-        return self + Sother
+        self._compare_units(other, 'xy')
+        self._compare_x(other)
+        ynew = self.y + other.y
+        enew = np.hypot(self.e, other.e)
+        return Spectrum(self.x, ynew, enew, **self.info)
 
     def __sub__(self, other):
         """
         Return self - other (with standard error propagation)
         """
-        if isinstance(other, Spectrum):
-            self._compare_units(other, 'xy')
-            self._compare_x(other)
-            ynew = self.y - other.y
-            enew = np.hypot(self.e, other.e)
-            return Spectrum(self.x, ynew, enew, **self.info)
+        if not isinstance(other, Spectrum):
+            other = self.promote_to_spectrum(other)
 
-        Sother = self.promote_to_spectrum(other)
-        return self - Sother
+        self._compare_units(other, 'xy')
+        self._compare_x(other)
+        ynew = self.y - other.y
+        enew = np.hypot(self.e, other.e)
+        return Spectrum(self.x, ynew, enew, **self.info)
 
     def __mul__(self, other):
         """
         Return self * other (with standard error propagation)
         """
-        if isinstance(other, Spectrum):
-            self._compare_units(other, 'x')
-            self._compare_x(other)
-            infonew = self.info
-            infonew['y_unit'] = self._yu * other._yu
-            ynew = self.y * other.y
-            enew = np.abs(ynew)*np.hypot(self.e/self.y, other.e/other.y)
-            return Spectrum(self.x, ynew, enew, **infonew)
+        if not isinstance(other, Spectrum):
+            other = self.promote_to_spectrum(other, True)
 
-        Sother = self.promote_to_spectrum(other, True)
-        return self * Sother
+        self._compare_units(other, 'x')
+        self._compare_x(other)
+        infonew = self.info
+        infonew['y_unit'] = self._yu * other._yu
+        ynew = self.y * other.y
+        enew = np.abs(ynew)*np.hypot(self.e/self.y, other.e/other.y)
+        return Spectrum(self.x, ynew, enew, **infonew)
 
     def __truediv__(self, other):
         """
         Return self / other (with standard error propagation)
         """
-        if isinstance(other, Spectrum):
-            self._compare_units(other, 'x')
-            self._compare_x(other)
-            infonew = self.info
-            infonew['y_unit'] = self._yu / other._yu
-            ynew = self.y / other.y
-            enew = np.abs(ynew)*np.hypot(self.e/self.y, other.e/other.y)
-            return Spectrum(self.x, ynew, enew, **infonew)
+        if not isinstance(other, Spectrum):
+            other = self.promote_to_spectrum(other, True)
 
-        Sother = self.promote_to_spectrum(other, True)
-        return self / Sother
+        self._compare_units(other, 'x')
+        self._compare_x(other)
+        infonew = self.info
+        infonew['y_unit'] = self._yu / other._yu
+        ynew = self.y / other.y
+        enew = np.abs(ynew)*np.hypot(self.e/self.y, other.e/other.y)
+        return Spectrum(self.x, ynew, enew, **infonew)
 
     def __radd__(self, other):
         """
@@ -453,21 +441,21 @@ class Spectrum():
         """
         Return other / self (with standard error propagation)
         """
-        Sother = self.promote_to_spectrum(other, True)
-        return Sother / self
+        other = self.promote_to_spectrum(other, True)
+        return other / self
 
     def __pow__(self, other):
         """
         Return S**other (with standard error propagation)
         """
-        if isinstance(other, (int, float)):
-            infonew = self.info
-            infonew['y_unit'] = self._yu**other
-            ynew = self.y**other
-            enew = np.abs(other * ynew * self.e/self.y)
-            return Spectrum(self.x, ynew, enew, **infonew)
+        if not isinstance(other, (int, float)):
+            raise TypeError("other must be int/float")
 
-        raise TypeError("other must be int/float")
+        infonew = self.info
+        infonew['y_unit'] = self._yu**other
+        ynew = self.y**other
+        enew = np.abs(other * ynew * self.e/self.y)
+        return Spectrum(self.x, ynew, enew, **infonew)
 
     def __neg__(self):
         """
