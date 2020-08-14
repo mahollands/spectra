@@ -18,7 +18,7 @@ __all__ = [
     "Spectrum",
 ]
 
-class Spectrum():
+class Spectrum:
     """
     spectrum class contains wavelengths, fluxes, and flux errors.  Arithmetic
     operations with single values, array, or other spectra are defined, with
@@ -505,7 +505,7 @@ class Spectrum():
             raise ValueError("Spectra must have same wavelengths (air/vac)")
 
     def _compare_x(self, other):
-        self.compare_wave(other)
+        self._compare_wave(other)
         if not np.allclose(self.x, other.x):
             raise ValueError("Spectra must have same x values")
 
