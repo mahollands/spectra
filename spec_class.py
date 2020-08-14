@@ -11,7 +11,6 @@ from scipy.interpolate import interp1d, Akima1DInterpolator, LSQUnivariateSpline
 from scipy.optimize import minimize
 from .synphot import mag_calc_AB
 from .reddening import A_curve
-from .spec_functions import join_spectra
 from .misc import vac_to_air, air_to_vac, convolve_gaussian, lanczos
 
 __all__ = [
@@ -924,18 +923,6 @@ class Spectrum:
         else:
             raise TypeError("W must be int/float or iterable of those types")
         return [self.clip(*w_pair) for w_pair in zip(W[:-1], W[1:])]
-
-    def join(self, other, sort=False):
-        """
-        Joins a second spectrum to the current spectrum. Can potentially be
-        used rescursively, i.e.
-        >>> S = S1.join(S2).join(S3)
-        """
-        if not isinstance(other, Spectrum):
-            raise TypeError("can only join Spectrum type to other spectra")
-        self._compare_units(other, 'xy')
-        self._compare_wave(other)
-        return join_spectra((self, other), sort=sort)
 
     def closest_x(self, x0):
         """
