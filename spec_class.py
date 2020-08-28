@@ -643,17 +643,19 @@ class Spectrum:
         """
         return self.sect(x0-dx, x0+dx)
 
-    def clip(self, x0, x1):
+    def clip(self, x0, x1, invert=False):
         """
-        Returns Spectrum clipped between x0 and x1.
+        Returns Spectrum clipped between x0 and x1. If invert=True, returns the
+        pixels outside that range.
         """
-        return self[self.sect(x0, x1)]
+        return self[self.sect(x0, x1) ^ invert]
 
-    def clip2(self, x0, dx):
+    def clip2(self, x0, dx, invert=False):
         """
-        Returns Spectrum clipped between x0-dx and x0+dx.
+        Returns Spectrum clipped between x0-dx and x0+dx. If invert=True,
+        returns the pixels outside that range.
         """
-        return self[self.sect2(x0, dx)]
+        return self[self.sect2(x0, dx) ^ invert]
 
     def norm_percentile(self, pc):
         """
