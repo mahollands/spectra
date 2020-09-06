@@ -814,12 +814,8 @@ class Spectrum:
         Soc = other.clip(x0, x1)
         Ssi = self if assume_same_x else self.interp(Soc, kind='cubic')
 
-        def chi2(A, S1, S2):
-            top = (S1.y - A*S2.y)**2
-            bot = (S1.e**2 + (A*S2.e)**2)
-            return np.sum(top / bot)
-
-        res = minimize(chi2, (1.0), args=(Soc, Ssi))
+        res = minimize(lambda A, S1, S2: np.sum((S1-A*S2).y_e**2), \
+            (1.0), args=(Soc, Ssi))
         A = float(res['x'][0])
 
         return (self*A, A) if return_scaling_factor else self*A
