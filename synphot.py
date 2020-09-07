@@ -66,8 +66,7 @@ def m_AB_int(X, Y, R, Ifun):
     Integral for calculating AB magnitudes
     """
     y_nu = Ifun(Y*R/X, X)/Ifun(R/X, X)
-    m = -2.5 * np.log10(y_nu) + 8.90
-    return m
+    return -2.5 * np.log10(y_nu) + 8.90
 
 def mag_calc_AB(S, filt, NMONTE=1000, Ifun=Itrapz):
     """
@@ -118,8 +117,7 @@ def mag_calc_AB(S, filt, NMONTE=1000, Ifun=Itrapz):
     if NMONTE == 0:
         return m_AB_int(S.x, S.y, R.y, Ifun)
 
-    y_mc = lambda S: np.random.normal(S.y, S.e)
-    m = np.array([m_AB_int(S.x, y_mc(S), R.y, Ifun) for i in range(NMONTE)])
+    m = np.array([m_AB_int(S.x, S.y_mc, R.y, Ifun) for i in range(NMONTE)])
     return np.mean(m), np.std(m)
 #
 

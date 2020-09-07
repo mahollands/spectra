@@ -237,6 +237,17 @@ class Spectrum:
         return self.y/self.e
 
     @property
+    def y_mc(self):
+        """
+        Returns a Monte-Carlo sampled flux array distributed according to the
+        uncertainties
+        """
+        if y.model:
+            raise ValueError("Flux uncertainties are zero")
+
+        return np.random.normal(self.y, self.e)
+
+    @property
     def SN(self):
         """
         Signal to noise ratio (modulus of y_e property)
