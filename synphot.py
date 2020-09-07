@@ -117,7 +117,7 @@ def mag_calc_AB(S, filt, NMONTE=1000, Ifun=Itrapz):
     if NMONTE == 0:
         return m_AB_int(S.x, S.y, R.y, Ifun)
 
-    m = np.array([m_AB_int(S.x, S.y_mc, R.y, Ifun) for i in range(NMONTE)])
+    m = np.array([m_AB_int(S.x, y_mc, R.y, Ifun) for y_mc in S.y_mc(NMONTE)])
     return np.mean(m), np.std(m)
 #
 
