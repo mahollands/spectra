@@ -529,13 +529,27 @@ class Spectrum:
         Iterator of Monte-Carlo sampled flux arrays distributed according to the
         uncertainties. If N is 1, a single array is returned.
         """
-        if self.model:
+        if self._model:
             raise ValueError("Flux uncertainties are zero")
-        if N > 1:
-            for i in range(N):
-                yield np.random.normal(self.y, self.e)
-        else:
+        if N==1:
             return np.random.normal(self.y, self.e)
+        elif N > 1:
+            return (np.random.normal(self.y, self.e) for i in range(N))
+        else:
+            raise ValueError("N must be >=1")
+
+    def boot(self, N=1):
+        """
+        Iterator of bootstrapped sampled spectra. If N is 1, a single array is
+        returned.
+        """
+        n = len(self)
+        if N==1:
+            return self[np.random.randint(0, n, n)]
+        elif N > 1:
+            return (self[np.random.randint(0, n, n)] for i in range(N))
+        else:
+            raise ValueError("N must be >=1")
 
 
     def mag_calc_AB(self, filt, NMONTE=1000):
