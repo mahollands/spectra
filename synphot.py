@@ -12,7 +12,7 @@ __all__ = [
     "filter_names",
 ]
 
-filters_dir = "{}/filt_profiles".format(os.path.dirname(__file__))
+filters_dir = "{}/passbands".format(os.path.dirname(__file__))
 
 GaiaDict = {'G':'G', 'Bp':'Gbp', 'Rp':'Grp'}
 JPLUS = "gSDSS iSDSS J0378 J0395 J0410 J0430 J0515 J0660 J0861 rSDSS uJAVA zSDSS".split()
