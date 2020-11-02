@@ -983,7 +983,7 @@ class Spectrum:
             raise ValueError("Only flux can be rescaled")
 
         y_plot = getattr(self, kind)
-        plt.plot(self.x, scale*y_plot, *args, **kwargs)
+        pl = plt.plot(self.x, scale*y_plot, *args, **kwargs)
 
         #default y limits (if not already set)
         ax = plt.gca()
@@ -995,3 +995,4 @@ class Spectrum:
             else:
                 plt.ylim(0, yhi)
             ax.set_autoscaley_on(True)
+        return pl
