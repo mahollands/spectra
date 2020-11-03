@@ -709,8 +709,8 @@ class Spectrum:
                         x, y, e = px
                         F.write(f"{x:9.3f} {y:12.5E} {e:11.5E}\n")
         elif fname.endswith(".npy"):
-            data = np.array(self.data)
-            np.save(fname, data[:2] if self.model else data)
+            cols = np.array(self.data)
+            np.save(fname, cols[:2] if self.model else cols)
         else:
             raise ValueError("file name must be of type .txt/.dat/.npy")
 
