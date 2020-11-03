@@ -703,10 +703,12 @@ class Spectrum:
             with open(fname, 'w') as F:
                 if errors:
                     for px in self:
-                        F.write("%9.3f %12.5E %11.5E\n" %px)
+                        x, y, e = px
+                        F.write(f"{x:9.3f} {y:12.5E} {e:11.5E}\n")
                 else:
                     for px in self:
-                        F.write("%9.3f %12.5E\n" %px[:2])
+                        x, y, e = px
+                        F.write(f"{x:9.3f} {y:12.5E}\n")
         elif fname.endswith(".npy"):
             data = [*self.data] if errors else [self.x, self.y]
             np.save(fname, np.array(data))
@@ -983,7 +985,7 @@ class Spectrum:
             raise ValueError("Only flux can be rescaled")
 
         y_plot = getattr(self, kind)
-        pl = plt.plot(self.x, scale*y_plot, *args, **kwargs)
+        ll = plt.plot(self.x, scale*y_plot, *args, **kwargs)
 
         #default y limits (if not already set)
         ax = plt.gca()
@@ -995,4 +997,4 @@ class Spectrum:
             else:
                 plt.ylim(0, yhi)
             ax.set_autoscaley_on(True)
-        return pl
+        return ll
