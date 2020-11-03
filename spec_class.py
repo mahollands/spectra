@@ -696,9 +696,13 @@ class Spectrum:
 
     def write(self, fname):
         """
-        Saves Spectrum to a text file.
+        Saves Spectrum to a text or npy file.
         """
-        if fname.endswith((".txt", ".dat")):
+        if fname.endswith(".npy"):
+            cols = np.array(self.data)
+            np.save(fname, cols[:2] if self.model else cols)
+        else:
+            #text files:
             with open(fname, 'w') as F:
                 if self.model:
                     for px in self:
@@ -708,11 +712,6 @@ class Spectrum:
                     for px in self:
                         x, y, e = px
                         F.write(f"{x:9.3f} {y:12.5E} {e:11.5E}\n")
-        elif fname.endswith(".npy"):
-            cols = np.array(self.data)
-            np.save(fname, cols[:2] if self.model else cols)
-        else:
-            raise ValueError("file name must be of type .txt/.dat/.npy")
 
     def air_to_vac(self):
         """
