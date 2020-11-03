@@ -694,24 +694,23 @@ class Spectrum:
         self.y /= norm
         self.e /= norm
 
-    def write(self, fname, errors=True):
+    def write(self, fname):
         """
         Saves Spectrum to a text file.
         """
         if fname.endswith((".txt", ".dat")):
-            #C style formatting faster here than .format or f-strings
             with open(fname, 'w') as F:
-                if errors:
-                    for px in self:
-                        x, y, e = px
-                        F.write(f"{x:9.3f} {y:12.5E} {e:11.5E}\n")
-                else:
+                if self.model:
                     for px in self:
                         x, y, e = px
                         F.write(f"{x:9.3f} {y:12.5E}\n")
+                else:
+                    for px in self:
+                        x, y, e = px
+                        F.write(f"{x:9.3f} {y:12.5E} {e:11.5E}\n")
         elif fname.endswith(".npy"):
-            data = [*self.data] if errors else [self.x, self.y]
-            np.save(fname, np.array(data))
+            data = np.array(self.data)
+            np.save(fname, data[:2] if self.model else data)
         else:
             raise ValueError("file name must be of type .txt/.dat/.npy")
 
