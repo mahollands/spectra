@@ -330,6 +330,13 @@ class Spectrum:
         data_key = self.x[key], self.y[key], self.e[key]
         return data_key if isinstance(key, int) else Spectrum(*data_key, **self.info)
 
+    def __setitem__(self, key, value):
+        """
+        Sets the indexed y-values to 'value', i.e.
+        >>> self[key] = value
+        """
+        self.y[key] = value
+
     def __iter__(self):
         """
         Return iterator of spectrum
