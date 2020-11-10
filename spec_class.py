@@ -707,11 +707,11 @@ class Spectrum:
         """
         if fname.endswith(".npy"):
             cols = np.array(self.data)
-            np.save(fname, cols[:2] if self.model else cols)
+            np.save(fname, cols[:2] if self._model else cols)
         else:
             #text files:
             with open(fname, 'w') as F:
-                if self.model:
+                if self._model:
                     for px in self:
                         x, y, e = px
                         F.write(f"{x:9.3f} {y:12.5E}\n")
