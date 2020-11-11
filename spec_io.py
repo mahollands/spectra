@@ -113,12 +113,9 @@ def spec_from_sdss_fits(fname, **kwargs):
     loads a sdss fits file as spectrum (result in vac wavelengths)
     """
     hdulist = fits.open(fname, **kwargs)
-    loglam, flux, ivar = [hdulist[1].data[key] for key in ('loglam', 'flux', 'ivar')]
-    lam = 10**loglam
-    ivar[ivar == 0.] = 0.001
-    err = 1/np.sqrt(ivar)
+    S = get_spec_from_hdu(hdulist[1])
     name, _ = os.path.splitext(os.path.basename(fname))
-    return Spectrum(lam, flux, err, name, 'vac')*1e-17
+    S.name = name
 
 def subspectra_from_sdss_fits(fname, **kwargs):
     """
