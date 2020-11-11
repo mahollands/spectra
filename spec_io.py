@@ -113,7 +113,7 @@ def spec_from_sdss_fits(fname, **kwargs):
     loads a sdss fits file as spectrum (result in vac wavelengths)
     """
     hdulist = fits.open(fname, **kwargs)
-    S = get_spec_from_hdu(hdulist[1])
+    S = _get_spec_from_hdu(hdulist[1])
     name, _ = os.path.splitext(os.path.basename(fname))
     S.name = name
 
@@ -133,7 +133,6 @@ def _get_spec_from_hdu(hdu):
     name = hdu.header['EXTNAME']
     head = {'sky':sky}
     return Spectrum(lam, flux, err, name, 'vac', head=head)*1e-17
-    
 
 def spec_from_fits_generic(fname, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)"):
     """
