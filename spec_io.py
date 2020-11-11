@@ -125,12 +125,14 @@ def subspectra_from_sdss_fits(fname, **kwargs):
     return [_get_spec_from_hdu(hdu) for hdu in hdulist[4:]]
 
 def _get_spec_from_hdu(hdu):
-    loglam, flux, ivar = [hdu.data[key] for key in ('loglam', 'flux', 'ivar')]
+    loglam, flux, ivar, sky = [hdu.data[key] for key in 'loglam flux ivar sky'.split()]
     lam = 10**loglam
     ivar[ivar == 0.] = 0.001
     err = 1/np.sqrt(ivar)
+    sky *= 1e17
     name = hdu.header['EXTNAME']
-    return Spectrum(lam, flux, err, name, 'vac')*1e-17
+    head = {'sky':sky}
+    return Spectrum(lam, flux, err, name, 'vac', head=head)*1e-17
     
 
 def spec_from_fits_generic(fname, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)"):
