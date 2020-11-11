@@ -17,6 +17,7 @@ __all__ = [
     "model_from_dk",
     "head_from_dk",
     "spec_from_sdss_fits",
+    "subspectra_from_sdss_fits",
     "spec_from_fits_generic",
     "spec_list_from_molly",
 ]
@@ -109,7 +110,7 @@ def spec_from_npy(fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)'):
 
 def spec_from_sdss_fits(fname, **kwargs):
     """
-    Loads a SDSS fits file as spectrum (result in vac wavelengths)
+    loads a sdss fits file as spectrum (result in vac wavelengths)
     """
     hdulist = fits.open(fname, **kwargs)
     loglam, flux, ivar = [hdulist[1].data[key] for key in ('loglam', 'flux', 'ivar')]
@@ -118,6 +119,22 @@ def spec_from_sdss_fits(fname, **kwargs):
     err = 1/np.sqrt(ivar)
     name, _ = os.path.splitext(os.path.basename(fname))
     return Spectrum(lam, flux, err, name, 'vac')*1e-17
+
+def subspectra_from_sdss_fits(fname, **kwargs):
+    """
+    loads a sdss fits file as spectrum (result in vac wavelengths)
+    """
+    hdulist = fits.open(fname, **kwargs)
+    return [_get_spec_from_hdu(hdu) for hdu in hdulist[4:]]
+
+def _get_spec_from_hdu(hdu):
+    loglam, flux, ivar = [hdu.data[key] for key in ('loglam', 'flux', 'ivar')]
+    lam = 10**loglam
+    ivar[ivar == 0.] = 0.001
+    err = 1/np.sqrt(ivar)
+    name = hdu.header['EXTNAME']
+    return Spectrum(lam, flux, err, name, 'vac')*1e-17
+    
 
 def spec_from_fits_generic(fname, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)"):
     """
