@@ -3,5 +3,5 @@
 .nfs*
 .*.swp
 __pycache__
-filt_profiles/*/*.dat
-filt_profiles/*.py
+passbands/*/*.dat
+passbands/*.py
