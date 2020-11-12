@@ -292,14 +292,8 @@ class Spectrum:
         create new spectra with the same information, e.g.
         >>> Spectrum(x, y, e, **S.info)
         """
-        kwargs = {
-            'name'   : self.name,
-            'wave'   : self.wave,
-            'x_unit' : self.x_unit,
-            'y_unit' : self.y_unit,
-            'head'   : self.head,
-        }
-        return kwargs
+        keys = ('name', 'wave', 'x_unit', 'y_unit', 'head')
+        return {k : getattr(self, k) for k in keys}
 
     def __len__(self):
         """
