@@ -11,7 +11,7 @@ from scipy.interpolate import interp1d, Akima1DInterpolator, LSQUnivariateSpline
 from scipy.optimize import minimize
 from .synphot import mag_calc_AB
 from .reddening import A_curve
-from .misc import vac_to_air, air_to_vac, convolve_gaussian, lanczos
+from .misc import vac_to_air, air_to_vac, convolve_gaussian, lanczos, logarange
 
 __all__ = [
     "Spectrum",
@@ -49,7 +49,7 @@ class Spectrum:
     ndarray or Quantity object, the second row (__radd__ etc) is overridden
     by undefined behaviour of numpy/astropy implementations.
     """
-    __slots__ = ['_x', '_y', '_e', '_name', '_wave', '_xu', '_yu', '_head', '_model']
+    __slots__ = ['_x', '_y', '_e', '_name', '_wave', '_xu', '_yu', '_head']
     def __init__(self, x, y, e, name="", wave='air', x_unit="AA", \
         y_unit="erg/(s cm^2 AA)", head=None):
         """
@@ -531,7 +531,7 @@ class Spectrum:
         self.x = np.array(self.x)
         self.y = np.array(self.y)
         self.e = np.array(self.e)
-    
+
     def y_mc(self, N=1):
         """
         Iterator of Monte-Carlo sampled flux arrays distributed according to the
@@ -539,7 +539,7 @@ class Spectrum:
         """
         if self._model:
             raise ValueError("Flux uncertainties are zero")
-        if N==1:
+        if N == 1:
             return np.random.normal(self.y, self.e)
         elif N > 1:
             return (np.random.normal(self.y, self.e) for i in range(N))
@@ -552,7 +552,7 @@ class Spectrum:
         returned.
         """
         n = len(self)
-        if N==1:
+        if N == 1:
             return self[np.random.randint(0, n, n)]
         elif N > 1:
             return (self[np.random.randint(0, n, n)] for i in range(N))
@@ -626,10 +626,7 @@ class Spectrum:
                     ei = interp1d(self.x, self.e, kind=kind, \
                         bounds_error=False, fill_value=np.inf, **kwargs)(xi)
 
-        if self._model:
-            ei = 0.
-        else:
-            ei[ei < 0] = 0.
+        ei = 0 if self._model else np.where(ei < 0, 0, ei)
         return Spectrum(xi, yi, ei, **self.info)
 
     def interp_nan(self, interp_e=False):
@@ -888,13 +885,9 @@ class Spectrum:
         S = self.copy()
         S.x_unit_to(u.AA)
         S.y_unit_to("erg/(s cm2)")
-        logx = np.log(S.x)
-        logx = np.arange(logx[0], logx[-1], dv/3e5)
-        xnew = np.exp(logx) #0.1km/s resolution
+        xnew = logarange(*S.x01, 2.998e5/dv)
         S = S.interp(xnew, kind='cubic')
-        kxR = np.arange(0, vsini, dv)
-        kxL = -kxR[:0:-1]
-        kx = np.hstack([kxL, kxR])
+        kx = np.arange(np.ceil(vsini/dv)*dv, vsini, dv)
         ky = np.sqrt(1-(kx/vsini)**2)
         S.y = convolve(S.y, ky)
         S = S.interp(self, kind='cubic')
