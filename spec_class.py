@@ -65,7 +65,6 @@ class Spectrum:
         self.x_unit = x_unit
         self.y_unit = y_unit
         self.head = head
-        self._model = np.all(self.e == 0)
 
     @property
     def x(self):
@@ -288,12 +287,20 @@ class Spectrum:
 
     @property
     def info(self):
-        """ Returns non-array attributes as a dictionary. This can be used to
+        """
+        Returns non-array attributes as a dictionary. This can be used to
         create new spectra with the same information, e.g.
         >>> Spectrum(x, y, e, **S.info)
         """
         keys = ('name', 'wave', 'x_unit', 'y_unit', 'head')
         return {k : getattr(self, k) for k in keys}
+
+    @property
+    def _model(self):
+        """
+        Spectra with zero uncertainties are assumed to be models.
+        """
+        return np.all(self.e == 0)
 
     def __len__(self):
         """
