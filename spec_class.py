@@ -616,6 +616,17 @@ class Spectrum:
         S.y, S.e = interp_inf(*S.data)
         return S
 
+    def wbin(self, xnew, kind, logscale=False):
+        """
+        Wavelengths bins a spectrum onto xnew using linear or quadratic
+        binning. Based on the REBIN routine in Molly.
+        """
+        xin = np.log(self.x) if logscale else self.x
+        xout = np.log(xnew) if logscale else xnew
+        ynew = wbin(xin, self.y, xout, kind)
+        enew = wbin(xin, self.e, xout, kind)
+        return Spectrum(xnew, ynew, enew, **self.info)
+
     def copy(self):
         """
         Returns a copy of self
