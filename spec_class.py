@@ -7,11 +7,12 @@ import matplotlib.pyplot as plt
 import astropy.units as u
 import astropy.constants as const
 from astropy.convolution import convolve
-from scipy.interpolate import interp1d, Akima1DInterpolator, LSQUnivariateSpline
+from scipy.interpolate import LSQUnivariateSpline
 from scipy.optimize import minimize
+from .interpolation import *
 from .synphot import mag_calc_AB
 from .reddening import A_curve
-from .misc import vac_to_air, air_to_vac, convolve_gaussian, lanczos, logarange
+from .misc import vac_to_air, air_to_vac, convolve_gaussian, logarange
 
 __all__ = [
     "Spectrum",
@@ -577,7 +578,7 @@ class Spectrum:
 
     def interp(self, X, kind='cubic', **kwargs):
         """
-        Interpolates a spectrum onto the wavlength axis X, if X is a numpy array,
+        Interpolates a spectrum onto the wavelength axis X, if X is a numpy array,
         or X.x if X is Spectrum type. This returns a new spectrum rather than
         updating a spectrum in place, however this can be acheived by
 
@@ -595,38 +596,7 @@ class Spectrum:
         else:
             raise TypeError("interpolant was not ndarray/Spectrum type")
 
-        if kind == "Akima":
-            yi = Akima1DInterpolator(self.x, self.y)(xi)
-            ei = Akima1DInterpolator(self.x, self.e)(xi)
-            nan = np.isnan(yi) | np.isnan(ei)
-            yi[nan] = 0.
-            if not self._model:
-                ei[nan] = 0.
-        elif kind == "sinc":
-            yi = lanczos(self.x, self.y, xi)
-            extrap = (xi < self.x.min()) | (xi > self.x.max())
-            yi[extrap] = 0.
-            if not self._model:
-                ei = lanczos(self.x, np.log(self.e+1E-300), xi)
-                ei[extrap] = np.inf
-        else:
-            yi = interp1d(self.x, self.y, kind=kind, \
-                bounds_error=False, fill_value=0., **kwargs)(xi)
-            if not self._model:
-                #If any errors were inf (zero weight) we need to make
-                #sure the interpolated range stays inf
-                inf = np.isinf(self.e)
-                if np.any(inf):
-                    ei = interp1d(self.x[~inf], self.e[~inf], kind=kind, \
-                        bounds_error=False, fill_value=np.inf, **kwargs)(xi)
-                    inf2 = interp1d(self.x, inf, kind='nearest', \
-                        bounds_error=False, fill_value=0, **kwargs)(xi).astype(bool)
-                    ei[inf2] = np.inf
-                else:
-                    ei = interp1d(self.x, self.e, kind=kind, \
-                        bounds_error=False, fill_value=np.inf, **kwargs)(xi)
-
-        ei = 0 if self._model else np.where(ei < 0, 0, ei)
+        yi, ei = interp(*self.data, xi, kind, self._model, **kwargs)
         return Spectrum(xi, yi, ei, **self.info)
 
     def interp_nan(self, interp_e=False):
@@ -635,15 +605,7 @@ class Spectrum:
         are also interpolated over, otherwise they are set to np.inf.
         """
         S = self.copy()
-        bad = S.isnan()
-        kwargs = {'kind':'linear', 'bounds_error':False}
-        S.y[bad] = interp1d(S.x[~bad], S.y[~bad], fill_value=0, **kwargs)(S.x[bad])
-        if interp_e:
-            S.e[bad] = interp1d(S.x[~bad], S.e[~bad], fill_value=np.inf, \
-                **kwargs)(S.x[bad])
-        else:
-            S.e[bad] = np.inf
-        assert not np.any(S.isnan())
+        S.y, S.e = interp_nan(*S.data, interp_e)
         return S
 
     def interp_inf(self):
@@ -651,11 +613,7 @@ class Spectrum:
         Linearly interpolate over values with infs
         """
         S = self.copy()
-        bad = S.isinf()
-        S.y[bad] = interp1d(S.x[~bad], S.y[~bad], bounds_error=False, \
-            fill_value=0)(S.x[bad])
-        S.e[bad] = interp1d(S.x[~bad], S.e[~bad], bounds_error=False, \
-            fill_value=0)(S.x[bad])
+        S.y, S.e = interp_inf(*S.data)
         return S
 
     def copy(self):

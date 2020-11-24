@@ -16,7 +16,6 @@ __all__ = [
     "vac_to_air",
     "air_to_vac",
     "convolve_gaussian",
-    "lanczos",
     "logarange",
     "keep_points",
 ]
@@ -108,15 +107,6 @@ def keep_points(x, fname):
         sys.exit()
     segments = (_between(x, *line.split()) for line in lines)
     return reduce(operator.or_, segments)
-
-def lanczos(x, y, xnew):
-    """
-    Helper function used for Lanczos interpolation.
-    """
-    n = np.arange(len(x))
-    Ni = interp1d(x, n, kind='linear', fill_value='extrapolate')(xnew)
-    ynew = [np.sum(y*np.sinc(ni-n)) for ni in Ni]
-    return np.array(ynew)
 
 def logarange(x0, x1, R):
     """
