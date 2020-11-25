@@ -560,7 +560,6 @@ class Spectrum:
         else:
             raise ValueError("N must be >=1")
 
-
     def mag_calc_AB(self, filt, NMONTE=1000):
         """
         Calculates the AB magnitude of a filter called 'filt'. Errors
@@ -616,13 +615,23 @@ class Spectrum:
         S.y, S.e = interp_inf(*S.data)
         return S
 
-    def wbin(self, xnew, kind, logscale=False):
+    def wbin(self, X, kind, logscale=False):
         """
         Wavelengths bins a spectrum onto xnew using linear or quadratic
         binning. Based on the REBIN routine in Molly.
         """
+        if isinstance(X, np.ndarray):
+            xbin = X
+        elif isinstance(X, Spectrum):
+            self._compare_units(X, 'x')
+            self._compare_wave(X)
+            xbin = X.x
+        else:
+            raise TypeError("interpolant was not ndarray/Spectrum type")
+
         xin = np.log(self.x) if logscale else self.x
-        xout = np.log(xnew) if logscale else xnew
+        xout = np.log(xbin) if logscale else xbin
+
         ynew = wbin(xin, self.y, xout, kind)
         enew = wbin(xin, self.e, xout, kind)
         return Spectrum(xnew, ynew, enew, **self.info)
