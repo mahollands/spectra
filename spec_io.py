@@ -116,6 +116,9 @@ def spec_from_sdss_fits(fname, **kwargs):
     S = _get_spec_from_hdu(hdulist[1])
     name, _ = os.path.splitext(os.path.basename(fname))
     S.name = name
+    S.head['PLATE'] = hdulist[0].header['PLATEID']
+    S.head['MJD'] = hdulist[0].header['MJD']
+    S.head['FIBER'] = hdulist[0].header['PLATEID']
     return S
 
 def subspectra_from_sdss_fits(fname, **kwargs):
