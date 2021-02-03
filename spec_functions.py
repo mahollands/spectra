@@ -158,7 +158,7 @@ def sky_line_fwhm(S, x0, dx=5., return_model=False):
         return (None, None) if return_model else None
 
     Pnames = "x0 fwhm A M C".split()
-    res = {p : (v, e) for p, v, e in zip(Pnames, vec, err)}
+    res = dict(zip(Pnames, zip(vec, err)))
 
     return (res, sl_model(vec, Sc)) if return_model else res
 #
