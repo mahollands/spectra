@@ -60,7 +60,7 @@ def multi_model_from_txt(fname, nfluxcols, wave='vac', \
     can be useful for loading model spectra with a single wavelength axis and
     different model fluxes for each column.
     """
-    x, *yy = pd.read_csv(fname, delimiter=delimiter, usecols=range(nfluxcols+1), \
+    x, *yy = pd.read_csv(fname, delimiter=delimiter, usecols=range(nfluxcols+2), \
         **kwargs).values.T
     name, _ = os.path.splitext(os.path.basename(fname))
     return [Spectrum(x, y, 0, name, wave, x_unit, y_unit) for y in yy]
