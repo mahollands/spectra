@@ -560,28 +560,28 @@ class Spectrum:
         else:
             raise ValueError("N must be >=1")
 
-    def flux_calc_AB(self, filt, NMONTE=1000):
+    def flux_calc_AB(self, band, NMONTE=1000):
         """
-        Calculates the AB flux (Jy) of a filter called 'filt'. Errors
+        Calculates the AB flux (Jy) of a bandpass called 'band'. Errors
         are calculated in Monte-Carlo fashion, and assume all fluxes
         are statistically independent (not that realistic). See the
         definition of synphot.calc_AB_flux for valid filter names.
         """
         if self._model:
             NMONTE = 0
-        fnu = calc_AB_flux(self, filt, NMONTE)
+        fnu = calc_AB_flux(self, band, NMONTE)
         return fnu if NMONTE == 0 else fnu.mean(), fnu.std()
 
-    def mag_calc_AB(self, filt, NMONTE=1000):
+    def mag_calc_AB(self, band, NMONTE=1000):
         """
-        Calculates the AB magnitude of a filter called 'filt'. Errors
+        Calculates the AB magnitude of a pandpass called 'band'. Errors
         are calculated in Monte-Carlo fashion, and assume all fluxes
         are statistically independent (not that realistic). See the
         definition of synphot.calc_AB_flux for valid filter names.
         """
         if self._model:
             NMONTE = 0
-        fnu = calc_AB_flux(self, filt, NMONTE)
+        fnu = calc_AB_flux(self, band, NMONTE)
         m = -2.5 * np.log10(fnu) + 8.90
         return m if NMONTE == 0 else m.mean(), m.std()
 
@@ -841,11 +841,11 @@ class Spectrum:
 
         return (self*A, A) if return_scaling_factor else self*A
 
-    def scale_to_AB_mag(self, filt, mag):
+    def scale_to_AB_mag(self, band, mag):
         """
-        Scales a spectrum to match an AB magnitude for some specific filter
+        Scales a spectrum to match an AB magnitude for some specific bandpass
         """
-        mag0 = self.mag_calc_AB(filt, NMONTE=0)
+        mag0 = self.mag_calc_AB(band, NMONTE=0)
         return self * 10**(0.4*(mag0-mag))
 
     def convolve_gaussian(self, fwhm):

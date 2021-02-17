@@ -36,16 +36,16 @@ filter_names = list(filter_paths)
 
 loaded_filters = {}
 
-def load_transmission_curve(filt):
+def load_transmission_curve(band):
     """
     Loads the filter curves obtained from VOSA (SVO).
     """
     from .spec_io import spec_from_npy
 
     try:
-        full_path = "{}/{}".format(filters_dir, filter_paths[filt])
+        full_path = "{}/{}".format(filters_dir, filter_paths[band])
     except KeyError:
-        print('Invalid filter name: {}'.format(filt))
+        print('Invalid filter name: {}'.format(band))
         sys.exit()
 
     return spec_from_npy(full_path, wave="vac", x_unit="AA", y_unit="")
@@ -53,7 +53,7 @@ def load_transmission_curve(filt):
 
 def load_Vega():
     """
-    Loads the filter curves obtained from VOSA (SVO).
+    Loads the Vega model
     """
     from .spec_io import spec_from_npy
 
@@ -62,9 +62,9 @@ def load_Vega():
     return spec_from_npy(full_path, wave='vac', x_unit="AA", y_unit="")
 #
 
-def calc_AB_flux(S, filt, NMONTE=1000, Ifun=Itrapz):
+def calc_AB_flux(S, band, NMONTE=1000, Ifun=Itrapz):
     """
-    Calculates the synthetic AB flux (Jy) of a spectrum for a given filter.
+    Calculates the synthetic AB flux (Jy) of a spectrum for a given bandpass.
     If NMONTE is > 0, monte-carlo error propagation is performed outputting
     both a synthetic-mag and error. For model-spectra, i.e. no errors,
     use e=np.ones_like(f) and NMONTE=0. List of currently supported filters:
@@ -92,10 +92,10 @@ def calc_AB_flux(S, filt, NMONTE=1000, Ifun=Itrapz):
     WISE:      ['W1','W2']
     """
 
-    #load filter
-    if filt not in loaded_filters:
-        loaded_filters[filt] = load_transmission_curve(filt)
-    R = loaded_filters[filt]
+    #load filters (only once per runtime
+    if band not in loaded_filters:
+        loaded_filters[band] = load_transmission_curve(band)
+    R = loaded_filters[band]
     R.wave = S.wave
 
     #Convert Spectra/filter-curve to Hz/Jy for integrals
@@ -115,20 +115,20 @@ def calc_AB_flux(S, filt, NMONTE=1000, Ifun=Itrapz):
     return np.array([Ifun(y_mc*R.y/S.x, S.x) for y_mc in S.y_mc(NMONTE)])/norm
 #
 
-def lambda_mean(filt, Ifun=Itrapz):
+def lambda_mean(band, Ifun=Itrapz):
     """
     Calculates lambda_mean for one of the filters
     """
-    R = load_transmission_curve(filt)
+    R = load_transmission_curve(band)
     return Ifun(R.y*R.x, R.x) / Ifun(R.y, R.x)
 #
 
-def lambda_eff(filt, Ifun=Itrapz):
+def lambda_eff(band, Ifun=Itrapz):
     """
     Calculates lambda_eff for one of the filters, integrated
     over the spectrum of Vega.
     """
-    R = load_transmission_curve(filt)
+    R = load_transmission_curve(band)
     V = load_Vega().interp(R)
     return Ifun(R.y*V.y*R.x, R.x) / Ifun(R.y*V.y, R.x)
 #
