@@ -8,7 +8,7 @@ from scipy.integrate import trapz as Itrapz
 
 __all__ = [
     "load_transmission_curve",
-    "mag_calc_AB",
+    "calc_AB_flux",
     "filter_names",
 ]
 
@@ -62,16 +62,9 @@ def load_Vega():
     return spec_from_npy(full_path, wave='vac', x_unit="AA", y_unit="")
 #
 
-def m_AB_int(X, Y, R, Ifun):
+def calc_AB_flux(S, filt, NMONTE=1000, Ifun=Itrapz):
     """
-    Integral for calculating AB magnitudes
-    """
-    y_nu = Ifun(Y*R/X, X)/Ifun(R/X, X)
-    return -2.5 * np.log10(y_nu) + 8.90
-
-def mag_calc_AB(S, filt, NMONTE=1000, Ifun=Itrapz):
-    """
-    Calculates the synthetic AB magnitude of a spectrum for a given filter.
+    Calculates the synthetic AB flux (Jy) of a spectrum for a given filter.
     If NMONTE is > 0, monte-carlo error propagation is performed outputting
     both a synthetic-mag and error. For model-spectra, i.e. no errors,
     use e=np.ones_like(f) and NMONTE=0. List of currently supported filters:
@@ -114,12 +107,12 @@ def mag_calc_AB(S, filt, NMONTE=1000, Ifun=Itrapz):
     S = S.clip(np.min(R.x), np.max(R.x))
     R = R.interp(S, kind='linear')
 
-    #Calculate AB magnitudes, potentially including flux errors
+    #Calculate AB fluxes, or MC sampled fluxes
+    norm = Ifun(R.y/S.x, S.x)
     if NMONTE == 0:
-        return m_AB_int(S.x, S.y, R.y, Ifun)
+        return Ifun(S.y*R.y/S.x, S.x)/norm
 
-    m = np.array([m_AB_int(S.x, y_mc, R.y, Ifun) for y_mc in S.y_mc(NMONTE)])
-    return np.mean(m), np.std(m)
+    return np.array([Ifun(y_mc*R.y/S.x, S.x) for y_mc in S.y_mc(NMONTE)])/norm
 #
 
 def lambda_mean(filt, Ifun=Itrapz):

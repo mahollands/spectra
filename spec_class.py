@@ -10,7 +10,7 @@ from astropy.convolution import convolve
 from scipy.interpolate import LSQUnivariateSpline
 from scipy.optimize import minimize
 from .interpolation import *
-from .synphot import mag_calc_AB
+from .synphot import calc_AB_flux
 from .reddening import A_curve
 from .misc import vac_to_air, air_to_vac, convolve_gaussian, logarange
 
@@ -560,20 +560,30 @@ class Spectrum:
         else:
             raise ValueError("N must be >=1")
 
+    def flux_calc_AB(self, filt, NMONTE=1000):
+        """
+        Calculates the AB flux (Jy) of a filter called 'filt'. Errors
+        are calculated in Monte-Carlo fashion, and assume all fluxes
+        are statistically independent (not that realistic). See the
+        definition of synphot.calc_AB_flux for valid filter names.
+        """
+        if self._model:
+            NMONTE = 0
+        fnu = calc_AB_flux(self, filt, NMONTE)
+        return fnu if NMONTE == 0 else fnu.mean(), fnu.std()
+
     def mag_calc_AB(self, filt, NMONTE=1000):
         """
         Calculates the AB magnitude of a filter called 'filt'. Errors
         are calculated in Monte-Carlo fashion, and assume all fluxes
         are statistically independent (not that realistic). See the
-        definition of 'mag_calc_AB' for valid filter names.
+        definition of synphot.calc_AB_flux for valid filter names.
         """
-        S = self.copy()
-        S.x_unit_to("AA")
-        S.y_unit_to("erg/(s cm2 AA)")
-
         if self._model:
             NMONTE = 0
-        return mag_calc_AB(S, filt, NMONTE)
+        fnu = calc_AB_flux(self, filt, NMONTE)
+        m = -2.5 * np.log10(fnu) + 8.90
+        return m if NMONTE == 0 else m.mean(), m.std()
 
     def interp(self, X, kind='cubic', **kwargs):
         """
