@@ -53,6 +53,18 @@ def model_from_txt(fname, wave='vac', x_unit='AA', y_unit='erg/(s cm2 AA)', \
     name, _ = os.path.splitext(os.path.basename(fname))
     return Spectrum(x, y, 0, name, wave, x_unit, y_unit)
 
+def multi_model_from_txt(fname, nfluxcols, wave='vac', \
+    x_unit='AA', y_unit='erg/(s cm2 AA)', delimiter=r'\s+', **kwargs):
+    """
+    Similar to model_from_txt, but for files with multiple flux columns. This
+    can be useful for loading model spectra with a single wavelength axis and
+    different model fluxes for each column.
+    """
+    x, *yy = pd.read_csv(fname, delimiter=delimiter, usecols=range(nfluxcols+1), \
+        **kwargs).values.T
+    name, _ = os.path.splitext(os.path.basename(fname))
+    return [Spectrum(x, y, 0, name, wave, x_unit, y_unit) for y in yy]
+
 def head_from_dk(fname, return_skip=False):
     """
     Return the header from a DK file, optionally the number of rows to skip for
@@ -72,6 +84,14 @@ def head_from_dk(fname, return_skip=False):
                     Z //= 100
                 logZ = float(logZ)
                 hdr['el'][el_dict[Z]] = logZ
+            elif line.startswith("NMU"):
+                #angular dependent fluxes
+                hdr['mu'] = []
+                hdr['wmu'] = []
+            elif line.startswith("MU"):
+                hdr['mu'] += [float(x) for x in line.split()[2:]]
+            elif line.startswith("WMU"):
+                hdr['wmu'] += [float(x) for x in line.split()[2:]]
             elif line.startswith("END"):
                 break
             else:
@@ -80,15 +100,32 @@ def head_from_dk(fname, return_skip=False):
 
 def model_from_dk(fname, x_unit='AA', y_unit='erg/(s cm2 AA)'):
     """
-    Similar to model_from_txt, but will autoskip past the DK header. Units are
-    converted to those specified.
+    Similar to model_from_txt, but for Detlev Koester model spectra. Units are
+    converted to those specified, and DK header items placed in the Spectrum
+    object header. For models with angular dependent fluxes, a list of models
+    is returned.
     """
     hdr, skip = head_from_dk(fname, True)
-    M = model_from_txt(fname, 'vac', 'AA', 'erg/(s cm3)', skiprows=skip)
-    M.x_unit_to(x_unit)
-    M.y_unit_to(y_unit)
-    M.head.update(hdr)
-    return M
+    kwargs = {'wave':'vac', 'x_unit':'AA', 'y_unit':'erg/(s cm3)', 'skiprows':skip}
+    if 'mu' in hdr:
+        #angular dependent fluxes
+        mus, wmus = hdr.pop('mu'), hdr.pop('wmu')
+        MM = multi_model_from_txt(fname, len(mus), **kwargs)
+        for M in MM:
+            M.x_unit_to(x_unit)
+            M.y_unit_to(y_unit)
+            M.head.update(hdr)
+        for M, mu, wmu in zip(MM[1:], mus, wmus):
+            M.name += f"_mu={mu:f}"
+            M.head['mu'] = mu
+            M.head['wmu'] = wmu
+        return MM
+    else:
+        M = model_from_txt(fname, **kwargs)
+        M.x_unit_to(x_unit)
+        M.y_unit_to(y_unit)
+        M.head.update(hdr)
+        return M
 
 def spec_from_npy(fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)'):
     """
