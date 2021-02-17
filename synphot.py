@@ -62,12 +62,12 @@ def load_Vega():
     return spec_from_npy(full_path, wave='vac', x_unit="AA", y_unit="")
 #
 
-def calc_AB_flux(S, band, NMONTE=1000, Ifun=Itrapz):
+def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
     """
     Calculates the synthetic AB flux (Jy) of a spectrum for a given bandpass.
-    If NMONTE is > 0, monte-carlo error propagation is performed outputting
+    If Nmc is > 0, monte-carlo error propagation is performed outputting
     both a synthetic-mag and error. For model-spectra, i.e. no errors,
-    use e=np.ones_like(f) and NMONTE=0. List of currently supported filters:
+    use e=np.ones_like(f) and Nmc=0. List of currently supported filters:
 
     2Mass:     ['2mJ','2mH','2mK']
 
@@ -109,10 +109,10 @@ def calc_AB_flux(S, band, NMONTE=1000, Ifun=Itrapz):
 
     #Calculate AB fluxes, or MC sampled fluxes
     norm = Ifun(R.y/S.x, S.x)
-    if NMONTE == 0:
+    if Nmc == 0:
         return Ifun(S.y*R.y/S.x, S.x)/norm
 
-    return np.array([Ifun(y_mc*R.y/S.x, S.x) for y_mc in S.y_mc(NMONTE)])/norm
+    return np.array([Ifun(y_mc*R.y/S.x, S.x) for y_mc in S.y_mc(Nmc)])/norm
 #
 
 def lambda_mean(band, Ifun=Itrapz):

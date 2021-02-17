@@ -560,7 +560,7 @@ class Spectrum:
         else:
             raise ValueError("N must be >=1")
 
-    def flux_calc_AB(self, band, NMONTE=1000):
+    def flux_calc_AB(self, band, unit='Jy', attach_unit=False, Nmc=1000):
         """
         Calculates the AB flux (Jy) of a bandpass called 'band'. Errors
         are calculated in Monte-Carlo fashion, and assume all fluxes
@@ -568,11 +568,14 @@ class Spectrum:
         definition of synphot.calc_AB_flux for valid filter names.
         """
         if self._model:
-            NMONTE = 0
-        fnu = calc_AB_flux(self, band, NMONTE)
-        return fnu if NMONTE == 0 else fnu.mean(), fnu.std()
+            Nmc = 0
+        fnu = calc_AB_flux(self.copy(), band, Nmc) * u.Unit('Jy')
+        fnu = fnu.to(unit)
+        if not attach_unit:
+            fnu = fnu.value
+        return fnu if Nmc == 0 else (fnu.mean(), fnu.std())
 
-    def mag_calc_AB(self, band, NMONTE=1000):
+    def mag_calc_AB(self, band, Nmc=1000):
         """
         Calculates the AB magnitude of a pandpass called 'band'. Errors
         are calculated in Monte-Carlo fashion, and assume all fluxes
@@ -580,10 +583,10 @@ class Spectrum:
         definition of synphot.calc_AB_flux for valid filter names.
         """
         if self._model:
-            NMONTE = 0
-        fnu = calc_AB_flux(self, band, NMONTE)
+            Nmc = 0
+        fnu = calc_AB_flux(self.copy(), band, Nmc)
         m = -2.5 * np.log10(fnu) + 8.90
-        return m if NMONTE == 0 else m.mean(), m.std()
+        return m if Nmc == 0 else (m.mean(), m.std())
 
     def interp(self, X, kind='cubic', **kwargs):
         """
