@@ -5,3 +5,4 @@
 __pycache__
 passbands/*/*.dat
 passbands/*.py
+unit_tests.py
