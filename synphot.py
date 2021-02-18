@@ -92,13 +92,13 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
     WISE:      ['W1','W2']
     """
 
-    #load filters (only once per runtime
+    #load filters (only once per runtime)
     if band not in loaded_filters:
         loaded_filters[band] = load_transmission_curve(band)
     R = loaded_filters[band]
     R.wave = S.wave
 
-    #Convert Spectra/filter-curve to Hz/Jy for integrals
+    #Need specific units for integrals
     R.x_unit_to("Hz")
     S.x_unit_to("Hz")
     S.y_unit_to("Jy")
