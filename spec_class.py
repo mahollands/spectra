@@ -848,7 +848,7 @@ class Spectrum:
         """
         Scales a spectrum to match an AB magnitude for some specific bandpass
         """
-        mag0 = self.mag_calc_AB(band, NMONTE=0)
+        mag0 = self.mag_calc_AB(band, Nmc=0)
         return self * 10**(0.4*(mag0-mag))
 
     def convolve_gaussian(self, fwhm):
