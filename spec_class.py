@@ -153,7 +153,7 @@ class Spectrum:
 
     @wave.setter
     def wave(self, wave):
-        if wave not in ('vac', 'air'):
+        if wave not in {'vac', 'air'}:
             raise ValueError("wave must be 'vac' or 'air'")
         self._wave = wave
 
@@ -293,7 +293,7 @@ class Spectrum:
         create new spectra with the same information, e.g.
         >>> Spectrum(x, y, e, **S.info)
         """
-        keys = ('name', 'wave', 'x_unit', 'y_unit', 'head')
+        keys = {'name', 'wave', 'x_unit', 'y_unit', 'head'}
         return {k : getattr(self, k) for k in keys}
 
     @property
@@ -489,7 +489,7 @@ class Spectrum:
         """
         if isinstance(other, (str, u.UnitBase)):
             #check specific unit
-            if xy not in ('x', 'y'):
+            if xy not in {'x', 'y'}:
                 raise ValueError("xy not 'x' or 'y'")
             if xy == 'x' and self.x_unit != u.Unit(other):
                 raise u.UnitsError("x_units differ")
@@ -499,11 +499,11 @@ class Spectrum:
             self._compare_units(other.unit, xy)
         elif isinstance(other, Spectrum):
             #compare two spectra
-            if xy not in ('x', 'y', 'xy'):
+            if xy not in {'x', 'y', 'xy'}:
                 raise ValueError("xy not 'x', 'y', or 'xy'")
-            if xy in ('x', 'xy') and self.x_unit != other.x_unit:
+            if xy in {'x', 'xy'} and self.x_unit != other.x_unit:
                 raise u.UnitsError("x_units differ")
-            if xy in ('y', 'xy') and self.y_unit != other.y_unit:
+            if xy in {'y', 'xy'} and self.y_unit != other.y_unit:
                 raise u.UnitsError("y_units differ")
         else:
             raise TypeError("other was not Spectrum or interpretable as a unit")
@@ -971,7 +971,7 @@ class Spectrum:
         if kind not in allowed:
             raise ValueError(f"kind must be one of: {allowed}")
 
-        if kind not in ("y", "e") and scale != 1:
+        if kind not in {"y", "e"} and scale != 1:
             raise ValueError("Only flux can be rescaled")
 
         y_plot = getattr(self, kind)

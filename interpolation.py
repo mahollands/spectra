@@ -120,7 +120,7 @@ def wbin(xin, yin, xout, kind):
         dx = x2-x1
         j2 = round(float(x2))
         d = 0
-        if kind in ('l','L','lin','Lin','linear','Linear'):
+        if kind in {'l','L','lin','Lin','linear','Linear'}:
             if k == 0:
                 M1 = max(min(j1, npix), 1)-1
                 dd = (nsgn*(j1-x1)-0.5)*yin[M1]
@@ -129,7 +129,7 @@ def wbin(xin, yin, xout, kind):
             ddd = yin[M2]
             dd = ddd*(nsgn*(j2-x2)-0.5)
             d -= dd+ddd
-        elif kind in ('q','Q','quad','Quad','quadratic','Quadratic'):
+        elif kind in {'q','Q','quad','Quad','quadratic','Quadratic'}:
             if k == 0:
                 M1, M2, M3 = [max(min(j1+i, npix), 1)-1 for i in (-1, 0, 1)]
                 A = 0.5*(yin[M1]+yin[M3])
