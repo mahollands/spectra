@@ -408,53 +408,48 @@ class Spectrum:
             raise NotImplementedError("Cannot cast object to Spectrum")
         return Spectrum(self.x, ynew, 0, **info)
 
-    def arithmetic_check_other(xy):
-        def decorator(func):
-            @wraps(func)
-            def wrapped(self, other):
-                if isinstance(other, Spectrum):
-                    self._compare_units(other, xy)
-                    self._compare_x(other)
-                else:
-                    other = self.promote_to_spectrum(other, xy=='x')
-                return func(self, other)
-            return wrapped
-        return decorator
+    def _arithmetic_check_other(self, other, xy):
+        if isinstance(other, Spectrum):
+            self._compare_units(other, xy)
+            self._compare_x(other)
+            return other
+        else:
+            return self.promote_to_spectrum(other, xy=='x')
 
-    @arithmetic_check_other('xy')
     def __add__(self, other):
         """
         Return self + other (with standard error propagation)
         """
+        other = self._arithmetic_check_other(other, 'xy')
         ynew = self.y + other.y
         enew = np.hypot(self.e, other.e)
         return Spectrum(self.x, ynew, enew, **self.info)
 
-    @arithmetic_check_other('xy')
     def __sub__(self, other):
         """
         Return self - other (with standard error propagation)
         """
+        other = self._arithmetic_check_other(other, 'xy')
         ynew = self.y - other.y
         enew = np.hypot(self.e, other.e)
         return Spectrum(self.x, ynew, enew, **self.info)
 
-    @arithmetic_check_other('x')
     def __mul__(self, other):
         """
         Return self * other (with standard error propagation)
         """
+        other = self._arithmetic_check_other(other, 'x')
         infonew = self.info
         infonew['y_unit'] = self._yu * other._yu
         ynew = self.y * other.y
         enew = np.abs(ynew)*np.hypot(self.e/self.y, other.e/other.y)
         return Spectrum(self.x, ynew, enew, **infonew)
 
-    @arithmetic_check_other('x')
     def __truediv__(self, other):
         """
         Return self / other (with standard error propagation)
         """
+        other = self._arithmetic_check_other(other, 'x')
         infonew = self.info
         infonew['y_unit'] = self._yu / other._yu
         ynew = self.y / other.y
