@@ -70,7 +70,7 @@ class Spectrum:
     @property
     def x(self):
         """
-        getter for x-values
+        x array, i.e. wavelengths or wavenumber
         """
         return self._x
 
@@ -92,7 +92,7 @@ class Spectrum:
     @property
     def y(self):
         """
-        getter for y-values
+        flux density array
         """
         return self._y
 
@@ -112,7 +112,7 @@ class Spectrum:
     @property
     def e(self):
         """
-        getter for e-values
+        flux density uncertainty array
         """
         return self._e
 
@@ -134,7 +134,7 @@ class Spectrum:
     @property
     def name(self):
         """
-        getter for name
+        spectrum name property
         """
         return self._name
 
@@ -147,7 +147,8 @@ class Spectrum:
     @property
     def wave(self):
         """
-        getter for wavelengths
+        wavelength type attribute ("air"/"vac"). Ought to be "vac" when x-values
+        are wavenumber rather than wavelengths.`
         """
         return self._wave
 
@@ -160,7 +161,8 @@ class Spectrum:
     @property
     def x_unit(self):
         """
-        getter for x-unit
+        x-unit attribute. Can be set with either a string or astropy unit type,
+        but returns string for simplicity.
         """
         return self._xu.to_string()
 
@@ -173,7 +175,8 @@ class Spectrum:
     @property
     def y_unit(self):
         """
-        getter for y-unit
+        y-unit attribute. Can be set with either a string or astropy unit type,
+        but returns string for simplicity.
         """
         return self._yu.to_string()
 
@@ -186,7 +189,8 @@ class Spectrum:
     @property
     def head(self):
         """
-        getter for spectrum header
+        spectrum header attribute. This is a dictionary which can be used to
+        store arbtirary data associated with the spectrum.
         """
         return self._head
 
@@ -245,15 +249,12 @@ class Spectrum:
 
     @SN.setter
     def SN(self, value):
-        """
-        Set errors for desired sn
-        """
         self.e = np.abs(self.y/value)
 
     @property
     def magAB(self):
         """
-        Returns fluxes in terms of AB magnitudes
+        fluxes in terms of AB magnitudes
         """
         S = self.copy()
         S.y_unit_to("Jy")
@@ -262,7 +263,7 @@ class Spectrum:
     @property
     def magABe(self):
         """
-        Returns fluxe errors in terms of AB magnitudes
+        flux errors in terms of AB magnitudes
         """
         S = self.copy()
         S.y_unit_to("Jy")
