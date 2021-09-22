@@ -2,6 +2,7 @@
 Contains the Spectrum class for working with astrophysical spectra.
 """
 import math
+from functools import wraps
 import numpy as np
 import matplotlib.pyplot as plt
 import astropy.units as u
@@ -17,6 +18,7 @@ from .misc import vac_to_air, air_to_vac, convolve_gaussian, logarange
 __all__ = [
     "Spectrum",
 ]
+
 
 class Spectrum:
     """
@@ -51,6 +53,7 @@ class Spectrum:
     by undefined behaviour of numpy/astropy implementations.
     """
     __slots__ = ['_x', '_y', '_e', '_name', '_wave', '_xu', '_yu', '_head']
+
     def __init__(self, x, y, e, name="", wave='air', x_unit="AA", \
         y_unit="erg/(s cm^2 AA)", head=None):
         """
@@ -352,6 +355,40 @@ class Spectrum:
         """
         return self.x.min() < value < self.x.max()
 
+    def _compare_units(self, other, xy):
+        """
+        Check units match another spectrum or kind of unit
+        """
+        if isinstance(other, (str, u.UnitBase)):
+            #check specific unit
+            if xy not in {'x', 'y'}:
+                raise ValueError("xy not 'x' or 'y'")
+            if xy == 'x' and self.x_unit != u.Unit(other):
+                raise u.UnitsError("x_units differ")
+            if xy == 'y' and self.y_unit != u.Unit(other):
+                raise u.UnitsError("y_units differ")
+        elif isinstance(other, u.Quantity):
+            self._compare_units(other.unit, xy)
+        elif isinstance(other, Spectrum):
+            #compare two spectra
+            if xy not in {'x', 'y', 'xy'}:
+                raise ValueError("xy not 'x', 'y', or 'xy'")
+            if xy in {'x', 'xy'} and self.x_unit != other.x_unit:
+                raise u.UnitsError("x_units differ")
+            if xy in {'y', 'xy'} and self.y_unit != other.y_unit:
+                raise u.UnitsError("y_units differ")
+        else:
+            raise TypeError("other was not Spectrum or interpretable as a unit")
+
+    def _compare_wave(self, other):
+        if self.wave != other.wave:
+            raise ValueError("Spectra must have same wavelengths (air/vac)")
+
+    def _compare_x(self, other):
+        self._compare_wave(other)
+        if not np.allclose(self.x, other.x):
+            raise ValueError("Spectra must have same x values")
+
     def promote_to_spectrum(self, other, dimensionless_y=False):
         """
         Promote non-Spectrum objects (int/float/ndarray/quantity) to a Spectrum
@@ -371,56 +408,53 @@ class Spectrum:
             raise NotImplementedError("Cannot cast object to Spectrum")
         return Spectrum(self.x, ynew, 0, **info)
 
+    def arithmetic_check_other(xy):
+        def decorator(func):
+            @wraps(func)
+            def wrapped(self, other):
+                if isinstance(other, Spectrum):
+                    self._compare_units(other, xy)
+                    self._compare_x(other)
+                else:
+                    other = self.promote_to_spectrum(other, xy=='x')
+                return func(self, other)
+            return wrapped
+        return decorator
+
+    @arithmetic_check_other('xy')
     def __add__(self, other):
         """
         Return self + other (with standard error propagation)
         """
-        if isinstance(other, Spectrum):
-            self._compare_units(other, 'xy')
-            self._compare_x(other)
-        else:
-            other = self.promote_to_spectrum(other)
         ynew = self.y + other.y
         enew = np.hypot(self.e, other.e)
         return Spectrum(self.x, ynew, enew, **self.info)
 
+    @arithmetic_check_other('xy')
     def __sub__(self, other):
         """
         Return self - other (with standard error propagation)
         """
-        if isinstance(other, Spectrum):
-            self._compare_units(other, 'xy')
-            self._compare_x(other)
-        else:
-            other = self.promote_to_spectrum(other)
         ynew = self.y - other.y
         enew = np.hypot(self.e, other.e)
         return Spectrum(self.x, ynew, enew, **self.info)
 
+    @arithmetic_check_other('x')
     def __mul__(self, other):
         """
         Return self * other (with standard error propagation)
         """
-        if isinstance(other, Spectrum):
-            self._compare_units(other, 'x')
-            self._compare_x(other)
-        else:
-            other = self.promote_to_spectrum(other, True)
         infonew = self.info
         infonew['y_unit'] = self._yu * other._yu
         ynew = self.y * other.y
         enew = np.abs(ynew)*np.hypot(self.e/self.y, other.e/other.y)
         return Spectrum(self.x, ynew, enew, **infonew)
 
+    @arithmetic_check_other('x')
     def __truediv__(self, other):
         """
         Return self / other (with standard error propagation)
         """
-        if isinstance(other, Spectrum):
-            self._compare_units(other, 'x')
-            self._compare_x(other)
-        else:
-            other = self.promote_to_spectrum(other, True)
         infonew = self.info
         infonew['y_unit'] = self._yu / other._yu
         ynew = self.y / other.y
@@ -483,40 +517,6 @@ class Spectrum:
         S = self.copy()
         S.y = np.abs(S.y)
         return S
-
-    def _compare_units(self, other, xy):
-        """
-        Check units match another spectrum or kind of unit
-        """
-        if isinstance(other, (str, u.UnitBase)):
-            #check specific unit
-            if xy not in {'x', 'y'}:
-                raise ValueError("xy not 'x' or 'y'")
-            if xy == 'x' and self.x_unit != u.Unit(other):
-                raise u.UnitsError("x_units differ")
-            if xy == 'y' and self.y_unit != u.Unit(other):
-                raise u.UnitsError("y_units differ")
-        elif isinstance(other, u.Quantity):
-            self._compare_units(other.unit, xy)
-        elif isinstance(other, Spectrum):
-            #compare two spectra
-            if xy not in {'x', 'y', 'xy'}:
-                raise ValueError("xy not 'x', 'y', or 'xy'")
-            if xy in {'x', 'xy'} and self.x_unit != other.x_unit:
-                raise u.UnitsError("x_units differ")
-            if xy in {'y', 'xy'} and self.y_unit != other.y_unit:
-                raise u.UnitsError("y_units differ")
-        else:
-            raise TypeError("other was not Spectrum or interpretable as a unit")
-
-    def _compare_wave(self, other):
-        if self.wave != other.wave:
-            raise ValueError("Spectra must have same wavelengths (air/vac)")
-
-    def _compare_x(self, other):
-        self._compare_wave(other)
-        if not np.allclose(self.x, other.x):
-            raise ValueError("Spectra must have same x values")
 
     def apply_mask(self, mask):
         """
