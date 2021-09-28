@@ -317,15 +317,15 @@ class Spectrum:
         """
         Return spectrum representation
         """
-        ret = "\n".join([
-            f"Spectrum class with {len(self)} pixels",
-            f"name: {self.name}",
-            f"x-unit: {self.x_unit}",
-            f"y-unit: {self.y_unit}",
-            f"wavelengths: {self.wave}",
-            f"header items: {len(self.head)}",
-        ])
-        return ret
+        parts = [
+            f"*data[{len(self)}]",
+            f"name='{self.name}'",
+            f"wave='{self.wave}'",
+            f"x_unit='{self.x_unit}'",
+            f"y_unit='{self.y_unit}'",
+            f"head={{{len(self.head)}}}",
+        ]
+        return "Spectrum({})".format(", ".join(parts))
 
     def __getitem__(self, key):
         """
