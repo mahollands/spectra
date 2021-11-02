@@ -19,7 +19,7 @@ JPLUS = "gSDSS iSDSS J0378 J0395 J0410 J0430 J0515 J0660 J0861 rSDSS uJAVA zSDSS
 filter_paths = {
     **{f"2m{b}"    : f"2MASS/2MASS_2MASS.{b}.npy" for b in "JHK"}, #2Mass
     **{f"Denis{b}" : f"DENIS/DENIS_DENIS.{b}.npy" for b in "I"}, #DENIS
-    **{f"Gaia{b}"  : f"GAIA/GAIA_GAIA3.{GaiaDict[b]}.npy" for b in ("G", "Bp", "Rp")}, #Gaia
+    **{f"Gaia{b}3"  : f"GAIA/GAIA_GAIA3.{GaiaDict[b]}.npy" for b in ("G", "Bp", "Rp")}, #Gaia
     **{f"Gaia{b}2r"  : f"GAIA/GAIA_GAIA2r.{GaiaDict[b]}.npy" for b in ("G", "Bp", "Rp")}, #Gaia
     **{f"Galex{b}" : f"GALEX/GALEX_GALEX.{b}.npy" for b in ("NUV", "FUV")}, #GALEX
     **{b           : f"GENERIC/Generic_Johnson.{b}.npy" for b in "UBVRI"}, #Generic Johnson
