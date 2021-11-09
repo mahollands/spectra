@@ -97,6 +97,7 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
         loaded_filters[band] = load_transmission_curve(band)
     R = loaded_filters[band]
     R.wave = S.wave
+    Inorm = Ifun(R.y/R.x, R.x)
 
     #Need specific units for integrals
     R.x_unit_to("Hz")
@@ -107,12 +108,11 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
     S = S.clip(np.min(R.x), np.max(R.x))
 
     #Calculate AB fluxes, or MC sampled fluxes
-    norm = Ifun(R.y/R.x, R.x)
     R = R.interp(S, kind='linear')
     if Nmc == 0:
-        return Ifun(S.y*R.y/S.x, S.x)/norm
+        return Ifun(S.y*R.y/S.x, S.x)/Inorm
 
-    return np.array([Ifun(y_mc*R.y/S.x, S.x) for y_mc in S.y_mc(Nmc)])/norm
+    return np.array([Ifun(y_mc*R.y/S.x, S.x) for y_mc in S.y_mc(Nmc)])/Inorm
 #
 
 def lambda_mean(band, Ifun=Itrapz):
