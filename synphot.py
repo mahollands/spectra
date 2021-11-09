@@ -105,10 +105,10 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
 
     #clip data to filter range and interpolate filter to data axis
     S = S.clip(np.min(R.x), np.max(R.x))
-    R = R.interp(S, kind='linear')
 
     #Calculate AB fluxes, or MC sampled fluxes
-    norm = Ifun(R.y/S.x, S.x)
+    norm = Ifun(R.y/R.x, R.x)
+    R = R.interp(S, kind='linear')
     if Nmc == 0:
         return Ifun(S.y*R.y/S.x, S.x)/norm
 
