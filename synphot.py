@@ -100,8 +100,7 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
     Inorm = Ifun(R.y/R.x, R.x)
 
     #Need specific units for integrals
-    R.x_unit_to("Hz")
-    S.x_unit_to("Hz")
+    S.x_unit_to("AA")
     S.y_unit_to("Jy")
 
     #clip data to filter range and interpolate filter to data axis
