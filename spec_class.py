@@ -244,6 +244,14 @@ class Spectrum:
         return self.y/self.e
 
     @property
+    def chi2(self):
+        """
+        Calculates a chi squared value assuming y-values are scattered about 0.
+        """
+        r = self.y_e
+        return np.sum(r*r)
+
+    @property
     def SN(self):
         """
         Signal to noise ratio (modulus of y_e property)
