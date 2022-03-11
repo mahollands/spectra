@@ -983,7 +983,7 @@ class Spectrum:
 
         #default y limits (if not already set)
         ax = plt.gca()
-        if choose_ylims and ax.get_autoscaley_on():
+        if set_ylims and ax.get_autoscaley_on():
             ylo, yhi = ax.get_ylim()
             if kind.startswith('magAB'):
                 if ylo < yhi:
