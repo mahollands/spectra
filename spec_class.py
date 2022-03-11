@@ -964,7 +964,7 @@ class Spectrum:
         """
         return np.isinf(self.x) | np.isinf(self.y) | np.isinf(self.e)
 
-    def plot(self, *args, kind='y', scale=1, set_ylims=True, **kwargs):
+    def plot(self, *args, kind='y', scale=1, auto_ylims=True, **kwargs):
         """
         Plots the spectrum with matplotlib and passes *args/**kwargs. 'kind'
         should be one of 'y', 'e', 'var', 'ivar', 'y_e', 'SN', 'magAB',
@@ -983,7 +983,7 @@ class Spectrum:
 
         #default y limits (if not already set)
         ax = plt.gca()
-        if set_ylims and ax.get_autoscaley_on():
+        if auto_ylims and ax.get_autoscaley_on():
             ylo, yhi = ax.get_ylim()
             if kind.startswith('magAB'):
                 if ylo < yhi:
