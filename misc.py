@@ -23,6 +23,62 @@ __all__ = [
 jangstrom = \
     r"$\mathrm{erg}\;\mathrm{s}^{-1}\,\mathrm{cm}^{-2}\,\mathrm{\AA}^{-1}$"
 
+rt2pi = np.sqrt(2*np.pi)
+rt2 = np.sqrt(2)
+fwhm2sigma = 1/(2*np.sqrt(2*np.log(2)))
+
+def gaussian(x, x0, sigma=None, fwhm=None, norm=False):
+    """
+    Gaussian line profile
+
+    Parameters
+    ----------
+    x : np.ndarray
+        A 1-D array of wavelengths for the line profile.
+    x0 : float
+        Central wavelength of the profile.
+    sigma: float
+        The standard deviation of the Gaussian line profile.
+    fwhm: float
+        The full width half maximum can be given as an alternative to sigma.
+    norm: bool
+        By default the line profile has a maximum height of 1. If norm is
+        instead True, then the line profile will have unit area.
+    """
+    if (sigma is None) ^ (fwhm is not None):
+        raise ValueError("One and only one of sigma and fwhm should be given")
+    if sigma is None:
+        sigma = fwhm * fwhm2sigma
+    xx = (x-x0)/sigma
+    y = np.exp(-0.5*xx*xx)
+    if norm:
+        y /= rt2pi*sigma
+    return y
+
+def lorentzian(x, x0, fwhm=None, norm=False):
+    """
+    Lorentzian line profile
+
+    Parameters
+    ----------
+    x : np.ndarray
+        A 1-D array of wavelengths for the line profile.
+    x0 : float
+        Central wavelength of the profile.
+    fwhm: float
+        The full width half maximum can be given as an alternative to sigma.
+    norm: bool
+        By default the line profile has a maximum height of 1. If norm is
+        instead True, then the line profile will have unit area.
+    """
+    gamma = fwhm/2
+    xx = (x-x0)/gamma
+    y = 1/(1+xx*xx)
+    if norm:
+        y /= np.pi * gamma
+    return y
+
+
 def voigt(x, x0, fwhm_g, fwhm_l):
     """
     Normalised voigt profile.
@@ -32,20 +88,17 @@ def voigt(x, x0, fwhm_g, fwhm_l):
     x : np.ndarray
         A 1-D array of wavelengths for the line profile.
     x0 : float
-        Central wavelength of the voigt profile.
-    fwhm_g:
+        Central wavelength of the profile.
+    fwhm_g: float
         The Full-Width at Half-Maximum of the Gaussian part of the voigt
         profile.
-    fwhm_l:
+    fwhm_l: float
         The Full-Width at Half-Maximum of the Lorentzian part of the voigt
         profile.
     """
-    sigma = voigt.Va*fwhm_g
-    z = ((x-x0) + 0.5j*fwhm_l)/(sigma*voigt.Vb)
-    return wofz(z).real/(sigma*voigt.Vc)
-voigt.Va = 1/(2*np.sqrt(2*np.log(2)))
-voigt.Vb = np.sqrt(2)
-voigt.Vc = np.sqrt(2*np.pi)
+    sigma = fwhm2sigma*fwhm_g
+    z = ((x-x0) + 0.5j*fwhm_l)/(sigma*rt2)
+    return wofz(z).real/(rt2pi*sigma)
 
 def vac_to_air(Wvac):
     """
@@ -53,9 +106,7 @@ def vac_to_air(Wvac):
     (in Angstroms)
     """
     s = 1e4/Wvac
-    n = 1.0000834254 \
-        + 0.02406147/(130.-s*s) \
-        + 0.00015998/(38.9-s*s)
+    n = 1.0000834254 + 0.02406147/(130.-s*s) + 0.00015998/(38.9-s*s)
     return Wvac/n
 #
 
@@ -65,8 +116,7 @@ def air_to_vac(Wair):
     (in Angstroms)
     """
     s = 1e4/Wair
-    n = 1.00008336624212083 \
-        + 0.02408926869968 / (130.1065924522-s*s) \
+    n = 1.00008336624212083 + 0.02408926869968 / (130.1065924522-s*s) \
         + 0.0001599740894897/(38.92568793293-s*s)
     return Wair*n
 #
@@ -86,18 +136,16 @@ def convolve_gaussian(x, y, FWHM):
     FFT approach. Wavelengths are assumed to be sorted, but uniform spacing is
     not required. Will cause wrap-around at the end of the spectrum.
     """
-    sigma = FWHM/2.355
 
     #oversample data by at least factor 10 (up to 20).
     xi = np.linspace(x[0], x[-1], _next_pow_2(10*len(x)))
     yi = interp1d(x, y)(xi)
 
-    yg = np.exp(-0.5*((xi-x[0])/sigma)**2) #half gaussian
+    yg = gaussian(xi, x[0], fwhm=FWHM) #half gaussian
     yg += yg[::-1]
     yg /= np.sum(yg) #Norm kernel
 
-    yiF = np.fft.fft(yi)
-    ygF = np.fft.fft(yg)
+    yiF, ygF = np.fft.fft(yi), np.fft.fft(yg)
     yic = np.fft.ifft(yiF * ygF).real
 
     return interp1d(xi, yic)(x)
