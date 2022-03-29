@@ -25,7 +25,20 @@ jangstrom = \
 
 def voigt(x, x0, fwhm_g, fwhm_l):
     """
-    Normalised voigt profile
+    Normalised voigt profile.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        A 1-D array of wavelengths for the line profile.
+    x0 : float
+        Central wavelength of the voigt profile.
+    fwhm_g:
+        The Full-Width at Half-Maximum of the Gaussian part of the voigt
+        profile.
+    fwhm_l:
+        The Full-Width at Half-Maximum of the Lorentzian part of the voigt
+        profile.
     """
     sigma = voigt.Va*fwhm_g
     z = ((x-x0) + 0.5j*fwhm_l)/(sigma*voigt.Vb)
