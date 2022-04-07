@@ -24,7 +24,7 @@ filter_paths = {
     **{b           : f"GENERIC/Generic_Johnson.{b}.npy" for b in "UBVRI"}, #Generic Johnson
     **{f"JPLUS-{b}": f"JPLUS/OAJ_JPLUS.{b}.npy" for b in JPLUS}, #JPLUS
     **{f"ps{b}"    : f"PANSTARRS/PAN-STARRS_PS1.{b}.npy" for b in "grizy"}, #PanStarrs
-    **{b           : f"SDSS/SLOAN_SDSS.{b}.npy" for b in "ugriz"}, #SDSS
+    **{f"SDSS{b}"  : f"SDSS/SLOAN_SDSS.{b}.npy" for b in "ugriz"}, #SDSS
     **{f"sm{b}"    : f"SKYMAPPER/SkyMapper_SkyMapper.{b}.npy" for b in "uvgriz"}, #SkyMapper
     **{f"S{b}"     : f"SPITZER/Spitzer_IRAC.I{b}.npy" for b in "12"}, #Spitzer
     **{f"sw{b}"    : f"SWIFT/Swift_UVOT.{b}.npy" for b in ("U", "UVW1", "UVW2", "UVM2")}, #Swift
