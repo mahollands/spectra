@@ -14,29 +14,30 @@ __all__ = [
 
 filters_dir = "{}/passbands".format(os.path.dirname(__file__))
 
-GaiaDict = {'G':'G', 'Bp':'Gbp', 'Rp':'Grp'}
+GAIA = {'G':'G', 'Bp':'Gbp', 'Rp':'Grp'}
 JPLUS = "gSDSS iSDSS J0378 J0395 J0410 J0430 J0515 J0660 J0861 rSDSS uJAVA zSDSS".split()
 HCAM = list("ugriz") + [b+"_s" for b in "ugriz"]
 UCAM = list("ugriz") + [b+"_s" for b in "ugriz"] + "iz Ha_broad Ha_narrow".split()
 USPEC = list("ugriz") + "iz Ha_broad Ha_narrow bowen KG5 N86 NaI".split()
+SWIFT = ("U", "UVW1", "UVW2", "UVM2")
 
 filter_paths = {
-    **{f"2m{b}"    : f"2MASS/2MASS_2MASS.{b}.npy" for b in "JHK"}, #2Mass
-    **{f"Gaia{b}3"  : f"GAIA/GAIA_GAIA3.{GaiaDict[b]}.npy" for b in ("G", "Bp", "Rp")}, #Gaia
-    **{f"Gaia{b}2r"  : f"GAIA/GAIA_GAIA2r.{GaiaDict[b]}.npy" for b in ("G", "Bp", "Rp")}, #Gaia
-    **{f"Galex{b}" : f"GALEX/GALEX_GALEX.{b}.npy" for b in ("NUV", "FUV")}, #GALEX
-    **{b           : f"GENERIC/Generic_Johnson.{b}.npy" for b in "UBVRI"}, #Generic Johnson
+    **{f"2m{b}": f"2MASS/2MASS_2MASS.{b}.npy" for b in "JHK"}, #2Mass
+    **{f"Gaia{b}3": f"GAIA/GAIA_GAIA3.{GAIA[b]}.npy" for b in GAIA}, #Gaia
+    **{f"Gaia{b}2r": f"GAIA/GAIA_GAIA2r.{GAIA[b]}.npy" for b in GAIA}, #Gaia
+    **{f"Galex{b}": f"GALEX/GALEX_GALEX.{b}.npy" for b in ("NUV", "FUV")}, #GALEX
+    **{b: f"GENERIC/Generic_Johnson.{b}.npy" for b in "UBVRI"}, #Generic Johnson
     **{f"JPLUS-{b}": f"JPLUS/OAJ_JPLUS.{b}.npy" for b in JPLUS}, #JPLUS
-    **{f"ps{b}"    : f"PANSTARRS/PAN-STARRS_PS1.{b}.npy" for b in "grizy"}, #PanStarrs
-    **{f"SDSS{b}"  : f"SDSS/SLOAN_SDSS.{b}.npy" for b in "ugriz"}, #SDSS
-    **{f"sm{b}"    : f"SKYMAPPER/SkyMapper_SkyMapper.{b}.npy" for b in "uvgriz"}, #SkyMapper
-    **{f"S{b}"     : f"SPITZER/Spitzer_IRAC.I{b}.npy" for b in "12"}, #Spitzer
-    **{f"sw{b}"    : f"SWIFT/Swift_UVOT.{b}.npy" for b in ("U", "UVW1", "UVW2", "UVM2")}, #Swift
-    **{f"UK{b}"    : f"UKIRT/UKIRT_UKIDSS.{b}.npy" for b in "ZYJHK"}, #UKIRT
-    **{f"W{b}"     : f"WISE/WISE_WISE.W{b}.npy" for b in "12"}, #Wise
-    **{f"UCAM_{b}" : f"ULTRACAM/WHT_ULTRACAM.{b}.npy" for b in UCAM}, #ULTRACAM
-    **{f"USPEC_{b}" : f"ULTRASPEC/TNT_ULTRASPEC.{b}.npy" for b in USPEC}, #ULTRASPEC
-    **{f"HCAM_{b}" : f"HIPERCAM/GTC_HIPERCAM.{b}.npy" for b in HCAM}, #HIPERCAM
+    **{f"ps{b}": f"PANSTARRS/PAN-STARRS_PS1.{b}.npy" for b in "grizy"}, #PanStarrs
+    **{f"SDSS{b}": f"SDSS/SLOAN_SDSS.{b}.npy" for b in "ugriz"}, #SDSS
+    **{f"sm{b}": f"SKYMAPPER/SkyMapper_SkyMapper.{b}.npy" for b in "uvgriz"}, #SkyMapper
+    **{f"S{b}": f"SPITZER/Spitzer_IRAC.I{b}.npy" for b in "12"}, #Spitzer
+    **{f"sw{b}": f"SWIFT/Swift_UVOT.{b}.npy" for b in SWIFT}, #Swift
+    **{f"UK{b}": f"UKIRT/UKIRT_UKIDSS.{b}.npy" for b in "ZYJHK"}, #UKIRT
+    **{f"W{b}": f"WISE/WISE_WISE.W{b}.npy" for b in "12"}, #Wise
+    **{f"UCAM_{b}": f"ULTRACAM/WHT_ULTRACAM.{b}.npy" for b in UCAM}, #ULTRACAM
+    **{f"USPEC_{b}": f"ULTRASPEC/TNT_ULTRASPEC.{b}.npy" for b in USPEC}, #ULTRASPEC
+    **{f"HCAM_{b}": f"HIPERCAM/GTC_HIPERCAM.{b}.npy" for b in HCAM}, #HIPERCAM
 }
 filter_names = list(filter_paths)
 
