@@ -111,11 +111,9 @@ def model_from_dk(fname, x_unit='AA', y_unit='erg/(s cm2 AA)'):
         #angular dependent fluxes
         mus, wmus = hdr.pop('mu'), hdr.pop('wmu')
         MM = multi_model_from_txt(fname, len(mus), **kwargs)
-        for j, M in enumerate(MM):
+        for M in MM:
             M.x_unit_to(x_unit)
             M.y_unit_to(y_unit)
-            if j > 0:
-                M.y_unit = M.y_unit.replace(')', ' sr)')
             M.head.update(hdr)
         for M, mu, wmu in zip(MM[1:], mus, wmus):
             M.name += f"_mu_{mu:f}"

@@ -1,6 +1,8 @@
 """
 Routines for calculating limb darkening coefficients and central intensities
 """
+import numpy as np
+from scipy.optimize import leastsq
 
 __all__ = [
     "calc_limb_darkening_coeffs",
