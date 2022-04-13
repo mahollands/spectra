@@ -22,16 +22,16 @@ def calc_limb_darkening_coeffs(MM, band, limb_model='claret', return_fluxes=Fals
     """
     Calculate limb darkening coefficients for DK models for a given pandpass.
     MM is a list of models containing angular dependent spectra as a function
-    of mu. Normalised fluxes and mu points can be returned if 'return_fluxes'
-    is true.
+    of mu (mu values are header items). Fluxes (in Jy/sr) and mu points can be
+    returned if 'return_fluxes' is true.
     """
     n_param, f = limb_functions[limb_model]
     guess = np.zeros(n_param)
 
     mu = np.array([M.head['mu'] for M in MM])
     fluxes = np.array([M.flux_calc_AB(band) for M in MM])
-    fluxes /= np.max(fluxes)
+    normed_fluxes = fluxes/np.max(fluxes)
 
-    vec, *_ = leastsq(lambda P : fluxes - f(P, mu), guess)
+    vec, *_ = leastsq(lambda P : normed_fluxes - f(P, mu), guess)
 
     return (vec, mu, fluxes) if return_fluxes else vec
