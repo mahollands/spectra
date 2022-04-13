@@ -50,9 +50,9 @@ def load_transmission_curve(band):
     from .spec_io import spec_from_npy
 
     try:
-        full_path = "{}/{}".format(filters_dir, filter_paths[band])
+        full_path = f"{filters_dir}/{filter_paths[band]}"
     except KeyError:
-        print('Invalid filter name: {}'.format(band))
+        print(f'Invalid filter name: {band}')
         sys.exit()
 
     return spec_from_npy(full_path, wave="vac", x_unit="AA", y_unit="")
@@ -64,7 +64,7 @@ def load_Vega():
     """
     from .spec_io import spec_from_npy
 
-    full_path = "{}/alpha_lyr_mod_003.npy".format(filters_dir)
+    full_path = f"{filters_dir}/alpha_lyr_mod_003.npy"
 
     return spec_from_npy(full_path, wave='vac', x_unit="AA", y_unit="")
 #
@@ -131,8 +131,8 @@ def lambda_mean(band, Ifun=Itrapz):
 
 def lambda_eff(band, Ifun=Itrapz):
     """
-    Calculates lambda_eff for one of the filters, integrated
-    over the spectrum of Vega.
+    Calculates lambda_eff for one of the filters, integrated over the spectrum
+    of Vega.
     """
     R = load_transmission_curve(band)
     V = load_Vega().interp(R)
