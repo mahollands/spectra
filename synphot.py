@@ -16,6 +16,10 @@ filters_dir = "{}/passbands".format(os.path.dirname(__file__))
 
 GaiaDict = {'G':'G', 'Bp':'Gbp', 'Rp':'Grp'}
 JPLUS = "gSDSS iSDSS J0378 J0395 J0410 J0430 J0515 J0660 J0861 rSDSS uJAVA zSDSS".split()
+HCAM = list("ugriz") + [b+"_s" for b in "ugriz"]
+UCAM = list("ugriz") + [b+"_s" for b in "ugriz"] + "iz Ha_broad Ha_narrow".split()
+USPEC = list("ugriz") + "iz Ha_broad Ha_narrow bowen KG5 N86 NaI".split()
+
 filter_paths = {
     **{f"2m{b}"    : f"2MASS/2MASS_2MASS.{b}.npy" for b in "JHK"}, #2Mass
     **{f"Gaia{b}3"  : f"GAIA/GAIA_GAIA3.{GaiaDict[b]}.npy" for b in ("G", "Bp", "Rp")}, #Gaia
@@ -30,6 +34,9 @@ filter_paths = {
     **{f"sw{b}"    : f"SWIFT/Swift_UVOT.{b}.npy" for b in ("U", "UVW1", "UVW2", "UVM2")}, #Swift
     **{f"UK{b}"    : f"UKIRT/UKIRT_UKIDSS.{b}.npy" for b in "ZYJHK"}, #UKIRT
     **{f"W{b}"     : f"WISE/WISE_WISE.W{b}.npy" for b in "12"}, #Wise
+    **{f"UCAM_{b}" : f"ULTRACAM/WHT_ULTRACAM.{b}.npy" for b in UCAM}, #ULTRACAM
+    **{f"USPEC_{b}" : f"ULTRASPEC/TNT_ULTRASPEC.{b}.npy" for b in USPEC}, #ULTRASPEC
+    **{f"HCAM_{b}" : f"HIPERCAM/GTC_HIPERCAM.{b}.npy" for b in HCAM}, #HIPERCAM
 }
 filter_names = list(filter_paths)
 
