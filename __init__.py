@@ -8,3 +8,4 @@ from .spec_class import Spectrum
 from .spec_io import *
 from .spec_functions import *
 from .misc import air_to_vac, vac_to_air, voigt, jangstrom, logarange
+from .limb_darkening import *
