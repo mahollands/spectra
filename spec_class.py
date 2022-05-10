@@ -511,7 +511,7 @@ class Spectrum:
         """
         Implements +self
         """
-        return self
+        return self.copy()
 
     def __abs__(self):
         """
