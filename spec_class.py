@@ -461,7 +461,7 @@ class Spectrum:
         infonew = self.info
         infonew['y_unit'] = self._yu / other._yu
         ynew = self.y / other.y
-        enew = np.hypot(self.e, ynew*other.e)/other.y
+        enew = np.hypot(self.e, ynew*other.e)/abs(other.y)
         return Spectrum(self.x, ynew, enew, **infonew)
 
     def __radd__(self, other):
