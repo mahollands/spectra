@@ -98,16 +98,17 @@ def head_from_dk(fname, return_skip=False):
                 continue
     return (hdr, skip) if return_skip else hdr
 
-def model_from_dk(fname, x_unit='AA', y_unit='erg/(s cm2 AA)'):
+def model_from_dk(fname, x_unit='AA', y_unit='erg/(s cm2 AA)', use_Imu=False):
     """
     Similar to model_from_txt, but for Detlev Koester model spectra. Units are
     converted to those specified, and DK header items placed in the Spectrum
-    object header. For models with angular dependent fluxes, a list of models
-    is returned.
+    object header. For models with angular dependent fluxes, if use_Imu is set
+    to True a list of models is returned, otherwise just the disc average flux
+    is used.
     """
     hdr, skip = head_from_dk(fname, True)
     kwargs = {'wave':'vac', 'x_unit':'AA', 'y_unit':'erg/(s cm3)', 'skiprows':skip}
-    if 'mu' in hdr:
+    if 'mu' in hdr and use_Imu:
         #angular dependent fluxes
         mus, wmus = hdr.pop('mu'), hdr.pop('wmu')
         MM = multi_model_from_txt(fname, len(mus), **kwargs)
