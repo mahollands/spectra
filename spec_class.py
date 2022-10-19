@@ -2,7 +2,6 @@
 Contains the Spectrum class for working with astrophysical spectra.
 """
 import math
-from functools import wraps
 import numpy as np
 import matplotlib.pyplot as plt
 import astropy.units as u
@@ -10,7 +9,7 @@ import astropy.constants as const
 from astropy.convolution import convolve
 from scipy.interpolate import LSQUnivariateSpline
 from scipy.optimize import minimize
-from .interpolation import *
+from .interpolation import interp, interp_nan, interp_inf, wbin
 from .synphot import calc_AB_flux
 from .reddening import A_curve
 from .misc import vac_to_air, air_to_vac, convolve_gaussian, logarange
@@ -669,7 +668,7 @@ class Spectrum:
 
     def wbin(self, X, kind, logscale=False):
         """
-        Wavelengths bins a spectrum onto xnew using linear or quadratic
+        Wavelengths bins a spectrum onto X using linear or quadratic
         binning. Based on the REBIN routine in Molly.
         """
         if isinstance(X, np.ndarray):
@@ -684,9 +683,9 @@ class Spectrum:
         xin = np.log(self.x) if logscale else self.x
         xout = np.log(xbin) if logscale else xbin
 
-        ynew = wbin(xin, self.y, xout, kind)
-        enew = wbin(xin, self.e, xout, kind)
-        return Spectrum(xnew, ynew, enew, **self.info)
+        ybin = wbin(xin, self.y, xout, kind)
+        ebin = wbin(xin, self.e, xout, kind)
+        return Spectrum(xbin, ybin, ebin, **self.info)
 
     def copy(self):
         """
