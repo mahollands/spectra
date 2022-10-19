@@ -176,6 +176,13 @@ class Spectrum:
         self._xu = u.Unit(unit)
 
     @property
+    def xq(self, unit):
+        """
+        returns x as a quantity by attatching its unit
+        """
+        return self.x << self.x_unit
+
+    @property
     def y_unit(self):
         """
         y-unit attribute. Can be set with either a string or astropy unit type,
@@ -188,6 +195,34 @@ class Spectrum:
         if not isinstance(unit, (str, u.UnitBase)):
             raise TypeError("y_unit must be str or Unit type")
         self._yu = u.Unit(unit)
+
+    @property
+    def yq(self, unit):
+        """
+        returns y as a quantity by attatching its unit
+        """
+        return self.y << self.y_unit
+
+    @property
+    def eq(self, unit):
+        """
+        returns e as a quantity by attatching its unit
+        """
+        return self.e << self.y_unit
+
+    @property
+    def varq(self, unit):
+        """
+        returns var as a quantity by attatching its unit
+        """
+        return self.var << self.y_unit**2
+
+    @property
+    def ivarq(self, unit):
+        """
+        returns ivar as a quantity by attatching its unit
+        """
+        return self.ivar << 1/self.y_unit**2
 
     @property
     def head(self):
@@ -329,8 +364,8 @@ class Spectrum:
             f"*data[{len(self)}]",
             f"name='{self.name}'",
             f"wave='{self.wave}'",
-            f"x_unit='{self.x_unit}'",
-            f"y_unit='{self.y_unit}'",
+            f"x_unit='{self.x_unit.to_string()}'",
+            f"y_unit='{self.y_unit.to_string()}'",
             f"head={{{len(self.head)}}}",
         ]
         return "Spectrum({})".format(", ".join(parts))
@@ -750,24 +785,19 @@ class Spectrum:
         Changes units of the x-data. Supports conversion between wavelength
         and energy etc. Argument should be a string or Unit.
         """
-        x = self.x << self.x_unit
-        x2 = x.to(new_unit, u.spectral())
-        self.x = x2.value
-        self.x_unit = new_unit
+        x = self.xq
+        x = x.to(new_unit, u.spectral())
+        self.x, self.x_unit = x.value, new_unit
 
     def y_unit_to(self, new_unit):
         """
         Changes units of the y-data. Supports conversion between Fnu
         and Flambda etc. Argument should be a string or Unit.
         """
-        x = self.x << self.x_unit
-        y = self.y << self.y_unit
-        e = self.e << self.y_unit
+        x, y, e = self.xq, self.yq, self.eq
         y = y.to(new_unit, u.spectral_density(x))
         e = e.to(new_unit, u.spectral_density(x))
-        self.y = y.value
-        self.e = e.value
-        self.y_unit = new_unit
+        self.y, self.e, self.y_unit = y.value, e.value, new_unit
 
     def apply_redshift(self, v, v_unit="km/s"):
         """
@@ -874,7 +904,6 @@ class Spectrum:
         Apply rotational broadening in km/s. The dv parameter sets the
         resolution that convolution is performed at.
         """
-        xu, yu = self.x_unit, self.y_unit
         S = self.copy()
         S.x_unit_to(u.AA)
         S.y_unit_to("erg/(s cm2)")
@@ -884,8 +913,8 @@ class Spectrum:
         ky = np.sqrt(1-(kx/vsini)**2)
         S.y = convolve(S.y, ky)
         S = S.interp(self, kind='cubic')
-        S.x_unit_to(xu)
-        S.y_unit_to(yu)
+        S.x_unit_to(self.x_unit)
+        S.y_unit_to(self.y_unit)
         return S
 
     def polyfit(self, deg, weighted=True, logx=False, logy=False):
