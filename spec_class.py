@@ -167,13 +167,13 @@ class Spectrum:
         x-unit attribute. Can be set with either a string or astropy unit type,
         but returns string for simplicity.
         """
-        return self._xu.to_string()
+        return self._xu
 
     @x_unit.setter
-    def x_unit(self, x_unit):
-        if not isinstance(x_unit, (str, u.UnitBase)):
+    def x_unit(self, unit):
+        if not isinstance(unit, (str, u.UnitBase)):
             raise TypeError("x_unit must be str or Unit type")
-        self._xu = u.Unit(x_unit)
+        self._xu = u.Unit(unit)
 
     @property
     def y_unit(self):
@@ -181,13 +181,13 @@ class Spectrum:
         y-unit attribute. Can be set with either a string or astropy unit type,
         but returns string for simplicity.
         """
-        return self._yu.to_string()
+        return self._yu
 
     @y_unit.setter
-    def y_unit(self, y_unit):
-        if not isinstance(y_unit, (str, u.UnitBase)):
+    def y_unit(self, unit):
+        if not isinstance(unit, (str, u.UnitBase)):
             raise TypeError("y_unit must be str or Unit type")
-        self._yu = u.Unit(y_unit)
+        self._yu = u.Unit(unit)
 
     @property
     def head(self):
@@ -448,7 +448,7 @@ class Spectrum:
         """
         other = self._arithmetic_check_other(other, 'x')
         infonew = self.info
-        infonew['y_unit'] = self._yu * other._yu
+        infonew['y_unit'] = self.y_unit * other.y_unit
         ynew = self.y * other.y
         enew = np.hypot(self.e*other.y, other.e*self.y)
         return Spectrum(self.x, ynew, enew, **infonew)
@@ -459,7 +459,7 @@ class Spectrum:
         """
         other = self._arithmetic_check_other(other, 'x')
         infonew = self.info
-        infonew['y_unit'] = self._yu / other._yu
+        infonew['y_unit'] = self.y_unit / other.y_unit
         ynew = self.y / other.y
         enew = np.hypot(self.e, ynew*other.e)/abs(other.y)
         return Spectrum(self.x, ynew, enew, **infonew)
@@ -496,7 +496,7 @@ class Spectrum:
         if not isinstance(other, (int, float)):
             raise TypeError("other must be int/float")
         infonew = self.info
-        infonew['y_unit'] = self._yu**other
+        infonew['y_unit'] = self.y_unit**other
         ynew = self.y**other
         enew = np.abs(other * ynew * self.e/self.y)
         return Spectrum(self.x, ynew, enew, **infonew)
@@ -750,7 +750,7 @@ class Spectrum:
         Changes units of the x-data. Supports conversion between wavelength
         and energy etc. Argument should be a string or Unit.
         """
-        x = self.x << self._xu
+        x = self.x << self.x_unit
         x2 = x.to(new_unit, u.spectral())
         self.x = x2.value
         self.x_unit = new_unit
@@ -760,9 +760,9 @@ class Spectrum:
         Changes units of the y-data. Supports conversion between Fnu
         and Flambda etc. Argument should be a string or Unit.
         """
-        x = self.x << self._xu
-        y = self.y << self._yu
-        e = self.e << self._yu
+        x = self.x << self.x_unit
+        y = self.y << self.y_unit
+        e = self.e << self.y_unit
         y = y.to(new_unit, u.spectral_density(x))
         e = e.to(new_unit, u.spectral_density(x))
         self.y = y.value
