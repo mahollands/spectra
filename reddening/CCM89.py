@@ -30,28 +30,23 @@ def A_CCM89(x, R):
 
 def Av_IR(x):
     """
-    0.3 <= x/um < 1.1
+    0.3 <= x*um < 1.1
     """
-    return [c*x**1.161 for c in (0.574, -0.527)]
+    xp = x**1.161
+    return [c*xp for c in (0.574, -0.527)]
 
 def Av_opt(x):
     """
-    1.1 <= x/um < 3.3
+    1.1 <= x*um < 3.3
     """
     return poly_a(x-1.82), poly_b(x-1.82)
 
 def Av_UV(x):
     """
-    3.3 <= x/um < 8.0
+    3.3 <= x*um < 8.0
     """
-    Fa, Fb = poly_Fa(x-5.9), poly_Fb(x-5.9)
-    if isinstance(x, np.ndarray):
-        Fa[x < 5.9], Fb[x < 5.9] = 0, 0
-    elif isinstance(x, (int, float)):
-        if x < 5.9:
-            Fa = Fb = 0
-    else:
-        raise TypeError
+    Fa = np.where(x > 5.9, poly_Fa(x-5.9), 0)
+    Fb = np.where(x > 5.9, poly_Fb(x-5.9), 0)
     a =  1.752 - 0.316*x - 0.104/((x-4.67)**2 + 0.341) + Fa
     b = -3.090 + 1.825*x + 1.206/((x-4.62)**2 + 0.263) + Fb
     return a, b
