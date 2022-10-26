@@ -175,13 +175,6 @@ class Spectrum:
         self._xu = u.Unit(unit)
 
     @property
-    def xq(self, unit):
-        """
-        returns x as a quantity by attatching its unit
-        """
-        return self.x << self.x_unit
-
-    @property
     def y_unit(self):
         """
         y-unit attribute. Can be set with either a string or astropy unit type,
@@ -195,33 +188,24 @@ class Spectrum:
             raise TypeError("y_unit must be str or Unit type")
         self._yu = u.Unit(unit)
 
-    @property
-    def yq(self, unit):
+    def x_unit_to(self, new_unit):
         """
-        returns y as a quantity by attatching its unit
+        Changes units of the x-data. Supports conversion between wavelength
+        and energy etc. Argument should be a string or Unit.
         """
-        return self.y << self.y_unit
+        x = self.xq
+        x = x.to(new_unit, u.spectral())
+        self.x, self.x_unit = x.value, new_unit
 
-    @property
-    def eq(self, unit):
+    def y_unit_to(self, new_unit):
         """
-        returns e as a quantity by attatching its unit
+        Changes units of the y-data. Supports conversion between Fnu
+        and Flambda etc. Argument should be a string or Unit.
         """
-        return self.e << self.y_unit
-
-    @property
-    def varq(self, unit):
-        """
-        returns var as a quantity by attatching its unit
-        """
-        return self.var << self.y_unit**2
-
-    @property
-    def ivarq(self, unit):
-        """
-        returns ivar as a quantity by attatching its unit
-        """
-        return self.ivar << 1/self.y_unit**2
+        x, y, e = self.xq, self.yq, self.eq
+        y = y.to(new_unit, u.spectral_density(x))
+        e = e.to(new_unit, u.spectral_density(x))
+        self.y, self.e, self.y_unit = y.value, e.value, new_unit
 
     @property
     def head(self):
@@ -261,6 +245,41 @@ class Spectrum:
     @ivar.setter
     def ivar(self, value):
         self.var = 1.0/value
+
+    @property
+    def xq(self):
+        """
+        returns x as a quantity by attatching its unit
+        """
+        return self.x << self.x_unit
+
+    @property
+    def yq(self):
+        """
+        returns y as a quantity by attatching its unit
+        """
+        return self.y << self.y_unit
+
+    @property
+    def eq(self):
+        """
+        returns e as a quantity by attatching its unit
+        """
+        return self.e << self.y_unit
+
+    @property
+    def varq(self):
+        """
+        returns var as a quantity by attatching its unit
+        """
+        return self.var << self.y_unit**2
+
+    @property
+    def ivarq(self):
+        """
+        returns ivar as a quantity by attatching its unit
+        """
+        return self.ivar << 1/self.y_unit**2
 
     @property
     def y_e(self):
@@ -455,8 +474,7 @@ class Spectrum:
             self._compare_units(other, xy)
             self._compare_x(other)
             return other
-        else:
-            return self.promote_to_spectrum(other, xy=='x')
+        return self.promote_to_spectrum(other, xy=='x')
 
     def __add__(self, other):
         """
@@ -778,25 +796,6 @@ class Spectrum:
         extinction = 10**(-0.4*A)
         self.y *= extinction
         self.e *= extinction
-
-    def x_unit_to(self, new_unit):
-        """
-        Changes units of the x-data. Supports conversion between wavelength
-        and energy etc. Argument should be a string or Unit.
-        """
-        x = self.xq
-        x = x.to(new_unit, u.spectral())
-        self.x, self.x_unit = x.value, new_unit
-
-    def y_unit_to(self, new_unit):
-        """
-        Changes units of the y-data. Supports conversion between Fnu
-        and Flambda etc. Argument should be a string or Unit.
-        """
-        x, y, e = self.xq, self.yq, self.eq
-        y = y.to(new_unit, u.spectral_density(x))
-        e = e.to(new_unit, u.spectral_density(x))
-        self.y, self.e, self.y_unit = y.value, e.value, new_unit
 
     def apply_redshift(self, v, v_unit="km/s"):
         """
