@@ -20,28 +20,28 @@ def A_CCM89(x, R):
 
     a = np.zeros_like(x)
     b = np.zeros_like(x)
-    a[IR], b[IR] = Av_IR(x[IR])
-    a[opt], b[opt] = Av_opt(x[opt])
-    a[UV], b[UV] = Av_UV(x[UV])
-    a[FIR], b[FIR] = Av_IR(0.3)
-    a[FUV], b[FUV] = Av_UV(8.0)
+    a[FIR], b[FIR] = ab_IR(0.3)
+    a[IR], b[IR] = ab_IR(x[IR])
+    a[opt], b[opt] = ab_opt(x[opt])
+    a[UV], b[UV] = ab_UV(x[UV])
+    a[FUV], b[FUV] = ab_UV(8.0)
     A = a + b/R
     return A
 
-def Av_IR(x):
+def ab_IR(x):
     """
     0.3 <= x*um < 1.1
     """
     xp = x**1.161
-    return [c*xp for c in (0.574, -0.527)]
+    return 0.574*xp, -0.527*xp
 
-def Av_opt(x):
+def ab_opt(x):
     """
     1.1 <= x*um < 3.3
     """
     return poly_a(x-1.82), poly_b(x-1.82)
 
-def Av_UV(x):
+def ab_UV(x):
     """
     3.3 <= x*um < 8.0
     """
