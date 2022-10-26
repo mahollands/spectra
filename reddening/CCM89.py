@@ -1,5 +1,13 @@
 import numpy as np
 
+poly_a = np.polynomial.Polynomial([1, +0.17699, -0.50447, -0.02427, +0.72085, \
+    +0.01979, -0.77530, +0.32999])
+poly_b = np.polynomial.Polynomial([0, +1.41338, +2.28305, +1.07233, -5.38434, \
+    -0.62251, +5.30260, -2.09002])
+
+poly_Fa = np.polynomial.Polynomial([0, 0, -0.04473, -0.009779])
+poly_Fb = np.polynomial.Polynomial([0, 0, +0.21300, +0.120700])
+
 def A_CCM89(x, R):
     """
     Calculate CCM 1989 extinction curve. x is in units of 1/um.
@@ -30,19 +38,13 @@ def Av_opt(x):
     """
     1.1 <= x/um < 3.3
     """
-    poly_a = [1, +0.17699, -0.50447, -0.02427, +0.72085, +0.01979, \
-        -0.77530, +0.32999][::-1]
-    poly_b = [0, +1.41338, +2.28305, +1.07233, -5.38434, -0.62251, \
-        +5.30260, -2.09002][::-1]
-    return [np.polyval(poly, x-1.82) for poly in (poly_a, poly_b)]
+    return poly_a(x-1.82), poly_b(x-1.82)
 
 def Av_UV(x):
     """
     3.3 <= x/um < 8.0
     """
-    poly_Fa = [0, 0, -0.04473, -0.009779][::-1]
-    poly_Fb = [0, 0, +0.21300, +0.120700][::-1]
-    Fa, Fb = [np.polyval(poly, x-5.9) for poly in (poly_Fa, poly_Fb)]
+    Fa, Fb = poly_Fa(x-5.9), poly_Fb(x-5.9)
     if isinstance(x, np.ndarray):
         Fa[x < 5.9], Fb[x < 5.9] = 0, 0
     elif isinstance(x, (int, float)):
