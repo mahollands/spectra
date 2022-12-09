@@ -172,7 +172,10 @@ def _get_spec_from_hdu(hdu):
     ivar[ivar == 0.] = 0.001
     err = 1/np.sqrt(ivar)
     sky *= 1e17
-    name = hdu.header['EXTNAME']
+    try:
+        name = hdu.header['EXTNAME']
+    except KeyError:
+        name = ""
     head = {'sky':sky}
     return Spectrum(lam, flux, err, name, 'vac', head=head)*1e-17
 
