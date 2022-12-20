@@ -121,12 +121,11 @@ def model_from_dk(fname, x_unit='AA', y_unit='erg/(s cm2 AA)', use_Imu=False):
             M.head['mu'] = mu
             M.head['wmu'] = wmu
         return MM
-    else:
-        M = model_from_txt(fname, **kwargs)
-        M.x_unit_to(x_unit)
-        M.y_unit_to(y_unit)
-        M.head.update(hdr)
-        return M
+    M = model_from_txt(fname, **kwargs)
+    M.x_unit_to(x_unit)
+    M.y_unit_to(y_unit)
+    M.head.update(hdr)
+    return M
 
 def spec_from_npy(fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)'):
     """
