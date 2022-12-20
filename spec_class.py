@@ -684,19 +684,17 @@ class Spectrum:
         S.y, S.e = interp_inf(*S.data)
         return S
 
-    def wbin(self, X, kind, logscale=False):
+    def wbin(self, xbin, kind, logscale=False):
         """
-        Wavelengths bins a spectrum onto X using linear or quadratic
+        Wavelengths bins a spectrum onto xbin using linear or quadratic
         binning. Based on the REBIN routine in Molly.
         """
-        if isinstance(X, np.ndarray):
-            xbin = X
-        elif isinstance(X, Spectrum):
-            self._compare_units(X, 'x')
-            self._compare_wave(X)
-            xbin = X.x
-        else:
+        if not isinstance(xbin, (np.ndarray, Spectrum)):
             raise TypeError("interpolant was not ndarray/Spectrum type")
+        if isinstance(xbin, Spectrum):
+            self._compare_units(xbin, 'x')
+            self._compare_wave(xbin)
+            xbin = xbin.x
 
         xin = np.log(self.x) if logscale else self.x
         xout = np.log(xbin) if logscale else xbin
