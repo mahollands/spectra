@@ -948,14 +948,11 @@ class Spectrum:
         for which wavelengths should be passed. Knots may be an integer for
         equidistantly spaced knots, or an interable of specified knots.
         """
+        if not isinstance(knots, (int, tuple, list, np.ndarray)):
+            raise TypeError
         if isinstance(knots, int):
             #space knots equidistantly
             knots = np.linspace(*self.x01, knots+2)[1:-2]
-        elif isinstance(knots, (tuple, list, np.ndarray)):
-            #list of knot points
-            pass
-        else:
-            raise TypeError
 
         w = 1/self.e if weighted else 1
         return LSQUnivariateSpline(self.x, self.y, knots, w)
