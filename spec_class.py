@@ -644,10 +644,10 @@ class Spectrum:
         m = -2.5 * np.log10(fnu) + 8.90
         return m if Nmc == 0 else (m.mean(), m.std())
 
-    def interp(self, X, kind='cubic', **kwargs):
+    def interp(self, xi, kind='cubic', **kwargs):
         """
-        Interpolates a spectrum onto the wavelength axis X, if X is a numpy array,
-        or X.x if X is Spectrum type. This returns a new spectrum rather than
+        Interpolates a spectrum onto the wavelength axis xi, if xi is a numpy array,
+        or xi.x if xi is Spectrum type. This returns a new spectrum rather than
         updating a spectrum in place, however this can be acheived by
 
         >>> S1 = S1.interp(X)
@@ -655,14 +655,12 @@ class Spectrum:
         Wavelengths outside the range of the original spectrum are filled with
         zeroes.
         """
-        if isinstance(X, np.ndarray):
-            xi = X
-        elif isinstance(X, Spectrum):
-            self._compare_units(X, 'x')
-            self._compare_wave(X)
-            xi = X.x
-        else:
+        if not isinstance(xi, (np.ndarray, Spectrum)):
             raise TypeError("interpolant was not ndarray/Spectrum type")
+        if isinstance(xi, Spectrum):
+            self._compare_units(xi, 'x')
+            self._compare_wave(xi)
+            xi = xi.x
 
         yi, ei = interp(*self.data, xi, kind, self._model, **kwargs)
         return Spectrum(xi, yi, ei, **self.info)
