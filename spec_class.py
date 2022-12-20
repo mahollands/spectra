@@ -1014,9 +1014,8 @@ class Spectrum:
         ax = plt.gca()
         if auto_ylims and ax.get_autoscaley_on():
             ylo, yhi = ax.get_ylim()
-            if kind.startswith('magAB'):
-                if ylo < yhi:
-                    plt.ylim(yhi, ylo)
+            if kind.startswith('magAB') and ylo < yhi:
+                plt.ylim(yhi, ylo)
             else:
                 plt.ylim(0, yhi)
             ax.set_autoscaley_on(True)
