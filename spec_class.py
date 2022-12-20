@@ -806,10 +806,7 @@ class Spectrum:
         Applies redshift of v km/s to spectrum for "air" or "vac" wavelengths
         """
         v *= u.Unit(v_unit)
-        if v.si.unit != const.c.unit:
-            raise u.UnitsError("v must have velocity units")
-        beta = v/const.c
-        beta = beta.decompose().value
+        beta = (v/const.c).decompose()
         factor = math.sqrt((1+beta)/(1-beta))
         if self.wave == "air":
             self.x = air_to_vac(self.x)
