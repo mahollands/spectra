@@ -596,25 +596,23 @@ class Spectrum:
         """
         if self._model:
             raise ValueError("Flux uncertainties are zero")
+        if N < 1:
+            raise ValueError("N must be >=1")
         if N == 1:
             return np.random.normal(self.y, self.e)
-        elif N > 1:
-            return (np.random.normal(self.y, self.e) for i in range(N))
-        else:
-            raise ValueError("N must be >=1")
+        return (np.random.normal(self.y, self.e) for i in range(N))
 
     def boot(self, N=1):
         """
         Iterator of bootstrapped sampled spectra. If N is 1, a single array is
         returned.
         """
+        if N < 1:
+            raise ValueError("N must be >=1")
         n = len(self)
         if N == 1:
             return self[np.random.randint(0, n, n)]
-        elif N > 1:
-            return (self[np.random.randint(0, n, n)] for i in range(N))
-        else:
-            raise ValueError("N must be >=1")
+        return (self[np.random.randint(0, n, n)] for i in range(N))
 
     def flux_calc_AB(self, band, unit='Jy', attach_unit=False, Nmc=1000):
         """
