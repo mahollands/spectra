@@ -751,17 +751,17 @@ class Spectrum:
         if fname.endswith(".npy"):
             cols = np.array(self.data)
             np.save(fname, cols[:2] if self._model else cols)
-        else:
-            #text files:
-            with open(fname, 'w') as F:
-                if self._model:
-                    for px in self:
-                        x, y, e = px
-                        F.write(f"{x:9.3f} {y:12.5E}\n")
-                else:
-                    for px in self:
-                        x, y, e = px
-                        F.write(f"{x:9.3f} {y:12.5E} {e:11.5E}\n")
+            return
+        #text files:
+        with open(fname, 'w') as F:
+            if self._model:
+                for px in self:
+                    x, y, e = px
+                    F.write(f"{x:9.3f} {y:12.5E}\n")
+            else:
+                for px in self:
+                    x, y, e = px
+                    F.write(f"{x:9.3f} {y:12.5E} {e:11.5E}\n")
 
     def air_to_vac(self):
         """
