@@ -219,10 +219,10 @@ class Spectrum:
     def head(self, head):
         if head is None:
             self._head = {}
-        else:
-            if not isinstance(head, dict):
-                raise ValueError("head must be a dictionary")
-            self._head = head
+            return
+        if not isinstance(head, dict):
+            raise ValueError("head must be a dictionary")
+        self._head = head
 
     @property
     def var(self):
@@ -767,19 +767,23 @@ class Spectrum:
         """
         Changes air wavelengths to vaccuum wavelengths in place
         """
+        if self.wave == 'vac':
+            print(f"Wavelengths for {self.name} already vac")
+            return
         self._compare_units("AA", 'x')
-        if self.wave == 'air':
-            self.x = air_to_vac(self.x)
-            self.wave = 'vac'
+        self.x = air_to_vac(self.x)
+        self.wave = 'vac'
 
     def vac_to_air(self):
         """
         Changes vaccuum wavelengths to air wavelengths in place
         """
+        if self.wave == 'air':
+            print(f"Wavelengths for {self.name} already air")
+            return
         self._compare_units("AA", 'x')
-        if self.wave == 'vac':
-            self.x = vac_to_air(self.x)
-            self.wave = 'air'
+        self.x = vac_to_air(self.x)
+        self.wave = 'air'
 
     def redden(self, E_BV, Rv=3.1):
         """
