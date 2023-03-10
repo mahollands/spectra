@@ -58,13 +58,17 @@ def load_transmission_curve(band):
     return spec_from_npy(full_path, wave="vac", x_unit="AA", y_unit="")
 #
 
-def load_Vega():
+def load_Vega(mod="002"):
     """
-    Loads the Vega model
+    Loads a Kurucz Vega model. The newer 003 is provided, but Gaia
+    uses 002, so this is used by default.
     """
     from .spec_io import spec_from_npy
 
-    full_path = f"{filters_dir}/alpha_lyr_mod_003.npy"
+    if mod not in {"002", "003"}:
+        raise ValueError("Vega model must be 002 or 003")
+
+    full_path = f"{filters_dir}/alpha_lyr_mod_{mod}.npy"
 
     return spec_from_npy(full_path, wave='vac')
 #
