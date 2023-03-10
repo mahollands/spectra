@@ -66,7 +66,7 @@ def load_Vega():
 
     full_path = f"{filters_dir}/alpha_lyr_mod_003.npy"
 
-    return spec_from_npy(full_path, wave='vac', x_unit="AA", y_unit="")
+    return spec_from_npy(full_path, wave='vac')
 #
 
 def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
