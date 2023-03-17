@@ -70,7 +70,13 @@ def load_Vega(mod="002"):
 
     full_path = f"{filters_dir}/alpha_lyr_mod_{mod}.npy"
 
-    return spec_from_npy(full_path, wave='vac')
+    Vega = spec_from_npy(full_path, wave='vac')
+
+    #CALSPEC correction at 550nm (V=0.023)
+    px = Vega.closest_x(5500)
+    Vega *= 3.62286e-09 / Vega.y[px]
+
+    return Vega
 #
 
 def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
