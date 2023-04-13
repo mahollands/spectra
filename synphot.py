@@ -57,7 +57,6 @@ def load_transmission_curve(band):
         sys.exit()
 
     return spec_from_npy(full_path, wave="vac", x_unit="AA", y_unit="")
-#
 
 def load_Vega(mod="002"):
     """
@@ -78,7 +77,6 @@ def load_Vega(mod="002"):
     Vega *= 3.62286e-09 / Vega.y[px]
 
     return Vega
-#
 
 def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
     """
@@ -131,7 +129,6 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
         return Ifun(S.y*R.y/S.x, S.x)/Inorm
 
     return np.array([Ifun(y_mc*R.y/S.x, S.x) for y_mc in S.y_mc(Nmc)])/Inorm
-#
 
 def lambda_mean(band, Ifun=Itrapz):
     """
@@ -139,7 +136,6 @@ def lambda_mean(band, Ifun=Itrapz):
     """
     R = load_transmission_curve(band)
     return Ifun(R.y*R.x, R.x) / Ifun(R.y, R.x)
-#
 
 def lambda_eff(band, Ifun=Itrapz):
     """
@@ -149,4 +145,3 @@ def lambda_eff(band, Ifun=Itrapz):
     R = load_transmission_curve(band)
     V = load_Vega().interp(R)
     return Ifun(R.y*V.y*R.x, R.x) / Ifun(R.y*V.y, R.x)
-#

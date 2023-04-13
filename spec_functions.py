@@ -31,8 +31,6 @@ def Black_body(x, T, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)", norm=Fals
     if norm:
         BB /= BB.y.max()
     return BB
-#
-
 
 #Integral from equation 3 of Jura et al. (2003).
 #This is tabulated over the most useful range for performance reasons.
@@ -161,5 +159,3 @@ def sky_line_fwhm(S, x0, dx=5., return_model=False):
     res = dict(zip(Pnames, zip(vec, err)))
 
     return (res, sl_model(vec, Sc)) if return_model else res
-#
-

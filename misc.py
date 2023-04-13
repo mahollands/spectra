@@ -78,7 +78,6 @@ def lorentzian(x, x0, fwhm=None, norm=False):
         y /= np.pi * gamma
     return y
 
-
 def voigt(x, x0, fwhm_g, fwhm_l):
     """
     Normalised voigt profile.
@@ -108,7 +107,6 @@ def vac_to_air(Wvac):
     s = 1e4/Wvac
     n = 1.0000834254 + 0.02406147/(130.-s*s) + 0.00015998/(38.9-s*s)
     return Wvac/n
-#
 
 def air_to_vac(Wair):
     """
@@ -119,7 +117,6 @@ def air_to_vac(Wair):
     n = 1.00008336624212083 + 0.02408926869968 / (130.1065924522-s*s) \
         + 0.0001599740894897/(38.92568793293-s*s)
     return Wair*n
-#
 
 def _next_pow_2(N_in):
     """
@@ -149,7 +146,6 @@ def convolve_gaussian(x, y, FWHM):
     yic = np.fft.ifft(yiF * ygF).real
 
     return interp1d(xi, yic)(x)
-#
 
 def _between(x, x1, x2):
     """
