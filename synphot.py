@@ -42,10 +42,11 @@ filter_paths = {
 filter_names = list(filter_paths)
 
 loaded_filters = {}
+filter_norms = {}
 
 def load_transmission_curve(band):
     """
-    Loads the filter curves obtained from VOSA (SVO).
+    Loads filter curves obtained from VOSA (SVO).
     """
     from .spec_io import spec_from_npy
 
@@ -111,17 +112,18 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
 
     #load filters (only once per runtime)
     if band not in loaded_filters:
-        loaded_filters[band] = load_transmission_curve(band)
-    R = loaded_filters[band]
+        loaded_filters[band] = R = load_transmission_curve(band)
+        filter_norms[band] = Inorm = Ifun(R.y/R.x, R.x)
+    else:
+        R, Inorm = loaded_filters[band], filter_norms[band]
     R.wave = S.wave
-    Inorm = Ifun(R.y/R.x, R.x)
 
     #Need specific units for integrals
     S.x_unit_to("AA")
     S.y_unit_to("Jy")
 
     #clip data to filter range and interpolate filter to data axis
-    S = S.clip(np.min(R.x), np.max(R.x))
+    S = S.clip(*R.x01)
 
     #Calculate AB fluxes, or MC sampled fluxes
     R = R.interp(S, kind='linear', assume_sorted=True)
