@@ -117,8 +117,10 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
     R.wave = S.wave
 
     #Need specific units for integrals
-    S.x_unit_to("AA")
-    S.y_unit_to("Jy")
+    if S.x_unit != "AA":
+        S.x_unit_to("AA")
+    if S.y_unit != "Jy":
+        S.y_unit_to("Jy")
 
     #clip data to filter range and interpolate filter to data axis
     S = S.clip(*R.x01)
