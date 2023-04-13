@@ -124,7 +124,7 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
     S = S.clip(np.min(R.x), np.max(R.x))
 
     #Calculate AB fluxes, or MC sampled fluxes
-    R = R.interp(S, kind='linear')
+    R = R.interp(S, kind='linear', assume_sorted=True)
     if Nmc == 0:
         return Ifun(S.y*R.y/S.x, S.x)/Inorm
 
