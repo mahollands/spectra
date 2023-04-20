@@ -699,6 +699,20 @@ class Spectrum:
         ebin = wbin(xin, self.e, xout, kind)
         return Spectrum(xbin, ybin, ebin, **self.info)
 
+    def down_sample(self, n_pixels):
+        """
+        Downsamples a spectrum by doing a simple mean
+        of n pixel blocks. Extra pixels are trimmed from
+        the left edge.
+        """
+        S = self[len(self)%n_pixels:]
+        x, y, ivar = [arr.reshape((-1, n_pixels)) for arr in (S.x, S.y, S.ivar)]
+        x_new = np.mean(x, axis=1)
+        ivar_new = np.sum(ivar, axis=1)
+        y_new = np.sum(y*ivar, axis=1) / ivar_new
+        e_new = 1/np.sqrt(ivar_new)
+        return Spectrum(x_new, y_new, e_new, **self.info)
+        
     def copy(self):
         """
         Returns a copy of self
