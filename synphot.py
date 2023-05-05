@@ -5,9 +5,10 @@ import os.path
 import sys
 import numpy as np
 from scipy.integrate import trapz as Itrapz
+from scipy.interpolate import interp1d
 
 __all__ = [
-    "load_transmission_curve",
+    "get_transmission_curve",
     "calc_AB_flux",
     "filter_names",
 ]
@@ -42,21 +43,23 @@ filter_paths = {
 filter_names = list(filter_paths)
 
 loaded_filters = {}
-filter_norms = {}
 
-def load_transmission_curve(band):
+def get_transmission_curve(band):
     """
     Loads filter curves obtained from VOSA (SVO).
     """
-    from .spec_io import spec_from_npy
-
+    if band in loaded_filters:
+        return loaded_filters[band]
     try:
         full_path = f"{filters_dir}/{filter_paths[band]}"
     except KeyError:
         print(f'Invalid filter name: {band}')
         sys.exit()
-
-    return spec_from_npy(full_path, wave="vac", x_unit="AA", y_unit="")
+    x, y = np.load(full_path)
+    R = interp1d(x, y, kind='linear', assume_sorted=True)
+    Inorm = Itrapz(R.y/R.x, R.x)
+    loaded_filters[band] = R, Inorm
+    return R, Inorm
 
 def load_Vega(mod="002"):
     """
@@ -108,14 +111,6 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
     WISE:      ['W1','W2']
     """
 
-    #load filters (only once per runtime)
-    if band not in loaded_filters:
-        loaded_filters[band] = R = load_transmission_curve(band)
-        filter_norms[band] = Inorm = Ifun(R.y/R.x, R.x)
-    else:
-        R, Inorm = loaded_filters[band], filter_norms[band]
-    R.wave = S.wave
-
     #Need specific units for integrals
     if S.x_unit != "AA":
         S.x_unit_to("AA")
@@ -123,20 +118,21 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
         S.y_unit_to("Jy")
 
     #clip data to filter range and interpolate filter to data axis
-    S = S.clip(*R.x01)
+    R, Inorm = get_transmission_curve(band)
+    S = S.clip(R.x[0], R.x[-1])
+    Ri = R(S.x)
 
     #Calculate AB fluxes, or MC sampled fluxes
-    R = R.interp(S, kind='linear', assume_sorted=True)
     if Nmc == 0:
-        return Ifun(S.y*R.y/S.x, S.x)/Inorm
+        return Ifun(S.y*Ri/S.x, S.x)/Inorm
 
-    return np.array([Ifun(y_mc*R.y/S.x, S.x) for y_mc in S.y_mc(Nmc)])/Inorm
+    return np.array([Ifun(y_mc*Ri/S.x, S.x) for y_mc in S.y_mc(Nmc)])/Inorm
 
 def lambda_mean(band, Ifun=Itrapz):
     """
     Calculates lambda_mean for one of the filters
     """
-    R = load_transmission_curve(band)
+    R, _ = get_transmission_curve(band)
     return Ifun(R.y*R.x, R.x) / Ifun(R.y, R.x)
 
 def lambda_eff(band, Ifun=Itrapz):
@@ -144,6 +140,6 @@ def lambda_eff(band, Ifun=Itrapz):
     Calculates lambda_eff for one of the filters, integrated over the spectrum
     of Vega.
     """
-    R = load_transmission_curve(band)
-    V = load_Vega().interp(R)
+    R, _ = get_transmission_curve(band)
+    V = load_Vega().interp(R.x)
     return Ifun(R.y*V.y*R.x, R.x) / Ifun(R.y*V.y, R.x)
