@@ -88,27 +88,27 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
     both a synthetic-mag and error. For model-spectra, i.e. no errors,
     use e=np.ones_like(f) and Nmc=0. List of currently supported filters:
 
-    2Mass:     ['2mJ','2mH','2mK']
+    2Mass:     ['2m(JHK)']
 
     Denis:     ['DenisI']
 
     Gaia:      ['Gaia(G,Bp,Rp)']
 
-    Galex:     ['GalexFUV' 'GalexNUV']
+    Galex:     ['Galex(FUV,NUV)']
 
     Johnson:   ['U','B','V','R','I']
 
     PanSTARRS: ['ps(grizy)']
 
-    SDSS:      ['u','g','r','i','z']
+    SDSS:      ['SDSS(ugriz)']
 
     Skymapper: ['sm(uvgriz)']
 
-    Spitzer:   ['S1','S2']
+    Spitzer:   ['S(12)']
 
     Swift:     ['sw(U,UVW1,UVW2,UVM1)']
 
-    WISE:      ['W1','W2']
+    WISE:      ['W(12)']
     """
 
     #Need specific units for integrals
