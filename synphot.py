@@ -24,7 +24,6 @@ Sub-module for synthetic photometry of spectra. List of currently supported filt
     WISE:      ['W(12)']
 """
 import os.path
-import sys
 import functools
 import numpy as np
 from scipy.integrate import trapz as Itrapz
