@@ -136,5 +136,6 @@ def lambda_eff(band, mod="002", Ifun=Itrapz):
     of Vega.
     """
     R, _ = load_bandpass(band)
-    V = load_Vega(mod).interp(R.x)
-    return Ifun(R.y*V.y*R.x, R.x) / Ifun(R.y*V.y, R.x)
+    V = load_Vega(mod).clip(R.x[0], R.x[-1])
+    Ri = R(V.x)
+    return Ifun(Ri*V.y*V.x, V.x) / Ifun(Ri*V.y, V.x)
