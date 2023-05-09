@@ -1,5 +1,27 @@
 """
-Sub-module for synthetic photometry of spectra
+Sub-module for synthetic photometry of spectra. List of currently supported filters:
+
+    2Mass:     ['2m(JHK)']
+
+    Denis:     ['DenisI']
+
+    Gaia:      ['Gaia(G,Bp,Rp)']
+
+    Galex:     ['Galex(FUV,NUV)']
+
+    Johnson:   ['U','B','V','R','I']
+
+    PanSTARRS: ['ps(grizy)']
+
+    SDSS:      ['SDSS(ugriz)']
+
+    Skymapper: ['sm(uvgriz)']
+
+    Spitzer:   ['S(12)']
+
+    Swift:     ['sw(U,UVW1,UVW2,UVM1)']
+
+    WISE:      ['W(12)']
 """
 import os.path
 import sys
@@ -79,29 +101,7 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
     Calculates the synthetic AB flux (Jy) of a spectrum for a given bandpass.
     If Nmc is > 0, monte-carlo error propagation is performed outputting
     both a synthetic-mag and error. For model-spectra, i.e. no errors,
-    use e=np.ones_like(f) and Nmc=0. List of currently supported filters:
-
-    2Mass:     ['2m(JHK)']
-
-    Denis:     ['DenisI']
-
-    Gaia:      ['Gaia(G,Bp,Rp)']
-
-    Galex:     ['Galex(FUV,NUV)']
-
-    Johnson:   ['U','B','V','R','I']
-
-    PanSTARRS: ['ps(grizy)']
-
-    SDSS:      ['SDSS(ugriz)']
-
-    Skymapper: ['sm(uvgriz)']
-
-    Spitzer:   ['S(12)']
-
-    Swift:     ['sw(U,UVW1,UVW2,UVM1)']
-
-    WISE:      ['W(12)']
+    use e=np.ones_like(f) and Nmc=0.
     """
 
     #Need specific units for integrals
