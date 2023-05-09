@@ -48,12 +48,9 @@ def get_transmission_curve(band):
     """
     Loads filter curves obtained from VOSA (SVO).
     """
-    try:
-        full_path = f"{filters_dir}/{filter_paths[band]}"
-    except KeyError:
-        print(f'Invalid filter name: {band}')
-        sys.exit()
-    x, y = np.load(full_path)
+    if band not in filter_paths:
+        raise ValueError(f'Invalid filter name: {band}')
+    x, y = np.load(f"{filters_dir}/{filter_paths[band]}")
     R = interp1d(x, y, kind='linear', assume_sorted=True)
     Inorm = Itrapz(R.y/R.x, R.x)
     return R, Inorm
@@ -69,7 +66,6 @@ def load_Vega(mod="002"):
         raise ValueError("Vega model must be 002 or 003")
 
     full_path = f"{filters_dir}/alpha_lyr_mod_{mod}.npy"
-
     Vega = spec_from_npy(full_path, wave='vac')
 
     #CALSPEC correction at 550nm (V=0.023)
