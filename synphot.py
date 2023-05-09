@@ -122,6 +122,7 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
 
     return np.array([Ifun(y_mc*Ri/S.x, S.x) for y_mc in S.y_mc(Nmc)])/Inorm
 
+@functools.cache
 def lambda_mean(band, Ifun=Itrapz):
     """
     Calculates lambda_mean for one of the filters
@@ -129,6 +130,7 @@ def lambda_mean(band, Ifun=Itrapz):
     R, _ = load_bandpass(band)
     return Ifun(R.y*R.x, R.x) / Ifun(R.y, R.x)
 
+@functools.cache
 def lambda_eff(band, mod="002", Ifun=Itrapz):
     """
     Calculates lambda_eff for one of the filters, integrated over the spectrum
