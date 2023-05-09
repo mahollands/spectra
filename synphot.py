@@ -3,6 +3,7 @@ Sub-module for synthetic photometry of spectra
 """
 import os.path
 import sys
+import functools
 import numpy as np
 from scipy.integrate import trapz as Itrapz
 from scipy.interpolate import interp1d
@@ -42,14 +43,11 @@ filter_paths = {
 }
 filter_names = list(filter_paths)
 
-loaded_filters = {}
-
+@functools.cache
 def get_transmission_curve(band):
     """
     Loads filter curves obtained from VOSA (SVO).
     """
-    if band in loaded_filters:
-        return loaded_filters[band]
     try:
         full_path = f"{filters_dir}/{filter_paths[band]}"
     except KeyError:
@@ -58,7 +56,6 @@ def get_transmission_curve(band):
     x, y = np.load(full_path)
     R = interp1d(x, y, kind='linear', assume_sorted=True)
     Inorm = Itrapz(R.y/R.x, R.x)
-    loaded_filters[band] = R, Inorm
     return R, Inorm
 
 def load_Vega(mod="002"):
