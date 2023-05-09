@@ -9,7 +9,7 @@ from scipy.integrate import trapz as Itrapz
 from scipy.interpolate import interp1d
 
 __all__ = [
-    "get_transmission_curve",
+    "load_bandpass",
     "calc_AB_flux",
     "filter_names",
 ]
@@ -44,7 +44,7 @@ filter_paths = {
 filter_names = list(filter_paths)
 
 @functools.cache
-def get_transmission_curve(band):
+def load_bandpass(band):
     """
     Loads filter curves obtained from VOSA (SVO).
     """
@@ -111,7 +111,7 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
         S.y_unit_to("Jy")
 
     #clip data to filter range and interpolate filter to data axis
-    R, Inorm = get_transmission_curve(band)
+    R, Inorm = load_bandpass(band)
     S = S.clip(R.x[0], R.x[-1])
     Ri = R(S.x)
 
@@ -125,7 +125,7 @@ def lambda_mean(band, Ifun=Itrapz):
     """
     Calculates lambda_mean for one of the filters
     """
-    R, _ = get_transmission_curve(band)
+    R, _ = load_bandpass(band)
     return Ifun(R.y*R.x, R.x) / Ifun(R.y, R.x)
 
 def lambda_eff(band, Ifun=Itrapz):
@@ -133,6 +133,6 @@ def lambda_eff(band, Ifun=Itrapz):
     Calculates lambda_eff for one of the filters, integrated over the spectrum
     of Vega.
     """
-    R, _ = get_transmission_curve(band)
+    R, _ = load_bandpass(band)
     V = load_Vega().interp(R.x)
     return Ifun(R.y*V.y*R.x, R.x) / Ifun(R.y*V.y, R.x)
