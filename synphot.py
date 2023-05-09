@@ -129,11 +129,11 @@ def lambda_mean(band, Ifun=Itrapz):
     R, _ = load_bandpass(band)
     return Ifun(R.y*R.x, R.x) / Ifun(R.y, R.x)
 
-def lambda_eff(band, Ifun=Itrapz):
+def lambda_eff(band, mod="002", Ifun=Itrapz):
     """
     Calculates lambda_eff for one of the filters, integrated over the spectrum
     of Vega.
     """
     R, _ = load_bandpass(band)
-    V = load_Vega().interp(R.x)
+    V = load_Vega(mod).interp(R.x)
     return Ifun(R.y*V.y*R.x, R.x) / Ifun(R.y*V.y, R.x)
