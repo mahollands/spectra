@@ -77,6 +77,7 @@ def load_bandpass(band):
     Inorm = Itrapz(R.y/R.x, R.x)
     return R, Inorm
 
+@functools.cache
 def load_Vega(mod="002"):
     """
     Loads a Kurucz Vega model. The newer 003 is provided, but Gaia
