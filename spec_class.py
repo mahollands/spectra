@@ -394,8 +394,10 @@ class Spectrum:
         """
         if not isinstance(key, (int, slice, np.ndarray)):
             raise TypeError("spectra must be indexed with int/slice/ndarray types")
-        data_key = self.x[key], self.y[key], self.e[key]
-        return data_key if isinstance(key, int) else Spectrum(*data_key, **self.info)
+        data_keyed = self.x[key], self.y[key], self.e[key]
+        if isinstance(key, int):
+            return data_keyed
+        return Spectrum(*data_keyed, **self.info)
 
     def __setitem__(self, key, value):
         """
@@ -470,11 +472,11 @@ class Spectrum:
         return Spectrum(self.x, ynew, 0, **info)
 
     def _arithmetic_check_other(self, other, xy):
-        if isinstance(other, Spectrum):
-            self._compare_units(other, xy)
-            self._compare_x(other)
-            return other
-        return self.promote_to_spectrum(other, xy=='x')
+        if not isinstance(other, Spectrum):
+            return self.promote_to_spectrum(other, xy=='x')
+        self._compare_units(other, xy)
+        self._compare_x(other)
+        return other
 
     def __add__(self, other):
         """
