@@ -21,6 +21,8 @@ Sub-module for synthetic photometry of spectra. List of currently supported filt
 
     Swift:     ['sw(U,UVW1,UVW2,UVM1)']
 
+    TESS:      ['TESS']
+
     WISE:      ['W(12)']
 """
 import os.path
@@ -61,6 +63,7 @@ filter_paths = {
     **{f"UCAM_{b}": f"ULTRACAM/WHT_ULTRACAM.{b}.npy" for b in UCAM}, #ULTRACAM
     **{f"USPEC_{b}": f"ULTRASPEC/TNT_ULTRASPEC.{b}.npy" for b in USPEC}, #ULTRASPEC
     **{f"HCAM_{b}": f"HIPERCAM/GTC_HIPERCAM.{b}.npy" for b in HCAM}, #HIPERCAM
+    "TESS": "TESS/TESS_TESS.Red.npy", #TESS
 }
 filter_names = list(filter_paths)
 
