@@ -901,6 +901,13 @@ class Spectrum:
         mag0 = self.mag_calc_AB(band, Nmc=0)
         return self * 10**(0.4*(mag0-mag))
 
+    def scale_to_Vega_mag(self, band, mag):
+        """
+        Scales a spectrum to match a Vega magnitude for some specific bandpass
+        """
+        mag0 = self.mag_calc_Vega(band, Nmc=0)
+        return self * 10**(0.4*(mag0-mag))
+
     def convolve_gaussian(self, fwhm):
         """
         Convolves spectrum with a Gaussian of specified FWHM
