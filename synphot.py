@@ -1,4 +1,4 @@
-"""
+F"""
 Sub-module for synthetic photometry of spectra. List of currently supported filters:
 
     2Mass:     ['2m(JHK)']
@@ -35,6 +35,7 @@ __all__ = [
     "load_bandpass",
     "calc_AB_flux",
     "filter_names",
+    "Vega_AB_mag_offset",
 ]
 
 filters_dir = "{}/passbands".format(os.path.dirname(__file__))
@@ -142,3 +143,13 @@ def lambda_eff(band, mod="002", Ifun=Itrapz):
     V = load_Vega(mod).clip(R.x[0], R.x[-1])
     Ri = R(V.x)
     return Ifun(Ri*V.y*V.x, V.x) / Ifun(Ri*V.y, V.x)
+
+@functools.cache
+def Vega_AB_mag_offset(band, mod="002"):
+    """
+    Calculates the magnitude difference between Vega and the AB scale. This
+    is essentially just the AB magnitude of Vega in a specific band.
+    """
+    V = load_Vega(mod=mod)
+    return V.mag_calc_AB(band)
+

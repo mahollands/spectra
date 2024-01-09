@@ -10,7 +10,7 @@ from astropy.convolution import convolve
 from scipy.interpolate import LSQUnivariateSpline
 from scipy.optimize import minimize
 from .interpolation import interp, interp_nan, interp_inf, wbin
-from .synphot import calc_AB_flux
+from .synphot import calc_AB_flux, Vega_AB_mag_offset
 from .reddening import A_curve
 from .misc import vac_to_air, air_to_vac, convolve_gaussian, logarange
 
@@ -635,14 +635,23 @@ class Spectrum:
         """
         Calculates the AB magnitude of a pandpass called 'band'. Errors
         are calculated in Monte-Carlo fashion, and assume all fluxes
-        are statistically independent (not that realistic). See the
-        definition of synphot.calc_AB_flux for valid filter names.
+        are statistically independent (not that realistic).
         """
         if self._model:
             Nmc = 0
         fnu = calc_AB_flux(self.copy(), band, Nmc)
         m = -2.5 * np.log10(fnu) + 8.90
         return m if Nmc == 0 else (m.mean(), m.std())
+
+    def mag_calc_Vega(self, band, Nmc=1000, mod="002"):
+        """
+        Calculates the Vega magnitude of a pandpass called 'band'. Errors are
+        calculated in Monte-Carlo fashion, and assume all fluxes are
+        statistically independent (not that realistic). 'mod' refers to the
+        specific Vega model to be used.
+        """
+        offset = Vega_AB_mag_offset(band, mod=mod)
+        return self.mag_calc_AB(band, Nmc=Nmc) - offset
 
     def interp(self, xi, kind='cubic', **kwargs):
         """
