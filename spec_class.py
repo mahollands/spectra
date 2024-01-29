@@ -924,20 +924,22 @@ class Spectrum:
         S.y = convolve_gaussian(np.log(S.x), S.y, 1/res)
         return S
 
-    def rot_broaden(self, vsini, dv=1.0):
+    def rot_broaden(self, vsini, n_half=10):
         """
-        Apply rotational broadening in km/s. The dv parameter sets the
-        resolution that convolution is performed at.
+        Apply rotational broadening in km/s. The n_half parameter dictates the number of
+        resolution elements in the convolution (n = 2*n_half+1).
         """
+        n = 2*n_half + 1
+        dv = 2*vsini/n
         S = self.copy()
         S.x_unit_to(u.AA)
-        S.y_unit_to("erg/(s cm2)")
+        S.y_unit_to("erg/(s cm2)") #needed to conserve flux
         xnew = logarange(*S.x01, 2.998e5/dv)
         S = S.interp(xnew, kind='cubic')
-        kx = np.arange(np.ceil(vsini/dv)*dv, vsini, dv)
-        ky = np.sqrt(1-(kx/vsini)**2)
+        kx = np.linspace(-1+1/n, 1-1/n, n)
+        ky = np.sqrt(1-kx*kx)
         S.y = convolve(S.y, ky)
-        S = S.interp(self, kind='cubic')
+        S = S.interp(self, kind='linear')
         S.x_unit_to(self.x_unit)
         S.y_unit_to(self.y_unit)
         return S
