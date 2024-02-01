@@ -5,8 +5,8 @@ poly_a = np.polynomial.Polynomial([1, +0.17699, -0.50447, -0.02427, +0.72085, \
 poly_b = np.polynomial.Polynomial([0, +1.41338, +2.28305, +1.07233, -5.38434, \
     -0.62251, +5.30260, -2.09002])
 
-poly_Fa = np.polynomial.Polynomial([0, 0, -0.04473, -0.009779])
-poly_Fb = np.polynomial.Polynomial([0, 0, +0.21300, +0.120700])
+poly_Fa = np.polynomial.Polynomial([-0.04473, -0.009779])
+poly_Fb = np.polynomial.Polynomial([+0.21300, +0.120700])
 
 def A_CCM89(x, R):
     """
@@ -32,21 +32,23 @@ def ab_IR(x):
     """
     0.3 <= x*um < 1.1
     """
-    xp = x**1.161
+    xp = x**1.61
     return 0.574*xp, -0.527*xp
 
 def ab_opt(x):
     """
     1.1 <= x*um < 3.3
     """
-    return poly_a(x-1.82), poly_b(x-1.82)
+    x_ = x-1.82
+    return poly_a(x_), poly_b(x_)
 
 def ab_UV(x):
     """
     3.3 <= x*um < 8.0
     """
-    Fa = np.where(x > 5.9, poly_Fa(x-5.9), 0)
-    Fb = np.where(x > 5.9, poly_Fb(x-5.9), 0)
+    x_ = x-5.9
+    Fa = x_**2 * np.where(x_ > 0, poly_Fa(x_), 0)
+    Fb = x_**2 * np.where(x_ > 0, poly_Fb(x_), 0)
     a =  1.752 - 0.316*x - 0.104/((x-4.67)**2 + 0.341) + Fa
     b = -3.090 + 1.825*x + 1.206/((x-4.62)**2 + 0.263) + Fb
     return a, b
