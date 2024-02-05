@@ -6,13 +6,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import astropy.units as u
 import astropy.constants as const
-from astropy.convolution import convolve
 from scipy.interpolate import LSQUnivariateSpline
 from scipy.optimize import minimize
 from .interpolation import interp, interp_nan, interp_inf, wbin
 from .synphot import calc_AB_flux, Vega_AB_mag_offset
 from .reddening import A_curve
-from .misc import vac_to_air, air_to_vac, convolve_gaussian, logarange
+from .broadening import convolve_gaussian, rotational_broadening
+from .misc import vac_to_air, air_to_vac, logarange
 
 __all__ = [
     "Spectrum",
@@ -924,7 +924,7 @@ class Spectrum:
         S.y = convolve_gaussian(np.log(S.x), S.y, 1/res)
         return S
 
-    def rot_broaden(self, vsini, n_half=10):
+    def rot_broaden(self, vsini, n_half=10, method='flat', coefs=None):
         """
         Apply rotational broadening in km/s. The n_half parameter dictates the number of
         resolution elements in the convolution (n = 2*n_half+1).
@@ -936,9 +936,7 @@ class Spectrum:
         S.y_unit_to("erg/(s cm2)") #needed to conserve flux
         xnew = logarange(*S.x01, 2.998e5/dv)
         S = S.interp(xnew, kind='cubic')
-        kx = np.linspace(-1+1/n, 1-1/n, n)
-        ky = np.sqrt(1-kx*kx)
-        S.y = convolve(S.y, ky)
+        S.y = rotational_broadening(S.y, n, method=method, coefs=coefs)
         S = S.interp(self, kind='linear')
         S.x_unit_to(self.x_unit)
         S.y_unit_to(self.y_unit)

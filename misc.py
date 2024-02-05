@@ -7,7 +7,6 @@ from functools import reduce
 import operator
 import sys
 import numpy as np
-from scipy.interpolate import interp1d
 from scipy.special import wofz
 
 __all__ = [
@@ -15,7 +14,6 @@ __all__ = [
     "voigt",
     "vac_to_air",
     "air_to_vac",
-    "convolve_gaussian",
     "logarange",
     "keep_points",
 ]
@@ -117,35 +115,6 @@ def air_to_vac(Wair):
     n = 1.00008336624212083 + 0.02408926869968 / (130.1065924522-s*s) \
         + 0.0001599740894897/(38.92568793293-s*s)
     return Wair*n
-
-def _next_pow_2(N_in):
-    """
-    Helper function for finding the first power of two greater than N_in
-    """
-    N_out = 1
-    while N_out < N_in:
-        N_out *= 2
-    return N_out
-
-def convolve_gaussian(x, y, FWHM):
-    """
-    Convolve spectrum with a Gaussian with FWHM by oversampling and using an
-    FFT approach. Wavelengths are assumed to be sorted, but uniform spacing is
-    not required. Will cause wrap-around at the end of the spectrum.
-    """
-
-    #oversample data by at least factor 10 (up to 20).
-    xi = np.linspace(x[0], x[-1], _next_pow_2(10*len(x)))
-    yi = interp1d(x, y)(xi)
-
-    yg = gaussian(xi, x[0], fwhm=FWHM) #half gaussian
-    yg += yg[::-1]
-    yg /= np.sum(yg) #Norm kernel
-
-    yiF, ygF = np.fft.fft(yi), np.fft.fft(yg)
-    yic = np.fft.ifft(yiF * ygF).real
-
-    return interp1d(xi, yic)(x)
 
 def _between(x, x1, x2):
     """
