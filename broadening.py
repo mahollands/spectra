@@ -57,7 +57,7 @@ def rotational_kernel(y, n, method, coefs):
         ky = np.ones(n) 
     elif method == 'linear':
         #Linear limb darkening law
-        eps = coefs[1]
+        eps = coefs[0]
         ky = 4*(1-eps) * np.sqrt(ybar2) + np.pi * eps * ybar2
     elif method == 'claret':
         #Claret 4-term limb darkening law
