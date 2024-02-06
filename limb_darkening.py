@@ -36,10 +36,8 @@ def calc_limb_darkening_coefs(MM, band, limb_model='claret', return_fluxes=False
     fluxes = np.array([M.flux_calc_AB(band) for M in MM])
     y_i = fluxes/np.max(fluxes)
 
-    basis = limb_basis[limb_model](mu_i)
-
-    matrix = np.einsum('ij,kj', basis, basis)
-    y_sums = np.einsum("i,ji", (1-y_i), basis)
+    basis = np.array(limb_basis[limb_model](mu_i))
+    matrix, y_sums = basis @ basis.T, basis @ (1-y_i)
     vec = np.linalg.solve(matrix, y_sums)
 
     return (vec, mu_i, fluxes) if return_fluxes else vec
