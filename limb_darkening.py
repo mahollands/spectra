@@ -13,7 +13,6 @@ limb_functions = {
     'quad': (2, lambda P, mu: 1-sum(a*(1-mu)**i for i, a in enumerate(P, 1))),
     'sqrt': (2, lambda P, mu: 1-P[0]*(1-mu)-P[1]*(1-np.sqrt(mu))),
     'log': (2, lambda P, mu: 1-P[0]*(1-mu)-P[1]*mu*np.log(mu)),
-    'power': (2, lambda P, mu: 1-P[0]*(1-mu**P[1])),
     'claret': (4, lambda P, mu: 1-sum(a_k*(1-mu**(k/2)) for k, a_k in enumerate(P, 1))),
 }
 
