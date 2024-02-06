@@ -46,7 +46,7 @@ def convolve_gaussian(x, y, FWHM):
 
     return interp1d(xi, yic)(x)
 
-def rotational_kernel(y, n, method, coefs):
+def rotational_kernel(n, method, coefs):
     kx = np.linspace(-1+1/n, 1-1/n, n)
     ybar2 = 1-kx**2
     if method == 'flat':
@@ -78,5 +78,5 @@ def rotational_broadening(y, n, method, coefs):
     linear in log-wavelength, with spacing such that dloglam = 2*vsini/n.
     Method is the 
     """
-    kx, ky = rotational_kernel(y, n, method, coefs)
+    kx, ky = rotational_kernel(n, method, coefs)
     return convolve(y, ky)
