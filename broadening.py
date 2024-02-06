@@ -61,10 +61,9 @@ def rotational_kernel(n, method, coefs):
         ky = 4*(1-eps) * np.sqrt(ybar2) + np.pi * eps * ybar2
     elif method == 'claret':
         #Claret 4-term limb darkening law
-        a_k = coefs[1]
         ky = np.sqrt(ybar2) * (
-            2*(1-a_k.sum()) + rt_pi*sum(a_k*gr * ybar2**(k/4) 
-            for k, gr in enumerate(gamma_ratios))
+            2*(1-coefs.sum()) + rt_pi*sum(a_k*gr * ybar2**(k/4) 
+            for k, (gr, a_k) in enumerate(zip(gamma_ratios, coefs), 1))
         )
     else:
         raise ValueError("Invalid kernel type")
