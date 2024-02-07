@@ -55,6 +55,9 @@ def rotational_kernel(n, method, coefs):
     elif method == 'rect':
         #rectangular kernel (box smoothing)
         ky = np.ones(n) 
+    elif method == 'arcsine':
+        #rectangular kernel (box smoothing)
+        ky = 1/np.sqrt(ybar2)
     elif method == 'linear':
         #Linear limb darkening law
         eps = coefs[0]
