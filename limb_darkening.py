@@ -9,11 +9,11 @@ __all__ = [
 
 # See Claret et al., A&A 634, 93 (2020)
 limb_functions = {
-    'linear': (1, lambda P, mu: 1-P[0]*(1-mu)),
-    'quad': (2, lambda P, mu: 1-sum(a*(1-mu)**i for i, a in enumerate(P, 1))),
-    'sqrt': (2, lambda P, mu: 1-P[0]*(1-mu)-P[1]*(1-np.sqrt(mu))),
-    'log': (2, lambda P, mu: 1-P[0]*(1-mu)-P[1]*mu*np.log(mu)),
-    'claret': (4, lambda P, mu: 1-sum(a_k*(1-mu**(k/2)) for k, a_k in enumerate(P, 1))),
+    'linear': lambda P, mu: 1-P[0]*(1-mu),
+    'quad': lambda P, mu: 1-sum(a*(1-mu)**i for i, a in enumerate(P, 1)),
+    'sqrt': lambda P, mu: 1-P[0]*(1-mu)-P[1]*(1-np.sqrt(mu)),
+    'log': lambda P, mu: 1-P[0]*(1-mu)-P[1]*mu*np.log(mu),
+    'claret': lambda P, mu: 1-sum(a_k*(1-mu**(k/2)) for k, a_k in enumerate(P, 1)),
 }
 
 limb_basis = {
