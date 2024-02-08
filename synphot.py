@@ -1,29 +1,25 @@
 """
-Sub-module for synthetic photometry of spectra. List of currently supported filters:
+Sub-module for synthetic photometry of spectra. Currently supported telescopes/intruments:
 
-    2Mass:     ['2m(JHK)']
+    2Mass
+    Gaia DR2r/3
+    Galex
+    HiperCam
+    JPLUS
+    Johnson (GENERIC)
+    PanSTARRS
+    SDSS
+    Skymapper
+    Spitzer
+    Swift
+    TESS
+    UltraCAM
+    UKIRT/UKIDSS
+    UltraSpec
+    WISE
+    XMM
 
-    Denis:     ['DenisI']
-
-    Gaia:      ['Gaia(G,Bp,Rp)']
-
-    Galex:     ['Galex(FUV,NUV)']
-
-    Johnson:   ['U','B','V','R','I']
-
-    PanSTARRS: ['ps(grizy)']
-
-    SDSS:      ['SDSS(ugriz)']
-
-    Skymapper: ['sm(uvgriz)']
-
-    Spitzer:   ['S(12)']
-
-    Swift:     ['sw(U,UVW1,UVW2,UVM1)']
-
-    TESS:      ['TESS']
-
-    WISE:      ['W(12)']
+    See 'filter_names' list for details.
 """
 import os.path
 import functools
@@ -50,23 +46,23 @@ XMM = ("U", "B", "V", "UVM2", "UVM1", "UVW1")
 
 filter_paths = {
     **{f"2m{b}": f"2MASS/2MASS_2MASS.{b}.npy" for b in "JHK"}, #2Mass
-    **{f"Gaia{b}3": f"GAIA/GAIA_GAIA3.{GAIA[b]}.npy" for b in GAIA}, #Gaia
-    **{f"Gaia{b}2r": f"GAIA/GAIA_GAIA2r.{GAIA[b]}.npy" for b in GAIA}, #Gaia
+    **{f"Gaia{b}3": f"GAIA/GAIA_GAIA3.{GAIA[b]}.npy" for b in GAIA}, #Gaia DR3
+    **{f"Gaia{b}2r": f"GAIA/GAIA_GAIA2r.{GAIA[b]}.npy" for b in GAIA}, #Gaia DR2r
     **{f"Galex{b}": f"GALEX/GALEX_GALEX.{b}.npy" for b in ("NUV", "FUV")}, #GALEX
     **{b: f"GENERIC/Generic_Johnson.{b}.npy" for b in "UBVRI"}, #Generic Johnson
+    **{f"HCAM_{b}": f"HIPERCAM/GTC_HIPERCAM.{b}.npy" for b in HCAM}, #HIPERCAM
     **{f"JPLUS-{b}": f"JPLUS/OAJ_JPLUS.{b}.npy" for b in JPLUS}, #JPLUS
     **{f"ps{b}": f"PANSTARRS/PAN-STARRS_PS1.{b}.npy" for b in "grizy"}, #PanStarrs
     **{f"SDSS{b}": f"SDSS/SLOAN_SDSS.{b}.npy" for b in "ugriz"}, #SDSS
     **{f"sm{b}": f"SKYMAPPER/SkyMapper_SkyMapper.{b}.npy" for b in "uvgriz"}, #SkyMapper
-    **{f"S{b}": f"SPITZER/Spitzer_IRAC.I{b}.npy" for b in "12"}, #Spitzer
+    **{f"sp{b}": f"SPITZER/Spitzer_IRAC.I{b}.npy" for b in "12"}, #Spitzer
     **{f"sw{b}": f"SWIFT/Swift_UVOT.{b}.npy" for b in SWIFT}, #Swift
-    **{f"UK{b}": f"UKIRT/UKIRT_UKIDSS.{b}.npy" for b in "ZYJHK"}, #UKIRT
-    **{f"W{b}": f"WISE/WISE_WISE.W{b}.npy" for b in "12"}, #Wise
-    **{f"UCAM_{b}": f"ULTRACAM/WHT_ULTRACAM.{b}.npy" for b in UCAM}, #ULTRACAM
-    **{f"USPEC_{b}": f"ULTRASPEC/TNT_ULTRASPEC.{b}.npy" for b in USPEC}, #ULTRASPEC
-    **{f"HCAM_{b}": f"HIPERCAM/GTC_HIPERCAM.{b}.npy" for b in HCAM}, #HIPERCAM
-    **{f"XMM_{b}": f"XMM/XMM_OM.{b}.npy" for b in XMM}, #XMM
     "TESS": "TESS/TESS_TESS.Red.npy", #TESS
+    **{f"UCAM_{b}": f"ULTRACAM/WHT_ULTRACAM.{b}.npy" for b in UCAM}, #ULTRACAM
+    **{f"UK{b}": f"UKIRT/UKIRT_UKIDSS.{b}.npy" for b in "ZYJHK"}, #UKIRT
+    **{f"USPEC_{b}": f"ULTRASPEC/TNT_ULTRASPEC.{b}.npy" for b in USPEC}, #ULTRASPEC
+    **{f"W{b}": f"WISE/WISE_WISE.W{b}.npy" for b in "12"}, #Wise
+    **{f"XMM_{b}": f"XMM/XMM_OM.{b}.npy" for b in XMM}, #XMM
 }
 filter_names = list(filter_paths)
 
@@ -85,8 +81,8 @@ def load_bandpass(band):
 @functools.cache
 def load_Vega(mod="002"):
     """
-    Loads a Kurucz Vega model. The newer 003 is provided, but Gaia
-    uses 002, so this is used by default.
+    Loads a Kurucz Vega model. The newer 003 is available, but Gaia uses 002,
+    so this is used by default.
     """
     from .spec_io import spec_from_npy
 
@@ -154,4 +150,3 @@ def Vega_AB_mag_offset(band, mod="002"):
     """
     V = load_Vega(mod=mod)
     return V.mag_calc_AB(band)
-
