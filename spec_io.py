@@ -77,12 +77,10 @@ def head_from_dk(fname, return_skip=False):
                 Z = int(Z)
                 if Z >= 100: #compatability with older dk files
                     Z //= 100
-                logZ = float(logZ)
-                hdr['el'][el_dict[Z]] = logZ
+                hdr['el'][el_dict[Z]] = float(logZ)
             elif line.startswith("NMU"):
                 #angular dependent fluxes
-                hdr['mu'] = []
-                hdr['wmu'] = []
+                hdr['mu'], hdr['wmu'] = [], []
             elif line.startswith("MU"):
                 hdr['mu'] += [float(x) for x in line.split()[2:]]
             elif line.startswith("WMU"):
@@ -127,14 +125,10 @@ def spec_from_npy(fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)'):
     data = np.load(fname)
     if data.ndim != 2:
         raise ValueError("Data must be 2D")
+    if data.shape[0] not in (2, 3):
+        raise ValueError("Data should have 2 or 3 columns")
 
-    if data.shape[0] == 2:
-        x, y, e = *data, 0
-    elif data.shape[0] == 3:
-        x, y, e = data
-    else:
-        print("Data should have 2 or 3 columns")
-        sys.exit()
+    x, y, e = (*data, 0) if data.shape[0] == 2 else data
     name, _ = os.path.splitext(os.path.basename(fname))
     return Spectrum(x, y, e, name, wave, x_unit, y_unit)
 
@@ -146,9 +140,11 @@ def spec_from_sdss_fits(fname, **kwargs):
     S = _get_spec_from_hdu(hdulist[1])
     name, _ = os.path.splitext(os.path.basename(fname))
     S.name = name
-    S.head['PLATE'] = hdulist[0].header['PLATEID']
-    S.head['MJD'] = hdulist[0].header['MJD']
-    S.head['FIBER'] = hdulist[0].header['PLATEID']
+    hdr = hdulist[0].header
+    S.head['PLATE'] = hdr['PLATEID']
+    S.head['MJD'] = hdr['MJD']
+    #FIXME using wrong keyword
+    S.head['FIBER'] = hdr['PLATEID']
     return S
 
 def subspectra_from_sdss_fits(fname, **kwargs):
@@ -164,10 +160,7 @@ def _get_spec_from_hdu(hdu):
     ivar[ivar == 0.] = 0.001
     err = 1/np.sqrt(ivar)
     sky *= 1e17
-    try:
-        name = hdu.header['EXTNAME']
-    except KeyError:
-        name = ""
+    name = hdu.header['EXTNAME'] if 'EXTNAME' in hdu.header else ""
     head = {'sky':sky}
     return Spectrum(lam, flux, err, name, 'vac', head=head)*1e-17
 
