@@ -51,9 +51,9 @@ def spec_from_txt(fname, wave=None, x_unit='AA', y_unit='erg/(s cm2 AA)', \
 def multi_model_from_txt(fname, nfluxcols, wave='vac', \
     x_unit='AA', y_unit='erg/(s cm2 AA)', delimiter=r'\s+', **kwargs):
     """
-    Similar to model_from_txt, but for files with multiple flux columns. This
-    can be useful for loading model spectra with a single wavelength axis and
-    different model fluxes for each column.
+    Read files with multiple flux columns as model spectra (no uncertainties).
+    This can be useful for loading model spectra with a single wavelength axis
+    and different model fluxes for each column.
     """
     x, *yy = pd.read_csv(fname, delimiter=delimiter, usecols=range(nfluxcols+2), \
         **kwargs).values.T
@@ -95,11 +95,10 @@ def head_from_dk(fname, return_skip=False):
 
 def model_from_dk(fname, x_unit='AA', y_unit='erg/(s cm2 AA)', use_Imu=False):
     """
-    Similar to model_from_txt, but for Detlev Koester model spectra. Units are
-    converted to those specified, and DK header items placed in the Spectrum
-    object header. For models with angular dependent fluxes, if use_Imu is set
-    to True a list of models is returned, otherwise just the disc average flux
-    is used.
+    Read Detlev Koester white dwarf models as spectra. Units are converted to
+    those specified, and DK header items placed in the Spectrum object header.
+    For models with angular dependent fluxes, if use_Imu is set to True a list
+    of models is returned, otherwise just the disc average flux is used.
     """
     hdr, skip = head_from_dk(fname, True)
     kwargs = {'wave':'vac', 'x_unit':'AA', 'y_unit':'erg/(s cm3)', 'skiprows':skip}
@@ -113,10 +112,9 @@ def model_from_dk(fname, x_unit='AA', y_unit='erg/(s cm2 AA)', use_Imu=False):
             M.head.update(hdr)
         for M, mu, wmu in zip(MM[1:], mus, wmus):
             M.name += f"_mu_{mu:f}"
-            M.head['mu'] = mu
-            M.head['wmu'] = wmu
+            M.head['mu'], M.head['wmu'] = mu, wmu
         return MM
-    M = model_from_txt(fname, **kwargs)
+    M = spec_from_txt(fname, model=True, **kwargs)
     M.x_unit_to(x_unit)
     M.y_unit_to(y_unit)
     M.head.update(hdr)
