@@ -187,7 +187,7 @@ def spec_list_from_molly(fname):
     """
     Returns a list of spectra read in from a TRM molly file.
     """
-    return list(map(_convert_mol, molly.gmolly(fname)))
+    return [_convert_mol(mol) for mol in molly.gmolly(fname)]
 
 def _convert_mol(molsp):
     x, y, e = molsp.wave, molsp.f, molsp.fe
