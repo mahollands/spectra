@@ -1,4 +1,4 @@
-F"""
+"""
 Sub-module for synthetic photometry of spectra. List of currently supported filters:
 
     2Mass:     ['2m(JHK)']
