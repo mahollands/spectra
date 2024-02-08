@@ -13,7 +13,6 @@ from .spec_class import Spectrum
 __all__ = [
     "spec_from_txt",
     "spec_from_npy",
-    "model_from_txt",
     "model_from_dk",
     "head_from_dk",
     "spec_from_sdss_fits",
@@ -31,27 +30,23 @@ el_dict = {
     30:'Zn', 31:'Ga', 32:'Ge', 38:'Sr', 56:'Ba',
 }
 
-def spec_from_txt(fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)', \
-    delimiter=r'\s+', **kwargs):
+def spec_from_txt(fname, wave=None, x_unit='AA', y_unit='erg/(s cm2 AA)', \
+    delimiter=r'\s+', model=False, **kwargs):
     """
-    Loads a text file with the first 3 columns as wavelengths, fluxes, errors.
-    kwargs are passed to pd.read_csv.
+    Loads a text file as a Spectrum object. If model is set to True, only two
+    columns are read (wavelengths and fluxes) with errors set to zero,
+    otherwise errors are read from the third column. If wave is not explicitly
+    set, models are assumed to be 'vac', or 'air' for observed spectra with
+    errors. kwargs are passed to pd.read_csv.
     """
-    x, y, e = pd.read_csv(fname, delimiter=delimiter, usecols=range(3), \
-        na_values="NAN", **kwargs).values.T
+    ncols = 2 if model else 3
+    data = pd.read_csv(fname, delimiter=delimiter, usecols=range(ncols), **kwargs)
+    data = data.values.T
+    x, y, e = (*data, 0) if model else data
+    if wave is None:
+        wave = 'vac' if model else 'air'
     name, _ = os.path.splitext(os.path.basename(fname))
     return Spectrum(x, y, e, name, wave, x_unit, y_unit)
-
-def model_from_txt(fname, wave='vac', x_unit='AA', y_unit='erg/(s cm2 AA)', \
-    delimiter=r'\s+', **kwargs):
-    """
-    Loads a text file with the first 2 columns as wavelengths and fluxes.
-    This produces a spectrum object where the errors are just set to zero.
-    This is therefore good to use for models. kwargs are passed to pd.read_csv.
-    """
-    x, y = pd.read_csv(fname, delimiter=delimiter, usecols=range(2), **kwargs).values.T
-    name, _ = os.path.splitext(os.path.basename(fname))
-    return Spectrum(x, y, 0, name, wave, x_unit, y_unit)
 
 def multi_model_from_txt(fname, nfluxcols, wave='vac', \
     x_unit='AA', y_unit='erg/(s cm2 AA)', delimiter=r'\s+', **kwargs):
