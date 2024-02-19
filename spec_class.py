@@ -995,6 +995,55 @@ class Spectrum:
             raise TypeError("W must be int/float or iterable of those types")
         return [self.clip(*w_pair) for w_pair in zip(W[:-1], W[1:])]
 
+    @classmethod
+    def join(cls, SS, sort=False, name=None):
+        """
+        Joins a collection of spectra into a single spectrum. The name of the first
+        spectrum is used as the new name. Can optionally sort the new spectrum by
+        wavelengths.
+        """
+        S0 = SS[0]
+
+        for S in SS:
+            if not isinstance(S, Spectrum):
+                raise TypeError('item is not Spectrum')
+            S._compare_wave(S0)
+            S._compare_units(S0, xy='xy')
+
+        x = np.hstack([S.x for S in SS])
+        y = np.hstack([S.y for S in SS])
+        e = np.hstack([S.e for S in SS])
+        S = cls(x, y, e, **S0.info)
+
+        if name is not None:
+            S.name = name
+        if sort:
+            S = S[np.argsort(x)]
+
+        return S
+
+    @classmethod
+    def mean(cls, SS):
+        """
+        Calculate the weighted mean spectrum of a list/tuple of spectra.
+        All spectra should have identical wavelengths.
+        """
+        S0 = SS[0]
+        for S in SS:
+            if not isinstance(S, cls):
+                raise TypeError('item is not Spectrum')
+            S._compare_units(S0, xy='xy')
+            S._compare_x(S0)
+
+        Y  = np.array([S.y    for S in SS])
+        IV = np.array([S.ivar for S in SS])
+
+        IVbar = np.sum(IV, axis=0)
+        Ybar  = np.sum(Y*IV, axis=0) / IVbar
+        Ebar  = 1.0 / np.sqrt(IVbar)
+
+        return cls(S0.x, Ybar, Ebar, **S0.info)
+
     def closest_x(self, x0):
         """
         Returns the pixel index closest in wavelength to x0

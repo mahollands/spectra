@@ -11,8 +11,6 @@ from .spec_class import Spectrum
 __all__ = [
     "Black_body",
     "JuraDisc",
-    "join_spectra",
-    "spectra_mean",
 ]
 
 def Black_body(x, T, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)", norm=False):
@@ -73,53 +71,6 @@ def JuraDisc(x, Tstar, Rstar, Tin, Tout, D, inc):
     return S
 
 #..............................................................................
-
-def join_spectra(SS, sort=False, name=None):
-    """
-    Joins a collection of spectra into a single spectrum. The name of the first
-    spectrum is used as the new name. Can optionally sort the new spectrum by
-    wavelengths.
-    """
-    S0 = SS[0]
-
-    for S in SS:
-        if not isinstance(S, Spectrum):
-            raise TypeError('item is not Spectrum')
-        S._compare_wave(S0)
-        S._compare_units(S0, xy='xy')
-
-    x = np.hstack([S.x for S in SS])
-    y = np.hstack([S.y for S in SS])
-    e = np.hstack([S.e for S in SS])
-    S = Spectrum(x, y, e, **S0.info)
-
-    if name is not None:
-        S.name = name
-    if sort:
-        S = S[np.argsort(x)]
-
-    return S
-
-def spectra_mean(SS):
-    """
-    Calculate the weighted mean spectrum of a list/tuple of spectra.
-    All spectra should have identical wavelengths.
-    """
-    S0 = SS[0]
-    for S in SS:
-        if not isinstance(S, Spectrum):
-            raise TypeError('item is not Spectrum')
-        S._compare_units(S0, xy='xy')
-        S._compare_x(S0)
-
-    Y  = np.array([S.y    for S in SS])
-    IV = np.array([S.ivar for S in SS])
-
-    IVbar = np.sum(IV, axis=0)
-    Ybar  = np.sum(Y*IV, axis=0) / IVbar
-    Ebar  = 1.0 / np.sqrt(IVbar)
-
-    return Spectrum(S0.x, Ybar, Ebar, **S0.info)
 
 def sky_line_fwhm(S, x0, dx=5., return_model=False):
     """
