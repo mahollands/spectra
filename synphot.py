@@ -84,13 +84,13 @@ def load_Vega(mod="002"):
     Loads a Kurucz Vega model. The newer 003 is available, but Gaia uses 002,
     so this is used by default.
     """
-    from .spec_io import spec_from_npy
+    from .spec_class import Spectrum
 
     if mod not in {"002", "003"}:
         raise ValueError("Vega model must be 002 or 003")
 
     full_path = f"{filters_dir}/alpha_lyr_mod_{mod}.npy"
-    Vega = spec_from_npy(full_path, wave='vac')
+    Vega = Spectrum.from_npy(full_path, wave='vac')
 
     #CALSPEC correction at 550nm (V=0.023)
     px = Vega.closest_x(5500)

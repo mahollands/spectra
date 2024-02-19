@@ -187,3 +187,23 @@ def _convert_mol(Spectrum, molsp):
     S = Spectrum(x, y, np.abs(e), name, y_unit="mJy")
     S.head = molsp.head
     return S
+
+def write(self, fname):
+    """
+    Saves Spectrum to a text or npy file.
+    """
+    if fname.endswith(".npy"):
+        cols = np.array(self.data)
+        np.save(fname, cols[:2] if self._model else cols)
+        return
+    #text files:
+    with open(fname, 'w') as F:
+        if self._model:
+            for px in self:
+                x, y, e = px
+                F.write(f"{x:9.3f} {y:12.5E}\n")
+        else:
+            for px in self:
+                x, y, e = px
+                F.write(f"{x:9.3f} {y:12.5E} {e:11.5E}\n")
+
