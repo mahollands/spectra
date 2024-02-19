@@ -3,7 +3,6 @@ Utilities for reading in spectra from different filetypes and returning a
 Spectrum class.
 """
 import os
-import sys
 import numpy as np
 import pandas as pd
 from astropy.io import fits
