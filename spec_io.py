@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 from astropy.io import fits
 from trm import molly
-from .spec_class import Spectrum
 
 __all__ = [
     "spec_from_txt",
@@ -30,7 +29,7 @@ el_dict = {
     30:'Zn', 31:'Ga', 32:'Ge', 38:'Sr', 56:'Ba',
 }
 
-def spec_from_txt(fname, wave=None, x_unit='AA', y_unit='erg/(s cm2 AA)', \
+def spec_from_txt(Spectrum, fname, wave=None, x_unit='AA', y_unit='erg/(s cm2 AA)', \
     delimiter=r'\s+', model=False, **kwargs):
     """
     Loads a text file as a Spectrum object. If model is set to True, only two
@@ -48,7 +47,7 @@ def spec_from_txt(fname, wave=None, x_unit='AA', y_unit='erg/(s cm2 AA)', \
     name, _ = os.path.splitext(os.path.basename(fname))
     return Spectrum(x, y, e, name, wave, x_unit, y_unit)
 
-def multi_model_from_txt(fname, nfluxcols, wave='vac', \
+def multi_model_from_txt(Spectrum, fname, nfluxcols, wave='vac', \
     x_unit='AA', y_unit='erg/(s cm2 AA)', delimiter=r'\s+', **kwargs):
     """
     Read files with multiple flux columns as model spectra (no uncertainties).
@@ -91,7 +90,7 @@ def head_from_dk(fname, return_skip=False):
                 continue
     return (hdr, skip) if return_skip else hdr
 
-def model_from_dk(fname, x_unit='AA', y_unit='erg/(s cm2 AA)', use_Imu=False):
+def model_from_dk(Spectrum, fname, x_unit='AA', y_unit='erg/(s cm2 AA)', use_Imu=False):
     """
     Read Detlev Koester white dwarf models as spectra. Units are converted to
     those specified, and DK header items placed in the Spectrum object header.
@@ -103,7 +102,7 @@ def model_from_dk(fname, x_unit='AA', y_unit='erg/(s cm2 AA)', use_Imu=False):
     if 'mu' in hdr and use_Imu:
         #angular dependent fluxes
         mus, wmus = hdr.pop('mu'), hdr.pop('wmu')
-        MM = multi_model_from_txt(fname, len(mus), **kwargs)
+        MM = multi_model_from_txt(Spectrum, fname, len(mus), **kwargs)
         for M in MM:
             M.x_unit_to(x_unit)
             M.y_unit_to(y_unit)
@@ -112,13 +111,13 @@ def model_from_dk(fname, x_unit='AA', y_unit='erg/(s cm2 AA)', use_Imu=False):
             M.name += f"_mu_{mu:f}"
             M.head['mu'], M.head['wmu'] = mu, wmu
         return MM
-    M = spec_from_txt(fname, model=True, **kwargs)
+    M = spec_from_txt(Spectrum, fname, model=True, **kwargs)
     M.x_unit_to(x_unit)
     M.y_unit_to(y_unit)
     M.head.update(hdr)
     return M
 
-def spec_from_npy(fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)'):
+def spec_from_npy(Spectrum, fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)'):
     """
     Loads a npy file with 2 or 3 columns as wavelengths, fluxes(, errors).
     """
@@ -132,12 +131,12 @@ def spec_from_npy(fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)'):
     name, _ = os.path.splitext(os.path.basename(fname))
     return Spectrum(x, y, e, name, wave, x_unit, y_unit)
 
-def spec_from_sdss_fits(fname, **kwargs):
+def spec_from_sdss_fits(Spectrum, fname, **kwargs):
     """
     loads a sdss fits file as spectrum (result in vac wavelengths)
     """
     hdulist = fits.open(fname, **kwargs)
-    S = _get_spec_from_hdu(hdulist[1])
+    S = _get_spec_from_hdu(Spectrum, hdulist[1])
     name, _ = os.path.splitext(os.path.basename(fname))
     S.name = name
     hdr = hdulist[0].header
@@ -147,14 +146,14 @@ def spec_from_sdss_fits(fname, **kwargs):
     S.head['FIBER'] = hdr['PLATEID']
     return S
 
-def subspectra_from_sdss_fits(fname, **kwargs):
+def subspectra_from_sdss_fits(Spectrum, fname, **kwargs):
     """
     loads a sdss fits file as spectrum (result in vac wavelengths)
     """
     hdulist = fits.open(fname, **kwargs)
-    return [_get_spec_from_hdu(hdu) for hdu in hdulist[4:]]
+    return [_get_spec_from_hdu(Spectrum, hdu) for hdu in hdulist[4:]]
 
-def _get_spec_from_hdu(hdu):
+def _get_spec_from_hdu(Spectrum, hdu):
     loglam, flux, ivar, sky = [hdu.data[key] for key in 'loglam flux ivar sky'.split()]
     lam = 10**loglam
     ivar[ivar == 0.] = 0.001
@@ -164,7 +163,7 @@ def _get_spec_from_hdu(hdu):
     head = {'sky':sky}
     return Spectrum(lam, flux, err, name, 'vac', head=head)*1e-17
 
-def spec_from_fits_generic(fname, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)"):
+def spec_from_fits_generic(Spectrum, fname, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)"):
     """
     Load a spectrum from a generic fits file
     """
@@ -176,13 +175,13 @@ def spec_from_fits_generic(fname, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA
     name = hdr['OBJECT'] if 'OBJECT' in hdr else fname
     return Spectrum(x, y, e, name, wave, x_unit, y_unit, hdr)
 
-def spec_list_from_molly(fname):
+def spec_list_from_molly(Spectrum, fname):
     """
     Returns a list of spectra read in from a TRM molly file.
     """
-    return [_convert_mol(mol) for mol in molly.gmolly(fname)]
+    return [_convert_mol(Spectrum, mol) for mol in molly.gmolly(fname)]
 
-def _convert_mol(molsp):
+def _convert_mol(Spectrum, molsp):
     x, y, e = molsp.wave, molsp.f, molsp.fe
     name = molsp.head['Object']
     S = Spectrum(x, y, np.abs(e), name, y_unit="mJy")

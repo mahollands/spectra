@@ -8,6 +8,7 @@ import astropy.units as u
 import astropy.constants as const
 from scipy.interpolate import LSQUnivariateSpline
 from scipy.optimize import minimize
+from . import spec_io
 from .interpolation import interp, interp_nan, interp_inf, wbin
 from .synphot import calc_AB_flux, Vega_AB_mag_offset
 from .reddening import A_curve
@@ -68,6 +69,15 @@ class Spectrum:
         self.x_unit = x_unit
         self.y_unit = y_unit
         self.head = head
+
+    from_txt = classmethod(spec_io.spec_from_txt)
+    from_npy = classmethod(spec_io.spec_from_npy)
+    from_dk = classmethod(spec_io.model_from_dk)
+    from_sdss = classmethod(spec_io.spec_from_sdss_fits)
+    from_fits = classmethod(spec_io.spec_from_fits_generic)
+    list_from_txt = classmethod(spec_io.multi_model_from_txt)
+    list_from_sdss_subspectra = classmethod(spec_io.spec_from_sdss_fits)
+    list_from_molly = classmethod(spec_io.spec_list_from_molly)
 
     @property
     def x(self):
