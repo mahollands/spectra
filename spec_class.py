@@ -798,8 +798,9 @@ class Spectrum:
 
     def redden(self, E_BV, Rv=3.1, model='G23'):
         """
-        Apply the CCM reddening curve to the spectrum given an E_BV
-        and a value of Rv (default=3.1).
+        Apply reddening curve to the spectrum given an E(B-V)
+        and a value of Rv (default=3.1). The default model
+        is currently Gordon et al. (2023).
         """
         S = self.copy()
         if S.wave == "air":

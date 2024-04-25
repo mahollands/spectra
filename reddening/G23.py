@@ -1,3 +1,8 @@
+"""
+Implementation of Gordon et al. 2023 extinciton model. This covers
+912AA--32µm, and covers R(V) = 2.3--5.6.
+https://ui.adsabs.harvard.edu/abs/2023ApJ...950...86G/abstract
+"""
 import numpy as np
 
 #UV consts.
@@ -28,7 +33,7 @@ def W(lam, lam_b, delta):
     z = (lam - lam_b + 0.5*delta)/delta
     return np.select([z<0, z>1], [0, 1], z*z*(3-2*z))
 
-def A_G23(lam, Rv):
+def A_G23(lam, Rv, return_ab=False):
     """
     Calculate Gordon et al. 2023 extinction curve. lam is in units of um.
     """
@@ -59,6 +64,8 @@ def A_G23(lam, Rv):
     )
     A = a + b*(1/Rv - 1/3.1)
 
+    if return_ab:
+        return A, a, b
     return A
 
 def ab_UV(x):
@@ -84,7 +91,7 @@ def ab_IR(lam):
     """
     0.9 <= x/um < 32
     """
-    #note probable mistake on sign of α1b in paper 
+    #note probable mistake on sign of α1b in paper
     α1a, α1b, α2 = 1.68467, 1.06099, 0.78791
     lam_b, delta = 4.30578, 4.78338
     W_ = W(lam, lam_b, delta)
@@ -97,7 +104,7 @@ def ab_IR(lam):
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
-    #UV
+    #UV (Fig 4 of G23)
     x = np.geomspace(0.09, 0.33, 1000)
     a, b = ab_UV(1/x)
     plt.subplot(2, 1, 1)
@@ -112,7 +119,7 @@ if __name__ == "__main__":
     plt.ylim(0, 50)
     plt.show()
 
-    #opt
+    #opt (Fig 5 of G23)
     x = np.geomspace(0.3, 1.1, 1000)
     a, b = ab_opt(1/x)
     plt.subplot(2, 1, 1)
@@ -127,7 +134,7 @@ if __name__ == "__main__":
     plt.ylim(-1.5, 6.0)
     plt.show()
 
-    #IR
+    #IR (Fig 6 of G23)
     x = np.geomspace(1, 30, 1000)
     a, b = ab_IR(x)
     plt.subplot(2, 1, 1)
@@ -144,13 +151,14 @@ if __name__ == "__main__":
 
     #Attenuation
     x = np.geomspace(0.0912, 32, 1000)
-    A, a, b = A_G23(x, 3.1)
+    A, a, b = A_G23(x, 3.1, return_ab=True)
     plt.plot(x, A)
     plt.loglog()
     plt.show()
-
+ 
+    #Variable Rv (Fig 8 of G23)
     for Rv in (2.5, 3.1, 4.0, 5.5):
-        A, a, b = A_G23(x, Rv)
+        A, a, b = A_G23(x, Rv, return_ab=True)
         plt.plot(x, A)
     plt.loglog()
     plt.show()
@@ -180,5 +188,3 @@ if __name__ == "__main__":
     plt.xlim(0.08, 35)
     plt.ylim(-2, 20)
     plt.show()
-
-
