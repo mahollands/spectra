@@ -39,7 +39,7 @@ filters_dir = "{}/passbands".format(os.path.dirname(__file__))
 GAIA = {'G':'G', 'Bp':'Gbp', 'Rp':'Grp'}
 JPLUS = "gSDSS iSDSS J0378 J0395 J0410 J0430 J0515 J0660 J0861 rSDSS uJAVA zSDSS".split()
 HCAM = list("ugriz") + [b+"_s" for b in "ugriz"]
-UCAM = list("ugriz") + [b+"_s" for b in "ugriz"] + "iz Ha_broad Ha_narrow".split()
+UCAM = list("ugriz") + [b+"_s" for b in "ugriz"] + "Ha_broad-1 Ha_narrow-1".split()
 USPEC = list("ugriz") + "iz Ha_broad Ha_narrow bowen KG5 N86 NaI".split()
 SWIFT = ("U", "UVW1", "UVW2", "UVM2")
 XMM = ("U", "B", "V", "UVM2", "UVM1", "UVW1")
@@ -58,7 +58,7 @@ filter_paths = {
     **{f"sp{b}": f"SPITZER/Spitzer_IRAC.I{b}.npy" for b in "12"}, #Spitzer
     **{f"sw{b}": f"SWIFT/Swift_UVOT.{b}.npy" for b in SWIFT}, #Swift
     "TESS": "TESS/TESS_TESS.Red.npy", #TESS
-    **{f"UCAM_{b}": f"ULTRACAM/WHT_ULTRACAM.{b}.npy" for b in UCAM}, #ULTRACAM
+    **{f"UCAM_{b}": f"ULTRACAM/TNO_ULTRACAM.{b}.npy" for b in UCAM}, #ULTRACAM
     **{f"UK{b}": f"UKIRT/UKIRT_UKIDSS.{b}.npy" for b in "ZYJHK"}, #UKIRT
     **{f"USPEC_{b}": f"ULTRASPEC/TNT_ULTRASPEC.{b}.npy" for b in USPEC}, #ULTRASPEC
     **{f"W{b}": f"WISE/WISE_WISE.W{b}.npy" for b in "12"}, #Wise
