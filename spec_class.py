@@ -796,7 +796,7 @@ class Spectrum:
         self.x = vac_to_air(self.x)
         self.wave = 'air'
 
-    def redden(self, E_BV, Rv=3.1):
+    def redden(self, E_BV, Rv=3.1, model='G23'):
         """
         Apply the CCM reddening curve to the spectrum given an E_BV
         and a value of Rv (default=3.1).
@@ -805,9 +805,9 @@ class Spectrum:
         if S.wave == "air":
             S.x_unit_to("AA")
             S.air_to_vac()
-        S.x_unit_to("1/um")
+        S.x_unit_to("um")
 
-        A = Rv * E_BV * A_curve(S.x, Rv)
+        A = Rv * E_BV * A_curve(S.x, Rv, use_model=model)
         extinction = 10**(-0.4*A)
         self.y *= extinction
         self.e *= extinction

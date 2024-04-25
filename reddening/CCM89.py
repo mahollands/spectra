@@ -8,10 +8,12 @@ poly_b = np.polynomial.Polynomial([0, +1.41338, +2.28305, +1.07233, -5.38434, \
 poly_Fa = np.polynomial.Polynomial([-0.04473, -0.009779])
 poly_Fb = np.polynomial.Polynomial([+0.21300, +0.120700])
 
-def A_CCM89(x, R):
+def A_CCM89(lam, R):
     """
     Calculate CCM 1989 extinction curve. x is in units of 1/um.
     """
+    x = 1/lam
+
     FIR = (x < 0.3)
     IR  = (x >= 0.3) & (x < 1.1)
     opt = (x >= 1.1) & (x < 3.3)
