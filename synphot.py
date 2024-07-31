@@ -24,7 +24,7 @@ Sub-module for synthetic photometry of spectra. Currently supported telescopes/i
 import os.path
 import functools
 import numpy as np
-from scipy.integrate import trapz as Itrapz
+from scipy.integrate import trapezoid
 from scipy.interpolate import interp1d
 
 __all__ = [
@@ -75,7 +75,7 @@ def load_bandpass(band):
         raise ValueError(f'Invalid filter name: {band}')
     x, y = np.load(f"{filters_dir}/{filter_paths[band]}")
     R = interp1d(x, y, kind='linear', assume_sorted=True)
-    Inorm = Itrapz(R.y/R.x, R.x)
+    Inorm = trapezoid(R.y/R.x, R.x)
     return R, Inorm
 
 @functools.cache
@@ -98,7 +98,7 @@ def load_Vega(mod="002"):
 
     return Vega
 
-def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
+def calc_AB_flux(S, band, Nmc=1000, Ifun=trapezoid):
     """
     Calculates the synthetic AB flux (Jy) of a spectrum for a given bandpass.
     If Nmc is > 0, monte-carlo error propagation is performed outputting
@@ -124,7 +124,7 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=Itrapz):
     return np.array([Ifun(y_mc*Ri/S.x, S.x) for y_mc in S.y_mc(Nmc)])/Inorm
 
 @functools.cache
-def lambda_mean(band, Ifun=Itrapz):
+def lambda_mean(band, Ifun=trapezoid):
     """
     Calculates lambda_mean for one of the filters
     """
@@ -132,7 +132,7 @@ def lambda_mean(band, Ifun=Itrapz):
     return Ifun(R.y*R.x, R.x) / Ifun(R.y, R.x)
 
 @functools.cache
-def lambda_eff(band, mod="002", Ifun=Itrapz):
+def lambda_eff(band, mod="002", Ifun=trapezoid):
     """
     Calculates lambda_eff for one of the filters, integrated over the spectrum
     of Vega.
