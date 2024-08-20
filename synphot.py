@@ -34,12 +34,12 @@ __all__ = [
     "Vega_AB_mag_offset",
 ]
 
-filters_dir = "{}/passbands".format(os.path.dirname(__file__))
+filters_dir = f"{os.path.dirname(__file__)}/passbands"
 
 GAIA = {'G':'G', 'Bp':'Gbp', 'Rp':'Grp'}
 JPLUS = "gSDSS iSDSS J0378 J0395 J0410 J0430 J0515 J0660 J0861 rSDSS uJAVA zSDSS".split()
 HCAM = list("ugriz") + [b+"_s" for b in "ugriz"]
-UCAM = list("ugriz") + [b+"_s" for b in "ugriz"] + "Ha_broad-1 Ha_narrow-1".split()
+UCAM = HCAM + ["Ha_broad-1", "Ha_narrow-1"]
 USPEC = list("ugriz") + "iz Ha_broad Ha_narrow bowen KG5 N86 NaI".split()
 SWIFT = ("U", "UVW1", "UVW2", "UVM2")
 XMM = ("U", "B", "V", "UVM2", "UVM1", "UVW1")
