@@ -126,12 +126,8 @@ def keep_points(x, fname):
     """
     creates a mask for a spectrum that regions between pairs from a file
     """
-    try:
-        lines = open(fname, 'r')
-    except IOError:
-        print(f"file {fname} does not exist")
-        sys.exit()
-    segments = (_between(x, *line.split()) for line in lines)
+    with open(fname, 'r') as F:
+        segments = (_between(x, *line.split()) for line in F)
     return reduce(operator.or_, segments)
 
 def logarange(x0, x1, R):
