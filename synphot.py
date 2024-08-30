@@ -47,8 +47,8 @@ XMM = ("U", "B", "V", "UVM2", "UVM1", "UVW1")
 filter_paths = {
     **{f"2m{b}": f"2MASS/2MASS_2MASS.{b}.npy" for b in "JHK"}, #2Mass
     **{f"DECam-{b}": f"DECAM/CTIO_DECam.{b}.npy" for b in "ugrizY"}, #DECam
-    **{f"Gaia{b}3": f"GAIA/GAIA_GAIA3.{GAIA[b]}.npy" for b in GAIA}, #Gaia DR3
-    **{f"Gaia{b}2r": f"GAIA/GAIA_GAIA2r.{GAIA[b]}.npy" for b in GAIA}, #Gaia DR2r
+    **{f"Gaia{b}3": f"GAIA/GAIA_GAIA3.{B}.npy" for b, B in GAIA.items()}, #Gaia DR3
+    **{f"Gaia{b}2r": f"GAIA/GAIA_GAIA2r.{B}.npy" for b, B in GAIA.items()}, #Gaia DR2r
     **{f"Galex{b}": f"GALEX/GALEX_GALEX.{b}.npy" for b in ("NUV", "FUV")}, #GALEX
     **{b: f"GENERIC/Generic_Johnson.{b}.npy" for b in "UBVRI"}, #Generic Johnson
     **{f"HCAM_{b}": f"HIPERCAM/GTC_HIPERCAM.{b}.npy" for b in HCAM}, #HIPERCAM
