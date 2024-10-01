@@ -12,6 +12,7 @@ __all__ = [
     "wbin",
 ]
 
+
 def interp(x, y, e, xi, kind, model, **kwargs):
     """
     Interpolates data the wavelength axis X, if X is a numpy array,
@@ -38,24 +39,41 @@ def interp(x, y, e, xi, kind, model, **kwargs):
             ei = lanczos(x, np.log(e+1E-300), xi)
             ei[extrap] = np.inf
     else:
-        yi = interp1d(x, y, kind=kind, \
-            bounds_error=False, fill_value=0., **kwargs)(xi)
+        yi = interp1d(x, y,
+            kind=kind,
+            bounds_error=False,
+            fill_value=0.,
+            **kwargs,
+        )(xi)
         if not model:
             #If any errors were inf (zero weight) we need to make
             #sure the interpolated range stays inf
             inf = np.isinf(e)
             if np.any(inf):
-                ei = interp1d(x[~inf], e[~inf], kind=kind, \
-                    bounds_error=False, fill_value=np.inf, **kwargs)(xi)
-                inf2 = interp1d(x, inf, kind='nearest', \
-                    bounds_error=False, fill_value=0, **kwargs)(xi).astype(bool)
+                ei = interp1d(x[~inf], e[~inf],
+                    kind=kind,
+                    bounds_error=False,
+                    fill_value=np.inf,
+                    **kwargs,
+                )(xi)
+                inf2 = interp1d(x, inf,
+                    kind='nearest',
+                    bounds_error=False,
+                    fill_value=0,
+                    **kwargs,
+                )(xi).astype(bool)
                 ei[inf2] = np.inf
             else:
-                ei = interp1d(x, e, kind=kind, \
-                    bounds_error=False, fill_value=np.inf, **kwargs)(xi)
+                ei = interp1d(x, e,
+                    kind=kind,
+                    bounds_error=False,
+                    fill_value=np.inf,
+                    **kwargs
+                )(xi)
 
     ei = 0 if model else np.where(ei < 0, 0, ei)
     return yi, ei
+
 
 def interp_nan(x, y, e, interp_e):
     """
@@ -63,11 +81,12 @@ def interp_nan(x, y, e, interp_e):
     are also interpolated over, otherwise they are set to np.inf.
     """
     bad = np.isnan(y) | np.isnan(e)
-    kwargs = {'kind':'linear', 'bounds_error':False}
+    kwargs = {'kind': 'linear', 'bounds_error': False}
     y[bad] = interp1d(x[~bad], y[~bad], fill_value=0, **kwargs)(x[bad])
     e[bad] = interp1d(x[~bad], e[~bad], fill_value=np.inf, **kwargs)(x[bad]) \
         if interp_e else np.inf
     return y, e
+
 
 def interp_inf(x, y, e):
     """
@@ -78,6 +97,7 @@ def interp_inf(x, y, e):
     e[bad] = interp1d(x[~bad], e[~bad], bounds_error=False, fill_value=0)(x[bad])
     return y, e
 
+
 def lanczos(x, y, xnew):
     """
     Helper function used for Lanczos interpolation.
@@ -87,6 +107,8 @@ def lanczos(x, y, xnew):
     ynew = [np.sum(y*np.sinc(ni-n)) for ni in Ni]
     return np.array(ynew)
 
+
+#TODO turn this fortran gobbledegook into vectorised python.
 def wbin(xin, yin, xout, kind):
     """
     Rebin onto fluxes onto xout axis. Based on Molly rebin routine
@@ -120,7 +142,7 @@ def wbin(xin, yin, xout, kind):
         dx = x2-x1
         j2 = round(float(x2))
         d = 0
-        if kind.capitalize() in {'L','Lin','Linear'}:
+        if kind.capitalize() in {'L', 'Lin', 'Linear'}:
             if k == 0:
                 M1 = max(min(j1, npix), 1)-1
                 dd = (nsgn*(j1-x1)-0.5)*yin[M1]
@@ -129,7 +151,7 @@ def wbin(xin, yin, xout, kind):
             ddd = yin[M2]
             dd = ddd*(nsgn*(j2-x2)-0.5)
             d -= dd+ddd
-        elif kind.capitalize() in {'Q','Quad','Quadratic'}:
+        elif kind.capitalize() in {'Q', 'Quad', 'Quadratic'}:
             if k == 0:
                 M1, M2, M3 = [max(min(j1+i, npix), 1)-1 for i in (-1, 0, 1)]
                 A = 0.5*(yin[M1]+yin[M3])
@@ -159,6 +181,7 @@ def wbin(xin, yin, xout, kind):
         j1 = j2
     return yout
 
+
 def wbin_tform(rx, x, arc1, darc1, arc2, rslope, acc):
     """
     Routine based on WBIN_TFORM from Molly.
@@ -168,9 +191,11 @@ def wbin_tform(rx, x, arc1, darc1, arc2, rslope, acc):
         l = arc1(x)
         dx = (rl-l)*rslope
         x += dx
-        if abs(dx) < acc: break
-        rslope=1/darc1(x)
+        if abs(dx) < acc:
+            break
+        rslope = 1/darc1(x)
     return rx, x
+
 
 def get_spec_arc(x):
     """

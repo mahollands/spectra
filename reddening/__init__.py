@@ -7,10 +7,11 @@ __all__ = [
 ]
 
 extinction_models = {
-    'CCM89' : A_CCM89,
-    'FM90' : A_FM90,
-    'G23' : A_G23,
+    'CCM89': A_CCM89,
+    'FM90': A_FM90,
+    'G23': A_G23,
 }
+
 
 def A_curve(lam, R=3.1, use_model=None):
     model = extinction_models[use_model]

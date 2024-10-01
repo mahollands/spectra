@@ -13,12 +13,14 @@ Eb = np.polynomial.Polynomial([0.12354, -2.68335, 2.01901, -0.39299, 0.03355])
 opt_x0, opt_gamma = [2.288, 2.054, 1.587], [0.243, 0.179, 0.243]
 Fa_opt, Fb_opt = [0.03893, 0.02965, 0.01747], [0.18453, 0.19728, 0.17130]
 
+
 def Drude(x, x0, gamma):
     """
     Drude profile for adding bumps to extinction curve
     """
     p, q = x*x - x0*x0, gamma*x
     return x*x / (p*p + q*q)
+
 
 def Drude_m(lam, lam0, gamma0, a):
     """
@@ -29,9 +31,11 @@ def Drude_m(lam, lam0, gamma0, a):
     denominator = (lam/lam0 - lam0/lam)**2 + (gamma/lam0)**2
     return numerator/denominator
 
+
 def W(lam, lam_b, delta):
     z = (lam - lam_b + 0.5*delta)/delta
     return np.select([z<0, z>1], [0, 1], z*z*(3-2*z))
+
 
 def A_G23(lam, Rv, return_ab=False):
     """
@@ -68,6 +72,7 @@ def A_G23(lam, Rv, return_ab=False):
         return A, a, b
     return A
 
+
 def ab_UV(x):
     """
     0.0912 <= x/um < 0.30
@@ -78,6 +83,7 @@ def ab_UV(x):
     b = -2.97868 + 1.89808*x + 3.10334*D + 0.65484*F
     return a, b
 
+
 def ab_opt(x):
     """
     0.33 <= x/um < 1.1
@@ -87,6 +93,7 @@ def ab_opt(x):
     b = Eb(x) + sum(F*D for F, D in zip(Fb_opt, Ds))
     return a, b
 
+
 def ab_IR(lam):
     """
     0.9 <= x/um < 32
@@ -95,11 +102,12 @@ def ab_IR(lam):
     α1a, α1b, α2 = 1.68467, 1.06099, 0.78791
     lam_b, delta = 4.30578, 4.78338
     W_ = W(lam, lam_b, delta)
-    a =  0.38526 * (lam**-α1a * (1 - W_) + lam_b**(α2-α1a)*lam**-α2 * W_) \
+    a = 0.38526 * (lam**-α1a * (1 - W_) + lam_b**(α2-α1a)*lam**-α2 * W_) \
         + 0.06652*Drude_m(lam,  9.843400,  2.21205, -0.24703) \
         + 0.02670*Drude_m(lam, 19.258294, 17.00000, -0.27000)
-    b =  -1.01251 * lam**-α1b
+    b = -1.01251 * lam**-α1b
     return a, b
+
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
@@ -155,7 +163,7 @@ if __name__ == "__main__":
     plt.plot(x, A)
     plt.loglog()
     plt.show()
- 
+
     #Variable Rv (Fig 8 of G23)
     for Rv in (2.5, 3.1, 4.0, 5.5):
         A, a, b = A_G23(x, Rv, return_ab=True)

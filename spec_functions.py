@@ -13,6 +13,7 @@ __all__ = [
     "JuraDisc",
 ]
 
+
 def Black_body(x, T, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)", norm=False):
     """
     Returns a Black body curve like black_body(), but the return value
@@ -30,10 +31,12 @@ def Black_body(x, T, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)", norm=Fals
         BB /= BB.y.max()
     return BB
 
+
 #Integral from equation 3 of Jura et al. (2003).
 #This is tabulated over the most useful range for performance reasons.
 _JIntx = np.arange(1e-10, 20., 1e-3)
 _JInty = np.cumsum(_JIntx**(5/3)/np.expm1(_JIntx)) * 1e-3
+
 
 def JuraDisc(x, Tstar, Rstar, Tin, Tout, D, inc):
     """
@@ -70,7 +73,6 @@ def JuraDisc(x, Tstar, Rstar, Tin, Tout, D, inc):
     S.y_unit_to("erg/(s cm2 AA)")
     return S
 
-#..............................................................................
 
 def sky_line_fwhm(S, x0, dx=5., return_model=False):
     """
@@ -99,7 +101,12 @@ def sky_line_fwhm(S, x0, dx=5., return_model=False):
         (S.y[-1]-S.y[0])/(S.x[-1]-S.x[0]), #M
         0.5*(S.y[-1]+S.y[0]) #C
     )
-    res = leastsq(lambda p, S: (S - sl_model(p, S)).y_e, guess, args=(Sc,), full_output=True)
+    res = leastsq(
+        lambda p, S: (S - sl_model(p, S)).y_e,
+        guess,
+        args=(Sc,),
+        full_output=True
+    )
     try:
         vec, err = res[0], np.sqrt(np.diag(res[1]))
     except ValueError:

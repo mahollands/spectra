@@ -28,7 +28,8 @@ el_dict = {
     30:'Zn', 31:'Ga', 32:'Ge', 38:'Sr', 56:'Ba',
 }
 
-def spec_from_txt(Spectrum, fname, wave=None, x_unit='AA', y_unit='erg/(s cm2 AA)', \
+
+def spec_from_txt(Spectrum, fname, wave=None, x_unit='AA', y_unit='erg/(s cm2 AA)',
     delimiter=r'\s+', model=False, **kwargs):
     """
     Loads a text file as a Spectrum object. If model is set to True, only two
@@ -46,24 +47,30 @@ def spec_from_txt(Spectrum, fname, wave=None, x_unit='AA', y_unit='erg/(s cm2 AA
     name, _ = os.path.splitext(os.path.basename(fname))
     return Spectrum(x, y, e, name, wave, x_unit, y_unit)
 
-def multi_model_from_txt(Spectrum, fname, nfluxcols, wave='vac', \
+
+def multi_model_from_txt(Spectrum, fname, nfluxcols, wave='vac',
     x_unit='AA', y_unit='erg/(s cm2 AA)', delimiter=r'\s+', **kwargs):
     """
     Read files with multiple flux columns as model spectra (no uncertainties).
     This can be useful for loading model spectra with a single wavelength axis
     and different model fluxes for each column.
     """
-    x, *yy = pd.read_csv(fname, delimiter=delimiter, usecols=range(nfluxcols+2), \
-        **kwargs).values.T
+    x, *yy = pd.read_csv(
+        fname,
+        delimiter=delimiter,
+        usecols=range(nfluxcols+2),
+        **kwargs
+    ).values.T
     name, _ = os.path.splitext(os.path.basename(fname))
     return [Spectrum(x, y, 0, name, wave, x_unit, y_unit) for y in yy]
+
 
 def head_from_dk(fname, return_skip=False):
     """
     Return the header from a DK file, optionally the number of rows to skip for
     reading the data after.
     """
-    hdr = {'el':{}}
+    hdr = {'el': {}}
     with open(fname, 'r') as Fdk:
         for skip, line in enumerate(Fdk, 1):
             if line.startswith("TEFF"):
@@ -88,6 +95,7 @@ def head_from_dk(fname, return_skip=False):
             else:
                 continue
     return (hdr, skip) if return_skip else hdr
+
 
 def model_from_dk(Spectrum, fname, x_unit='AA', y_unit='erg/(s cm2 AA)', use_Imu=False):
     """
@@ -116,6 +124,7 @@ def model_from_dk(Spectrum, fname, x_unit='AA', y_unit='erg/(s cm2 AA)', use_Imu
     M.head.update(hdr)
     return M
 
+
 def spec_from_npy(Spectrum, fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)'):
     """
     Loads a npy file with 2 or 3 columns as wavelengths, fluxes(, errors).
@@ -129,6 +138,7 @@ def spec_from_npy(Spectrum, fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 A
     x, y, e = (*data, 0) if data.shape[0] == 2 else data
     name, _ = os.path.splitext(os.path.basename(fname))
     return Spectrum(x, y, e, name, wave, x_unit, y_unit)
+
 
 def spec_from_sdss_fits(Spectrum, fname, **kwargs):
     """
@@ -145,12 +155,14 @@ def spec_from_sdss_fits(Spectrum, fname, **kwargs):
     S.head['FIBER'] = hdr['PLATEID']
     return S
 
+
 def subspectra_from_sdss_fits(Spectrum, fname, **kwargs):
     """
     loads a sdss fits file as spectrum (result in vac wavelengths)
     """
     hdulist = fits.open(fname, **kwargs)
     return [_get_spec_from_hdu(Spectrum, hdu) for hdu in hdulist[4:]]
+
 
 def _get_spec_from_hdu(Spectrum, hdu):
     loglam, flux, ivar, sky = [hdu.data[key] for key in 'loglam flux ivar sky'.split()]
@@ -159,8 +171,9 @@ def _get_spec_from_hdu(Spectrum, hdu):
     err = 1/np.sqrt(ivar)
     sky *= 1e17
     name = hdu.header['EXTNAME'] if 'EXTNAME' in hdu.header else ""
-    head = {'sky':sky}
+    head = {'sky': sky}
     return Spectrum(lam, flux, err, name, 'vac', head=head)*1e-17
+
 
 def spec_from_fits_generic(Spectrum, fname, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)"):
     """
@@ -174,11 +187,13 @@ def spec_from_fits_generic(Spectrum, fname, wave='air', x_unit="AA", y_unit="erg
     name = hdr['OBJECT'] if 'OBJECT' in hdr else fname
     return Spectrum(x, y, e, name, wave, x_unit, y_unit, hdr)
 
+
 def spec_list_from_molly(Spectrum, fname):
     """
     Returns a list of spectra read in from a TRM molly file.
     """
     return [_convert_mol(Spectrum, mol) for mol in molly.gmolly(fname)]
+
 
 def _convert_mol(Spectrum, molsp):
     x, y, e = molsp.wave, molsp.f, molsp.fe
@@ -186,6 +201,7 @@ def _convert_mol(Spectrum, molsp):
     S = Spectrum(x, y, np.abs(e), name, y_unit="mJy")
     S.head = molsp.head
     return S
+
 
 def write(self, fname):
     """
@@ -205,4 +221,3 @@ def write(self, fname):
             for px in self:
                 x, y, e = px
                 F.write(f"{x:9.3f} {y:12.5E} {e:11.5E}\n")
-

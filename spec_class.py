@@ -24,8 +24,8 @@ class Spectrum:
     """
     spectrum class contains wavelengths, fluxes, and flux errors.  Arithmetic
     operations with single values, array, or other spectra are defined, with
-    standard error propagation supported. Spectra also support numpy style array
-    slicing
+    standard error propagation supported. Spectra also support numpy style
+    array slicing
 
     Example:
     >>> S1 = Spectrum(x1, y1, e1)
@@ -54,8 +54,8 @@ class Spectrum:
     """
     __slots__ = ['_x', '_y', '_e', '_name', '_wave', '_xu', '_yu', '_head']
 
-    def __init__(self, x, y, e, name="", wave='air', x_unit="AA", \
-        y_unit="erg/(s cm^2 AA)", head=None):
+    def __init__(self, x, y, e, name="", wave='air', x_unit="AA",
+                 y_unit="erg/(s cm^2 AA)", head=None):
         """
         Initialise spectrum. Arbitrary header items can be added to self.head
         x must be an ndarray. y and e can either by int/floats or ndarrays of
@@ -119,7 +119,7 @@ class Spectrum:
             self._y = y.astype(float)
         else:
             raise TypeError("y must be of type int/float/ndarray")
-        #Add tiny flux to avoid div0 problems with models
+        # Add tiny flux to avoid div0 problems with models
         self.y[self.y == 0] += 1E-100
 
     @property
@@ -160,8 +160,8 @@ class Spectrum:
     @property
     def wave(self):
         """
-        wavelength type attribute ("air"/"vac"). Ought to be "vac" when x-values
-        are wavenumber rather than wavelengths.`
+        wavelength type attribute ("air"/"vac"). Ought to be "vac" when
+        x-values are wavenumber rather than wavelengths.`
         """
         return self._wave
 
@@ -370,7 +370,7 @@ class Spectrum:
         >>> Spectrum(x, y, e, **S.info)
         """
         keys = {'name', 'wave', 'x_unit', 'y_unit', 'head'}
-        return {k : getattr(self, k) for k in keys}
+        return {k: getattr(self, k) for k in keys}
 
     @property
     def _model(self):
@@ -397,7 +397,8 @@ class Spectrum:
             f"y_unit='{self.y_unit.to_string()}'",
             f"head={{{len(self.head)}}}",
         ]
-        return "Spectrum({})".format(", ".join(parts))
+        parts_str = ", ".join(parts)
+        return f"Spectrum({parts_str})"
 
     def __getitem__(self, key):
         """
@@ -434,7 +435,7 @@ class Spectrum:
         Check units match another spectrum or kind of unit
         """
         if isinstance(other, (str, u.UnitBase)):
-            #check specific unit
+            # check specific unit
             if xy not in {'x', 'y'}:
                 raise ValueError("xy not 'x' or 'y'")
             if xy == 'x' and self.x_unit != u.Unit(other):
@@ -444,7 +445,7 @@ class Spectrum:
         elif isinstance(other, u.Quantity):
             self._compare_units(other.unit, xy)
         elif isinstance(other, Spectrum):
-            #compare two spectra
+            # compare two spectra
             if xy not in {'x', 'y', 'xy'}:
                 raise ValueError("xy not 'x', 'y', or 'xy'")
             if xy in {'x', 'xy'} and self.x_unit != other.x_unit:
@@ -484,7 +485,7 @@ class Spectrum:
 
     def _arithmetic_check_other(self, other, xy):
         if not isinstance(other, Spectrum):
-            return self.promote_to_spectrum(other, xy=='x')
+            return self.promote_to_spectrum(other, xy == 'x')
         self._compare_units(other, xy)
         self._compare_x(other)
         return other
@@ -604,8 +605,8 @@ class Spectrum:
 
     def y_mc(self, N=1):
         """
-        Iterator of Monte-Carlo sampled flux arrays distributed according to the
-        uncertainties. If N is 1, a single array is returned.
+        Iterator of Monte-Carlo sampled flux arrays distributed according to
+        the uncertainties. If N is 1, a single array is returned.
         """
         if self._model:
             raise ValueError("Flux uncertainties are zero")
@@ -666,9 +667,10 @@ class Spectrum:
 
     def interp(self, xi, kind='cubic', **kwargs):
         """
-        Interpolates a spectrum onto the wavelength axis xi, if xi is a numpy array,
-        or xi.x if xi is Spectrum type. This returns a new spectrum rather than
-        updating a spectrum in place, however this can be acheived by
+        Interpolates a spectrum onto the wavelength axis xi, if xi is a numpy
+        array, or xi.x if xi is Spectrum type. This returns a new spectrum
+        rather than updating a spectrum in place, however this can be acheived
+        by
 
         >>> S1 = S1.interp(X)
 
@@ -727,14 +729,14 @@ class Spectrum:
         of n pixel blocks. Extra pixels are trimmed from
         the left edge.
         """
-        S = self[len(self)%n_pixels:]
+        S = self[len(self) % n_pixels:]
         x, y, ivar = [arr.reshape((-1, n_pixels)) for arr in (S.x, S.y, S.ivar)]
         x_new = np.mean(x, axis=1)
         ivar_new = np.sum(ivar, axis=1)
         y_new = np.sum(y*ivar, axis=1) / ivar_new
         e_new = 1/np.sqrt(ivar_new)
         return Spectrum(x_new, y_new, e_new, **self.info)
-        
+
     def copy(self):
         """
         Returns a copy of self
@@ -841,7 +843,7 @@ class Spectrum:
             raise TypeError
         self._compare_units(other, 'xy')
 
-        #if M and S already have same x-axis, this won't do much.
+        # if M and S already have same x-axis, this won't do much.
         S = other[other.e > 0]
         M = self if assume_same_x else self.interp(S)
 
@@ -849,8 +851,8 @@ class Spectrum:
 
         return (self*A, A) if return_scaling_factor else self*A
 
-    def scale_model_to_model(self, other, return_scaling_factor=False, \
-        assume_same_x=False):
+    def scale_model_to_model(self, other, return_scaling_factor=False,
+                             assume_same_x=False):
         """
         Similar to scale_model, but for scaling one model to another. Essentially
         this is for the case when the argument doesn't have errors.
@@ -859,7 +861,7 @@ class Spectrum:
             raise TypeError
         self._compare_units(other, 'xy')
 
-        #if M and S already have same x-axis, this won't do much.
+        # if M and S already have same x-axis, this won't do much.
         S = other
         M = self if assume_same_x else self.interp(S)
 
@@ -867,8 +869,8 @@ class Spectrum:
 
         return (self*A, A) if return_scaling_factor else self*A
 
-    def scale_spectrum_to_spectrum(self, other, return_scaling_factor=False, \
-        assume_same_x=False):
+    def scale_spectrum_to_spectrum(self, other, return_scaling_factor=False,
+                                   assume_same_x=False):
         """
         Scales self to best fit other in their mutually overlapping region.
         """
@@ -881,8 +883,7 @@ class Spectrum:
         Soc = other.clip(x0, x1)
         Ssi = self if assume_same_x else self.interp(Soc, kind='cubic')
 
-        res = minimize(lambda A, S1, S2: np.sum((S1-A*S2).y_e**2), \
-            (1.0), args=(Soc, Ssi))
+        res = minimize(lambda A, S1, S2: (S1-A*S2).chi2, (1.0), args=(Soc, Ssi))
         A = float(res['x'][0])
 
         return (self*A, A) if return_scaling_factor else self*A
@@ -919,14 +920,14 @@ class Spectrum:
 
     def rot_broaden(self, vsini, n_half=10, method='flat', coefs=None):
         """
-        Apply rotational broadening in km/s. The n_half parameter dictates the number of
-        resolution elements in the convolution (n = 2*n_half+1).
+        Apply rotational broadening in km/s. The n_half parameter dictates the
+        number of resolution elements in the convolution (n = 2*n_half+1).
         """
         n = 2*n_half + 1
         dv = 2*vsini/n
         S = self.copy()
         S.x_unit_to(u.AA)
-        S.y_unit_to("erg/(s cm2)") #needed to conserve flux
+        S.y_unit_to("erg/(s cm2)")  # needed to conserve flux
         xnew = logarange(*S.x01, 2.998e5/dv)
         S = S.interp(xnew, kind='cubic')
         S.y = rotational_broadening(S.y, n, method=method, coefs=coefs)
@@ -942,7 +943,8 @@ class Spectrum:
         x = np.log(self.x) if logx else self.x
         y = np.log(np.abs(self.y)) if logy else self.y
         e = np.abs(self.e/self.y) if logy else self.e
-        poly = np.polyfit(x, y, deg, w=1/e) if weighted else np.polyfit(x, y, deg)
+        weights = 1/e if weighted else None
+        poly = np.polyfit(x, y, deg, w=weights)
         return poly, logx, logy, self.y_unit
 
     def polyval(self, polyres):
@@ -967,7 +969,7 @@ class Spectrum:
         if not isinstance(knots, (int, tuple, list, np.ndarray)):
             raise TypeError
         if isinstance(knots, int):
-            #space knots equidistantly
+            # space knots equidistantly
             knots = np.linspace(*self.x01, knots+2)[1:-2]
 
         w = 1/self.e if weighted else 1
@@ -991,9 +993,9 @@ class Spectrum:
     @classmethod
     def join(cls, SS, sort=False, name=None):
         """
-        Joins a collection of spectra into a single spectrum. The name of the first
-        spectrum is used as the new name. Can optionally sort the new spectrum by
-        wavelengths.
+        Joins a collection of spectra into a single spectrum. The name of the
+        first spectrum is used as the new name. Can optionally sort the new
+        spectrum by wavelengths.
         """
         S0 = SS[0]
 
@@ -1028,12 +1030,12 @@ class Spectrum:
             S._compare_units(S0, xy='xy')
             S._compare_x(S0)
 
-        Y  = np.array([S.y    for S in SS])
+        Y = np.array([S.y for S in SS])
         IV = np.array([S.ivar for S in SS])
 
         IVbar = np.sum(IV, axis=0)
-        Ybar  = np.sum(Y*IV, axis=0) / IVbar
-        Ebar  = 1.0 / np.sqrt(IVbar)
+        Ybar = np.sum(Y*IV, axis=0) / IVbar
+        Ebar = 1.0 / np.sqrt(IVbar)
 
         return cls(S0.x, Ybar, Ebar, **S0.info)
 
@@ -1072,7 +1074,7 @@ class Spectrum:
         y_plot = getattr(self, kind)
         ll = plt.plot(self.x, scale*y_plot, *args, **kwargs)
 
-        #default y limits (if not already set)
+        # default y limits (if not already set)
         ax = plt.gca()
         if auto_ylims and ax.get_autoscaley_on():
             ylo, yhi = ax.get_ylim()

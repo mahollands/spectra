@@ -5,7 +5,6 @@ elsewhere in this module.
 
 from functools import reduce
 import operator
-import sys
 import numpy as np
 from scipy.special import wofz
 
@@ -24,6 +23,7 @@ jangstrom = \
 rt2pi = np.sqrt(2*np.pi)
 rt2 = np.sqrt(2)
 fwhm2sigma = 1/(2*np.sqrt(2*np.log(2)))
+
 
 def gaussian(x, x0, sigma=None, fwhm=None, norm=False):
     """
@@ -53,6 +53,7 @@ def gaussian(x, x0, sigma=None, fwhm=None, norm=False):
         y /= rt2pi*sigma
     return y
 
+
 def lorentzian(x, x0, fwhm=None, norm=False):
     """
     Lorentzian line profile
@@ -76,6 +77,7 @@ def lorentzian(x, x0, fwhm=None, norm=False):
         y /= np.pi * gamma
     return y
 
+
 def voigt(x, x0, fwhm_g, fwhm_l):
     """
     Normalised voigt profile.
@@ -97,6 +99,7 @@ def voigt(x, x0, fwhm_g, fwhm_l):
     z = ((x-x0) + 0.5j*fwhm_l)/(sigma*rt2)
     return wofz(z).real/(rt2pi*sigma)
 
+
 def vac_to_air(Wvac):
     """
     converts vacuum wavelengths to air wavelengths, as per VALD3 documentation
@@ -105,6 +108,7 @@ def vac_to_air(Wvac):
     s = 1e4/Wvac
     n = 1.0000834254 + 0.02406147/(130.-s*s) + 0.00015998/(38.9-s*s)
     return Wvac/n
+
 
 def air_to_vac(Wair):
     """
@@ -116,11 +120,13 @@ def air_to_vac(Wair):
         + 0.0001599740894897/(38.92568793293-s*s)
     return Wair*n
 
+
 def _between(x, x1, x2):
     """
     Helper function to determine if a wavelength is between two others.
     """
     return (x > float(x1)) & (x < float(x2))
+
 
 def keep_points(x, fname):
     """
@@ -129,6 +135,7 @@ def keep_points(x, fname):
     with open(fname, 'r') as F:
         segments = (_between(x, *line.split()) for line in F)
     return reduce(operator.or_, segments)
+
 
 def logarange(x0, x1, R):
     """

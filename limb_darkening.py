@@ -17,12 +17,13 @@ limb_functions = {
 }
 
 limb_basis = {
-    'linear': lambda mu : [(1-mu)],
+    'linear': lambda mu: [(1-mu)],
     'quad': lambda mu: [(1-mu)**n for n in (1, 2)],
     'sqrt': lambda mu: [(1-mu), (1-np.sqrt(mu))],
     'log': lambda mu: [(1-mu), (mu*np.log(mu))],
     'claret': lambda mu: [(1-mu**(k/2)) for k in range(1, 5)],
 }
+
 
 def calc_limb_darkening_coefs(MM, band, limb_model='claret', return_fluxes=False):
     """

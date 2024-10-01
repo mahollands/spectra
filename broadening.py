@@ -1,7 +1,7 @@
 """
-Sub module for implementing various forms of broadening. Specifically this supports
-Gaussian broadening for instrumental broadening, and various forms of rotational
-broadening.
+Sub module for implementing various forms of broadening. Specifically this
+supports Gaussian broadening for instrumental broadening, and various forms of
+rotational broadening.
 """
 import numpy as np
 from scipy.interpolate import interp1d
@@ -17,6 +17,7 @@ __all__ = [
 rt_pi = np.sqrt(np.pi)
 gamma_ratios = [gamma((k+4)/4)/gamma((k+6)/4) for k in range(1, 5)]
 
+
 def _next_pow_2(N_in):
     """
     Helper function for finding the first power of two greater than N_in
@@ -25,6 +26,7 @@ def _next_pow_2(N_in):
     while N_out < N_in:
         N_out *= 2
     return N_out
+
 
 def convolve_gaussian(x, y, FWHM):
     """
@@ -46,6 +48,7 @@ def convolve_gaussian(x, y, FWHM):
 
     return interp1d(xi, yic)(x)
 
+
 def rotational_kernel(n, method, coefs):
     kx = np.linspace(-1+1/n, 1-1/n, n)
     ybar2 = 1-kx**2
@@ -54,7 +57,7 @@ def rotational_kernel(n, method, coefs):
         ky = np.sqrt(ybar2)
     elif method == 'rect':
         #rectangular kernel (box smoothing)
-        ky = np.ones(n) 
+        ky = np.ones(n)
     elif method == 'arcsine':
         #rectangular kernel (box smoothing)
         ky = 1/np.sqrt(ybar2)
@@ -65,12 +68,13 @@ def rotational_kernel(n, method, coefs):
     elif method == 'claret':
         #Claret 4-term limb darkening law
         ky = np.sqrt(ybar2) * (
-            2*(1-coefs.sum()) + rt_pi*sum(a_k*gr * ybar2**(k/4) 
+            2*(1-coefs.sum()) + rt_pi*sum(a_k*gr * ybar2**(k/4)
             for k, (gr, a_k) in enumerate(zip(gamma_ratios, coefs), 1))
         )
     else:
         raise ValueError("Invalid kernel type")
     return kx, ky/ky.sum()
+
 
 def rotational_broadening(y, n, method, coefs):
     """
@@ -78,7 +82,7 @@ def rotational_broadening(y, n, method, coefs):
     be in flux units of lam*F(lam) or equivalently nu*F(nu) to ensure flux
     convservation. Similarly the fluxes should have been rebinned to an axis
     linear in log-wavelength, with spacing such that dloglam = 2*vsini/n.
-    Method is the 
+    Method is the
     """
     kx, ky = rotational_kernel(n, method, coefs)
     return convolve(y, ky)

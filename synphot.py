@@ -1,5 +1,6 @@
 """
-Sub-module for synthetic photometry of spectra. Currently supported telescopes/intruments:
+Sub-module for synthetic photometry of spectra. Currently supported
+telescopes/intruments:
 
     2Mass
     Gaia DR2r/3
@@ -67,6 +68,7 @@ filter_paths = {
 }
 filter_names = list(filter_paths)
 
+
 @functools.cache
 def load_bandpass(band):
     """
@@ -78,6 +80,7 @@ def load_bandpass(band):
     R = interp1d(x, y, kind='linear', assume_sorted=True)
     Inorm = trapezoid(R.y/R.x, R.x)
     return R, Inorm
+
 
 @functools.cache
 def load_Vega(mod="002"):
@@ -98,6 +101,7 @@ def load_Vega(mod="002"):
     Vega *= 3.62286e-09 / Vega.y[px]
 
     return Vega
+
 
 def calc_AB_flux(S, band, Nmc=1000, Ifun=trapezoid):
     """
@@ -124,6 +128,7 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=trapezoid):
 
     return np.array([Ifun(y_mc*Ri/S.x, S.x) for y_mc in S.y_mc(Nmc)])/Inorm
 
+
 @functools.cache
 def lambda_mean(band, Ifun=trapezoid):
     """
@@ -131,6 +136,7 @@ def lambda_mean(band, Ifun=trapezoid):
     """
     R, _ = load_bandpass(band)
     return Ifun(R.y*R.x, R.x) / Ifun(R.y, R.x)
+
 
 @functools.cache
 def lambda_eff(band, mod="002", Ifun=trapezoid):
@@ -142,6 +148,7 @@ def lambda_eff(band, mod="002", Ifun=trapezoid):
     V = load_Vega(mod).clip(R.x[0], R.x[-1])
     Ri = R(V.x)
     return Ifun(Ri*V.y*V.x, V.x) / Ifun(Ri*V.y, V.x)
+
 
 @functools.cache
 def Vega_AB_mag_offset(band, mod="002"):
