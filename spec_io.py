@@ -38,8 +38,10 @@ def spec_from_txt(Spectrum, fname, wave=None, x_unit='AA', y_unit='erg/(s cm2 AA
     set, models are assumed to be 'vac', or 'air' for observed spectra with
     errors. kwargs are passed to pd.read_csv.
     """
-    ncols = 2 if model else 3
-    data = pd.read_csv(fname, delimiter=delimiter, usecols=range(ncols), **kwargs)
+    if 'usecols' not in kwargs:
+        ncols = 2 if model else 3
+        kwargs['usecols'] = range(ncols)
+    data = pd.read_csv(fname, delimiter=delimiter, **kwargs)
     data = data.values.T
     x, y, e = (*data, 0) if model else data
     if wave is None:
