@@ -308,12 +308,18 @@ class Spectrum:
         return self.y/self.e
 
     @property
+    def y_e2(self):
+        """
+        fluxes divided by errors squared
+        """
+        return self.y_e**2
+
+    @property
     def chi2(self):
         """
         Calculates a chi squared value assuming y-values are scattered about 0.
         """
-        r = self.y_e
-        return np.sum(r*r)
+        return np.sum(self.y_e2)
 
     @property
     def SN(self):
@@ -1064,7 +1070,7 @@ class Spectrum:
         'magABe'. plt.show() and other mpl functions still need to be used
         separately.
         """
-        allowed = "y e var ivar y_e SN magAB magABe".split()
+        allowed = "y e var ivar y_e y_e2 SN magAB magABe".split()
         if kind not in allowed:
             raise ValueError(f"kind must be one of: {allowed}")
 
