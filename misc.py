@@ -5,6 +5,7 @@ elsewhere in this module.
 
 from functools import reduce
 import operator
+from enum import Enum
 import numpy as np
 from scipy.special import wofz
 
@@ -23,6 +24,13 @@ jangstrom = \
 rt2pi = np.sqrt(2*np.pi)
 rt2 = np.sqrt(2)
 fwhm2sigma = 1/(2*np.sqrt(2*np.log(2)))
+
+
+class Wave(Enum):
+    """
+    Wavelengths can only be air or vacuum.
+    """
+    AIR, VAC = "air", "vac"
 
 
 def gaussian(x, x0, sigma=None, fwhm=None, norm=False):

@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from astropy.io import fits
 from trm import molly
+from .misc import Wave
 
 __all__ = [
     "spec_from_txt",
@@ -29,8 +30,16 @@ el_dict = {
 }
 
 
-def spec_from_txt(Spectrum, fname, wave=None, x_unit='AA', y_unit='erg/(s cm2 AA)',
-    delimiter=r'\s+', model=False, **kwargs):
+def spec_from_txt(
+        Spectrum,
+        fname,
+        wave=None,
+        x_unit='AA',
+        y_unit='erg/(s cm2 AA)',
+        delimiter=r'\s+',
+        model=False,
+        **kwargs,
+    ):
     """
     Loads a text file as a Spectrum object. If model is set to True, only two
     columns are read (wavelengths and fluxes) with errors set to zero,
@@ -45,13 +54,21 @@ def spec_from_txt(Spectrum, fname, wave=None, x_unit='AA', y_unit='erg/(s cm2 AA
     data = data.values.T
     x, y, e = (*data, 0) if model else data
     if wave is None:
-        wave = 'vac' if model else 'air'
+        wave = Wave.VAC if model else Wave.AIR
     name, _ = os.path.splitext(os.path.basename(fname))
     return Spectrum(x, y, e, name, wave, x_unit, y_unit)
 
 
-def multi_model_from_txt(Spectrum, fname, nfluxcols, wave='vac',
-    x_unit='AA', y_unit='erg/(s cm2 AA)', delimiter=r'\s+', **kwargs):
+def multi_model_from_txt(
+        Spectrum,
+        fname,
+        nfluxcols,
+        wave=Wave.VAC,
+        x_unit='AA',
+        y_unit='erg/(s cm2 AA)',
+        delimiter=r'\s+',
+        **kwargs,
+    ):
     """
     Read files with multiple flux columns as model spectra (no uncertainties).
     This can be useful for loading model spectra with a single wavelength axis
@@ -99,7 +116,13 @@ def head_from_dk(fname, return_skip=False):
     return (hdr, skip) if return_skip else hdr
 
 
-def model_from_dk(Spectrum, fname, x_unit='AA', y_unit='erg/(s cm2 AA)', use_Imu=False):
+def model_from_dk(
+        Spectrum,
+        fname,
+        x_unit='AA',
+        y_unit='erg/(s cm2 AA)',
+        use_Imu=False,
+    ):
     """
     Read Detlev Koester white dwarf models as spectra. Units are converted to
     those specified, and DK header items placed in the Spectrum object header.
@@ -107,7 +130,12 @@ def model_from_dk(Spectrum, fname, x_unit='AA', y_unit='erg/(s cm2 AA)', use_Imu
     of models is returned, otherwise just the disc average flux is used.
     """
     hdr, skip = head_from_dk(fname, True)
-    kwargs = {'wave':'vac', 'x_unit':'AA', 'y_unit':'erg/(s cm3)', 'skiprows':skip}
+    kwargs = {
+        'wave': Wave.VAC,
+        'x_unit': 'AA',
+        'y_unit': 'erg/(s cm3)',
+        'skiprows':skip,
+    }
     if 'mu' in hdr and use_Imu:
         #angular dependent fluxes
         mus, wmus = hdr.pop('mu'), hdr.pop('wmu')
@@ -127,7 +155,13 @@ def model_from_dk(Spectrum, fname, x_unit='AA', y_unit='erg/(s cm2 AA)', use_Imu
     return M
 
 
-def spec_from_npy(Spectrum, fname, wave='air', x_unit='AA', y_unit='erg/(s cm2 AA)'):
+def spec_from_npy(
+        Spectrum,
+        fname,
+        wave=Wave.AIR,
+        x_unit='AA',
+        y_unit='erg/(s cm2 AA)'
+    ):
     """
     Loads a npy file with 2 or 3 columns as wavelengths, fluxes(, errors).
     """
@@ -167,17 +201,24 @@ def subspectra_from_sdss_fits(Spectrum, fname, **kwargs):
 
 
 def _get_spec_from_hdu(Spectrum, hdu):
-    loglam, flux, ivar, sky = [hdu.data[key] for key in 'loglam flux ivar sky'.split()]
+    keys = 'loglam flux ivar sky'.split()
+    loglam, flux, ivar, sky = [hdu.data[key] for key in keys]
     lam = 10**loglam
     ivar[ivar == 0.] = 0.001
     err = 1/np.sqrt(ivar)
     sky *= 1e17
     name = hdu.header['EXTNAME'] if 'EXTNAME' in hdu.header else ""
     head = {'sky': sky}
-    return Spectrum(lam, flux, err, name, 'vac', head=head)*1e-17
+    return Spectrum(lam, flux, err, name, Wave.VAC, head=head)*1e-17
 
 
-def spec_from_fits_generic(Spectrum, fname, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)"):
+def spec_from_fits_generic(
+        Spectrum,
+        fname,
+        wave=Wave.AIR,
+        x_unit="AA",
+        y_unit="erg/(s cm2 AA)",
+    ):
     """
     Load a spectrum from a generic fits file
     """

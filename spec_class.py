@@ -13,7 +13,7 @@ from .interpolation import interp, interp_nan, interp_inf, wbin
 from .synphot import calc_AB_flux, Vega_AB_mag_offset
 from .reddening import A_curve
 from .broadening import convolve_gaussian, rotational_broadening
-from .misc import vac_to_air, air_to_vac, logarange
+from .misc import Wave, vac_to_air, air_to_vac, logarange
 
 __all__ = [
     "Spectrum",
@@ -54,7 +54,7 @@ class Spectrum:
     """
     __slots__ = ['_x', '_y', '_e', '_name', '_wave', '_xu', '_yu', '_head']
 
-    def __init__(self, x, y, e, name="", wave='air', x_unit="AA",
+    def __init__(self, x, y, e, name="", wave=Wave.AIR, x_unit="AA",
                  y_unit="erg/(s cm^2 AA)", head=None):
         """
         Initialise spectrum. Arbitrary header items can be added to self.head
@@ -167,9 +167,7 @@ class Spectrum:
 
     @wave.setter
     def wave(self, wave):
-        if wave not in {'vac', 'air'}:
-            raise ValueError("wave must be 'vac' or 'air'")
-        self._wave = wave
+        self._wave = Wave(wave)
 
     @property
     def x_unit(self):
@@ -786,23 +784,23 @@ class Spectrum:
         """
         Changes air wavelengths to vaccuum wavelengths in place
         """
-        if self.wave == 'vac':
+        if self.wave is Wave.VAC:
             print(f"Wavelengths for {self.name} already vac")
             return
         self._compare_units("AA", 'x')
         self.x = air_to_vac(self.x)
-        self.wave = 'vac'
+        self.wave = Wave.VAC
 
     def vac_to_air(self):
         """
         Changes vaccuum wavelengths to air wavelengths in place
         """
-        if self.wave == 'air':
+        if self.wave is Wave.AIR:
             print(f"Wavelengths for {self.name} already air")
             return
         self._compare_units("AA", 'x')
         self.x = vac_to_air(self.x)
-        self.wave = 'air'
+        self.wave = Wave.AIR
 
     def redden(self, E_BV, Rv=3.1, model='G23'):
         """
@@ -811,7 +809,7 @@ class Spectrum:
         is currently Gordon et al. (2023).
         """
         S = self.copy()
-        if S.wave == "air":
+        if S.wave is Wave.AIR:
             S.x_unit_to("AA")
             S.air_to_vac()
         S.x_unit_to("um")
@@ -828,7 +826,7 @@ class Spectrum:
         v *= u.Unit(v_unit)
         beta = (v/const.c).decompose()
         factor = math.sqrt((1+beta)/(1-beta))
-        if self.wave == "air":
+        if self.wave is Wave.AIR:
             self.x = air_to_vac(self.x)
             self.x *= factor
             self.x = vac_to_air(self.x)

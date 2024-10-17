@@ -27,6 +27,7 @@ import functools
 import numpy as np
 from scipy.integrate import trapezoid
 from scipy.interpolate import interp1d
+from .misc import Wave
 
 __all__ = [
     "load_bandpass",
@@ -94,7 +95,7 @@ def load_Vega(mod="002"):
         raise ValueError("Vega model must be 002 or 003")
 
     full_path = f"{filters_dir}/alpha_lyr_mod_{mod}.npy"
-    Vega = Spectrum.from_npy(full_path, wave='vac')
+    Vega = Spectrum.from_npy(full_path, wave=Wave.VAC)
 
     #CALSPEC correction at 550nm (V=0.023)
     px = Vega.closest_x(5500)
