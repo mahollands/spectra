@@ -5,7 +5,7 @@ elsewhere in this module.
 
 from functools import reduce
 import operator
-from enum import Enum
+from enum import StrEnum
 import numpy as np
 from scipy.special import wofz
 
@@ -26,7 +26,7 @@ rt2 = np.sqrt(2)
 fwhm2sigma = 1/(2*np.sqrt(2*np.log(2)))
 
 
-class Wave(Enum):
+class Wave(StrEnum):
     """
     Wavelengths can only be air or vacuum.
     """
