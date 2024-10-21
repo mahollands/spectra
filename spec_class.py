@@ -460,7 +460,7 @@ class Spectrum:
             raise TypeError("other was not Spectrum or interpretable as a unit")
 
     def _compare_wave(self, other):
-        if self.wave != other.wave:
+        if self.wave is not other.wave:
             raise ValueError("Spectra must have same wavelengths (air/vac)")
 
     def _compare_x(self, other):
