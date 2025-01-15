@@ -787,9 +787,11 @@ class Spectrum:
         if self.wave is Wave.VAC:
             print(f"Wavelengths for {self.name} already vac")
             return
-        self._compare_units("AA", 'x')
+        unit0 = self.x_unit
+        self.x_unit_to(u.AA)
         self.x = air_to_vac(self.x)
         self.wave = Wave.VAC
+        self.x_unit_to(unit0)
 
     def vac_to_air(self):
         """
@@ -798,9 +800,11 @@ class Spectrum:
         if self.wave is Wave.AIR:
             print(f"Wavelengths for {self.name} already air")
             return
-        self._compare_units("AA", 'x')
+        unit0 = self.x_unit
+        self.x_unit_to(u.AA)
         self.x = vac_to_air(self.x)
         self.wave = Wave.AIR
+        self.x_unit_to(unit0)
 
     def redden(self, E_BV, Rv=3.1, model='G23'):
         """
@@ -808,9 +812,13 @@ class Spectrum:
         and a value of Rv (default=3.1). The default model
         is currently Gordon et al. (2023).
         """
+        S = self.copy()
+        if S.wave is Wave.AIR:
+            S.air_to_vac()
+
         extmod = getattr(dust_params, model)
         extmod_rv = extmod(Rv=Rv)
-        extinction = extmod_rv.extinguish(self.xq, Ebv=E_BV)
+        extinction = extmod_rv.extinguish(S.xq, Ebv=E_BV)
 
         self.y *= extinction
         self.e *= extinction
