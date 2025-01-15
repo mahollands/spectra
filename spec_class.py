@@ -6,12 +6,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import astropy.units as u
 import astropy.constants as const
+from dust_extinction import parameter_averages as dust_params
 from scipy.interpolate import LSQUnivariateSpline
 from scipy.optimize import minimize
 from . import spec_io
 from .interpolation import interp, interp_nan, interp_inf, wbin
 from .synphot import calc_AB_flux, Vega_AB_mag_offset
-from .reddening import A_curve
 from .broadening import convolve_gaussian, rotational_broadening
 from .misc import Wave, vac_to_air, air_to_vac, logarange
 
@@ -808,14 +808,10 @@ class Spectrum:
         and a value of Rv (default=3.1). The default model
         is currently Gordon et al. (2023).
         """
-        S = self.copy()
-        if S.wave is Wave.AIR:
-            S.x_unit_to("AA")
-            S.air_to_vac()
-        S.x_unit_to("um")
+        extmod = getattr(dust_params, model)
+        extmod_rv = extmod(Rv=Rv)
+        extinction = extmod_rv.extinguish(self.xq, Ebv=E_BV)
 
-        A = Rv * E_BV * A_curve(S.x, Rv, use_model=model)
-        extinction = 10**(-0.4*A)
         self.y *= extinction
         self.e *= extinction
 
