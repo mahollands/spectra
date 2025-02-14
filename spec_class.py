@@ -926,6 +926,21 @@ class Spectrum:
         S.y = convolve_gaussian(np.log(S.x), S.y, 1/res)
         return S
 
+    def convolve_gaussian_powerlaw_R(self, x_points, R_points):
+        """
+        Convolves spectrum with a Gaussian whose resolving power varies
+        as a function of wavelength. The resolving power is modelled
+        as R(x) = A*x^b, where x will normally be wavelength.
+
+        Convolution is performed on a x^b scale, with a FWHM of b/A.
+        """
+        b, ln_a = np.polyfit(np.log(x_points), np.log(R_points), deg=1)
+
+        S = self.copy()
+        S.y = convolve_gaussian(S.x**b, S.y, b*np.exp(-ln_a))
+        return S
+
+
     def rot_broaden(self, vsini, n_half=10, method='flat', coefs=None):
         """
         Apply rotational broadening in km/s. The n_half parameter dictates the
