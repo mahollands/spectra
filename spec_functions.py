@@ -7,6 +7,7 @@ from astropy.constants import h, c, k_B
 from scipy.optimize import leastsq
 from scipy.interpolate import interp1d
 from .spec_class import Spectrum
+from .misc import Wave
 
 __all__ = [
     "Black_body",
@@ -14,7 +15,7 @@ __all__ = [
 ]
 
 
-def Black_body(x, T, wave='air', x_unit="AA", y_unit="erg/(s cm2 AA)", norm=False):
+def Black_body(x, T, wave=Wave.AIR, x_unit="AA", y_unit="erg/(s cm2 AA)", norm=False):
     """
     Returns a Black body curve like black_body(), but the return value
     is a Spectrum class.
