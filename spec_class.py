@@ -6,12 +6,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import astropy.units as u
 import astropy.constants as const
+from dust_extinction import parameter_averages as dust_params
 from scipy.interpolate import LSQUnivariateSpline
 from scipy.optimize import minimize
 from . import spec_io
 from .interpolation import interp, interp_nan, interp_inf, wbin
 from .synphot import calc_AB_flux, Vega_AB_mag_offset
-from .reddening import A_curve
 from .broadening import convolve_gaussian, rotational_broadening
 from .misc import Wave, vac_to_air, air_to_vac, logarange
 
@@ -787,9 +787,11 @@ class Spectrum:
         if self.wave is Wave.VAC:
             print(f"Wavelengths for {self.name} already vac")
             return
-        self._compare_units("AA", 'x')
+        unit0 = self.x_unit
+        self.x_unit_to(u.AA)
         self.x = air_to_vac(self.x)
         self.wave = Wave.VAC
+        self.x_unit_to(unit0)
 
     def vac_to_air(self):
         """
@@ -798,9 +800,11 @@ class Spectrum:
         if self.wave is Wave.AIR:
             print(f"Wavelengths for {self.name} already air")
             return
-        self._compare_units("AA", 'x')
+        unit0 = self.x_unit
+        self.x_unit_to(u.AA)
         self.x = vac_to_air(self.x)
         self.wave = Wave.AIR
+        self.x_unit_to(unit0)
 
     def redden(self, E_BV, Rv=3.1, model='G23'):
         """
@@ -810,12 +814,12 @@ class Spectrum:
         """
         S = self.copy()
         if S.wave is Wave.AIR:
-            S.x_unit_to("AA")
             S.air_to_vac()
-        S.x_unit_to("um")
 
-        A = Rv * E_BV * A_curve(S.x, Rv, use_model=model)
-        extinction = 10**(-0.4*A)
+        extmod = getattr(dust_params, model)
+        extmod_rv = extmod(Rv=Rv)
+        extinction = extmod_rv.extinguish(S.xq, Ebv=E_BV)
+
         self.y *= extinction
         self.e *= extinction
 
@@ -921,6 +925,21 @@ class Spectrum:
         S = self.copy()
         S.y = convolve_gaussian(np.log(S.x), S.y, 1/res)
         return S
+
+    def convolve_gaussian_powerlaw_R(self, x_points, R_points):
+        """
+        Convolves spectrum with a Gaussian whose resolving power varies
+        as a function of wavelength. The resolving power is modelled
+        as R(x) = A*x^b, where x will normally be wavelength.
+
+        Convolution is performed on a x^b scale, with a FWHM of b/A.
+        """
+        b, ln_a = np.polyfit(np.log(x_points), np.log(R_points), deg=1)
+
+        S = self.copy()
+        S.y = convolve_gaussian(S.x**b, S.y, b*np.exp(-ln_a))
+        return S
+
 
     def rot_broaden(self, vsini, n_half=10, method='flat', coefs=None):
         """

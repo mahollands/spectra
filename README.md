@@ -21,4 +21,6 @@ and features many routines for performing common tasks for spectroscopy.
 * matplotlib
 * scipy
 * astropy
+* dustmaps
 * trm-molly
+
