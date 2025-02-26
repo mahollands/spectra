@@ -759,12 +759,16 @@ class Spectrum:
         """
         return self.sect(x0-dx, x0+dx)
 
-    def clip(self, x0, x1, invert=False):
+    def clip(self, x0, x1, pad=0, invert=False):
         """
         Returns Spectrum clipped between x0 and x1. If invert=True, returns the
-        pixels outside that range.
+        pixels outside that range. If pad > 0, the clip range is extended by
+        this amount (useful when clipping a model to slightly wider than an
+        observed spectrum.
         """
-        return self[self.sect(x0, x1) ^ invert]
+        if pad < 0: 
+            raise ValueError
+        return self[self.sect(x0-pad, x1+pad) ^ invert]
 
     def clip2(self, x0, dx, invert=False):
         """
