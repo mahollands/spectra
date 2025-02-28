@@ -822,7 +822,8 @@ class Spectrum:
 
         extmod = getattr(dust_params, model)
         extmod_rv = extmod(Rv=Rv)
-        extinction = extmod_rv.extinguish(S.xq, Ebv=E_BV)
+        x = np.clip(S.xq, 0.0912*u.um, 32*u.um)
+        extinction = extmod_rv.extinguish(x, Ebv=E_BV)
 
         self.y *= extinction
         self.e *= extinction
