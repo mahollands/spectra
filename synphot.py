@@ -22,6 +22,7 @@ telescopes/intruments:
 
     See 'filter_names' list for details.
 """
+
 import os.path
 import functools
 import numpy as np
@@ -38,34 +39,42 @@ __all__ = [
 
 filters_dir = f"{os.path.dirname(__file__)}/passbands"
 
-GAIA = {'G':'G', 'Bp':'Gbp', 'Rp':'Grp'}
-JPLUS = "gSDSS iSDSS J0378 J0395 J0410 J0430 J0515 J0660 J0861 rSDSS uJAVA zSDSS".split()
-HCAM = list("ugriz") + [b+"_s" for b in "ugriz"]
-UCAM = HCAM + ["Ha_broad-1", "Ha_narrow-1"]
+GAIA = {"G": "G", "Bp": "Gbp", "Rp": "Grp"}
+JPLUS = (
+    "gSDSS iSDSS J0378 J0395 J0410 J0430 J0515 J0660 J0861 rSDSS uJAVA zSDSS".split()
+)
+HCAM = list("ugriz") + [b + "_s" for b in "ugriz"]
+UCAM = (
+    ["Halpha_broad-1", "H-alpha_narrow-1", "KG5"]
+    + list("ugriz")
+    + [f"super_{b}" for b in "ugriz"]
+)
 USPEC = list("ugriz") + "iz Ha_broad Ha_narrow bowen KG5 N86 NaI".split()
 SWIFT = ("U", "UVW1", "UVW2", "UVM2")
-XMM = ("U", "B", "V", "UVM2", "UVM1", "UVW1")
+XMM = ("U", "B", "V", "UVM2", "UVW1", "UVW2")
 
 filter_paths = {
-    **{f"2m{b}": f"2MASS/2MASS_2MASS.{b}.npy" for b in "JHK"}, #2Mass
-    **{f"DECam-{b}": f"DECAM/CTIO_DECam.{b}.npy" for b in "ugrizY"}, #DECam
-    **{f"Gaia{b}3": f"GAIA/GAIA_GAIA3.{B}.npy" for b, B in GAIA.items()}, #Gaia DR3
-    **{f"Gaia{b}2r": f"GAIA/GAIA_GAIA2r.{B}.npy" for b, B in GAIA.items()}, #Gaia DR2r
-    **{f"Galex{b}": f"GALEX/GALEX_GALEX.{b}.npy" for b in ("NUV", "FUV")}, #GALEX
-    **{b: f"GENERIC/Generic_Johnson.{b}.npy" for b in "UBVRI"}, #Generic Johnson
-    **{f"HCAM_{b}": f"HIPERCAM/GTC_HIPERCAM.{b}.npy" for b in HCAM}, #HIPERCAM
-    **{f"JPLUS-{b}": f"JPLUS/OAJ_JPLUS.{b}.npy" for b in JPLUS}, #JPLUS
-    **{f"ps{b}": f"PANSTARRS/PAN-STARRS_PS1.{b}.npy" for b in "grizy"}, #PanStarrs
-    **{f"SDSS{b}": f"SDSS/SLOAN_SDSS.{b}.npy" for b in "ugriz"}, #SDSS
-    **{f"sm{b}": f"SKYMAPPER/SkyMapper_SkyMapper.{b}.npy" for b in "uvgriz"}, #SkyMapper
-    **{f"sp{b}": f"SPITZER/Spitzer_IRAC.I{b}.npy" for b in "12"}, #Spitzer
-    **{f"sw{b}": f"SWIFT/Swift_UVOT.{b}.npy" for b in SWIFT}, #Swift
-    "TESS": "TESS/TESS_TESS.Red.npy", #TESS
-    **{f"UCAM_{b}": f"ULTRACAM/TNO_ULTRACAM.{b}.npy" for b in UCAM}, #ULTRACAM
-    **{f"UK{b}": f"UKIRT/UKIRT_UKIDSS.{b}.npy" for b in "ZYJHK"}, #UKIRT
-    **{f"USPEC_{b}": f"ULTRASPEC/TNT_ULTRASPEC.{b}.npy" for b in USPEC}, #ULTRASPEC
-    **{f"W{b}": f"WISE/WISE_WISE.W{b}.npy" for b in "12"}, #Wise
-    **{f"XMM_{b}": f"XMM/XMM_OM.{b}.npy" for b in XMM}, #XMM
+    **{f"2m{b}": f"2MASS/2MASS_2MASS.{b}.npy" for b in "JHK"},  # 2Mass
+    **{f"DECam-{b}": f"DECAM/CTIO_DECam.{b}.npy" for b in "ugrizY"},  # DECam
+    **{f"Gaia{b}3": f"GAIA/GAIA_GAIA3.{B}.npy" for b, B in GAIA.items()},  # Gaia DR3
+    **{f"Gaia{b}2r": f"GAIA/GAIA_GAIA2r.{B}.npy" for b, B in GAIA.items()},  # Gaia DR2r
+    **{f"Galex{b}": f"GALEX/GALEX_GALEX.{b}.npy" for b in ("NUV", "FUV")},  # GALEX
+    **{b: f"GENERIC/Generic_Johnson.{b}.npy" for b in "UBVRI"},  # Generic Johnson
+    **{f"HCAM_{b}": f"HIPERCAM/GTC_HIPERCAM.{b}.npy" for b in HCAM},  # HIPERCAM
+    **{f"JPLUS-{b}": f"JPLUS/OAJ_JPLUS.{b}.npy" for b in JPLUS},  # JPLUS
+    **{f"ps{b}": f"PANSTARRS/PAN-STARRS_PS1.{b}.npy" for b in "grizy"},  # PanStarrs
+    **{f"SDSS{b}": f"SDSS/SLOAN_SDSS.{b}.npy" for b in "ugriz"},  # SDSS
+    **{
+        f"sm{b}": f"SKYMAPPER/SkyMapper_SkyMapper.{b}.npy" for b in "uvgriz"
+    },  # SkyMapper
+    **{f"sp{b}": f"SPITZER/Spitzer_IRAC.I{b}.npy" for b in "12"},  # Spitzer
+    **{f"sw{b}": f"SWIFT/Swift_UVOT.{b}.npy" for b in SWIFT},  # Swift
+    "TESS": "TESS/TESS_TESS.Red.npy",  # TESS
+    **{f"UCAM_{b}": f"ULTRACAM/TNO_ULTRACAM.{b}.npy" for b in UCAM},  # ULTRACAM
+    **{f"UK{b}": f"UKIRT/UKIRT_UKIDSS.{b}.npy" for b in "ZYJHK"},  # UKIRT
+    **{f"USPEC_{b}": f"ULTRASPEC/TNT_ULTRASPEC.{b}.npy" for b in USPEC},  # ULTRASPEC
+    **{f"W{b}": f"WISE/WISE_WISE.W{b}.npy" for b in "12"},  # Wise
+    **{f"XMM_{b}": f"XMM/XMM_OM.{b}.npy" for b in XMM},  # XMM
 }
 filter_names = list(filter_paths)
 
@@ -76,10 +85,10 @@ def load_bandpass(band):
     Loads filter curves obtained from VOSA (SVO).
     """
     if band not in filter_paths:
-        raise ValueError(f'Invalid filter name: {band}')
+        raise ValueError(f"Invalid filter name: {band}")
     x, y = np.load(f"{filters_dir}/{filter_paths[band]}")
-    R = interp1d(x, y, kind='linear', assume_sorted=True)
-    Inorm = trapezoid(R.y/R.x, R.x)
+    R = interp1d(x, y, kind="linear", assume_sorted=True)
+    Inorm = trapezoid(R.y / R.x, R.x)
     return R, Inorm
 
 
@@ -97,7 +106,7 @@ def load_Vega(mod="002"):
     full_path = f"{filters_dir}/alpha_lyr_mod_{mod}.npy"
     Vega = Spectrum.from_npy(full_path, wave=Wave.VAC)
 
-    #CALSPEC correction at 550nm (V=0.023)
+    # CALSPEC correction at 550nm (V=0.023)
     px = Vega.closest_x(5500)
     Vega *= 3.62286e-09 / Vega.y[px]
 
@@ -112,22 +121,22 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=trapezoid):
     use e=np.ones_like(f) and Nmc=0.
     """
 
-    #Need specific units for integrals
+    # Need specific units for integrals
     if S.x_unit != "AA":
         S.x_unit_to("AA")
     if S.y_unit != "Jy":
         S.y_unit_to("Jy")
 
-    #clip data to filter range and interpolate filter to data axis
+    # clip data to filter range and interpolate filter to data axis
     R, Inorm = load_bandpass(band)
     S = S.clip(R.x[0], R.x[-1])
     Ri = R(S.x)
 
-    #Calculate AB fluxes, or MC sampled fluxes
+    # Calculate AB fluxes, or MC sampled fluxes
     if Nmc == 0:
-        return Ifun(S.y*Ri/S.x, S.x)/Inorm
+        return Ifun(S.y * Ri / S.x, S.x) / Inorm
 
-    return np.array([Ifun(y_mc*Ri/S.x, S.x) for y_mc in S.y_mc(Nmc)])/Inorm
+    return np.array([Ifun(y_mc * Ri / S.x, S.x) for y_mc in S.y_mc(Nmc)]) / Inorm
 
 
 @functools.cache
@@ -136,7 +145,7 @@ def lambda_mean(band, Ifun=trapezoid):
     Calculates lambda_mean for one of the filters
     """
     R, _ = load_bandpass(band)
-    return Ifun(R.y*R.x, R.x) / Ifun(R.y, R.x)
+    return Ifun(R.y * R.x, R.x) / Ifun(R.y, R.x)
 
 
 @functools.cache
@@ -148,7 +157,7 @@ def lambda_eff(band, mod="002", Ifun=trapezoid):
     R, _ = load_bandpass(band)
     V = load_Vega(mod).clip(R.x[0], R.x[-1])
     Ri = R(V.x)
-    return Ifun(Ri*V.y*V.x, V.x) / Ifun(Ri*V.y, V.x)
+    return Ifun(Ri * V.y * V.x, V.x) / Ifun(Ri * V.y, V.x)
 
 
 @functools.cache
