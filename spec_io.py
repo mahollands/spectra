@@ -6,6 +6,7 @@ import os
 import numpy as np
 import pandas as pd
 from astropy.io import fits
+from astropy import units as u
 from trm import molly
 from .misc import Wave
 
@@ -147,6 +148,7 @@ def model_from_dk(
         for M, mu, wmu in zip(MM[1:], mus, wmus):
             M.name += f"_mu_{mu:f}"
             M.head['mu'], M.head['wmu'] = mu, wmu
+            M.y_unit /= u.sr
         return MM
     M = spec_from_txt(Spectrum, fname, model=True, **kwargs)
     M.x_unit_to(x_unit)
