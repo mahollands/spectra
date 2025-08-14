@@ -18,8 +18,7 @@ __all__ = [
     "keep_points",
 ]
 
-jangstrom = \
-    r"$\mathrm{erg}\;\mathrm{s}^{-1}\,\mathrm{cm}^{-2}\,\mathrm{\AA}^{-1}$"
+jangstrom = r"$\mathrm{erg\;s^{-1}\,cm^{-2}\,\AA^{-1}}$"
 
 rt2pi = np.sqrt(2*np.pi)
 rt2 = np.sqrt(2)
