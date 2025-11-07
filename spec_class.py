@@ -1059,8 +1059,12 @@ class Spectrum:
             S._compare_x(S0)
 
         Y = np.array([S.y for S in SS])
-        IV = np.array([S.ivar for S in SS])
 
+        if all(S._model for S in SS):
+            Ybar = np.mean(Y, axis=0)
+            return cls(S0.x, Ybar, 0, **S0.info)
+        
+        IV = np.array([S.ivar for S in SS])
         IVbar = np.sum(IV, axis=0)
         Ybar = np.sum(Y*IV, axis=0) / IVbar
         Ebar = 1.0 / np.sqrt(IVbar)
