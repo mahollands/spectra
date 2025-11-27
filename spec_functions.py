@@ -75,7 +75,7 @@ def JuraDisc(x, Tstar, Rstar, Tin, Tout, D, inc):
     return S
 
 
-def sky_line_fwhm(S, x0, dx=5., return_model=False):
+def sky_line_fwhm(S, x0, dx=5., absorption=False, return_model=False):
     """
     Given a sky spectrum, this fits a Gaussian to a sky line and returns the
     FWHM. The window width is 2*dx wide, centred on x0.
@@ -92,13 +92,14 @@ def sky_line_fwhm(S, x0, dx=5., return_model=False):
 
     #intial pass to refine center
     Sc = S.clip(x0-dx, x0+dx)
-    x0 = Sc.x[np.argmax(Sc.y)]
+    argminmax = np.argmin if absorption else np.argmax
+    x0 = Sc.x[argminmax(Sc.y)]
     Sc = S.clip(x0-dx, x0+dx)
 
     guess = (
         x0,
         2*Sc.dx.mean(), #fwhm ~2pixels
-        Sc.y.max()-Sc.y.min(), #A
+        Sc.y.min()-Sc.y.max() if absorption else Sc.y.max()-Sc.y.min(), #A
         (S.y[-1]-S.y[0])/(S.x[-1]-S.x[0]), #M
         0.5*(S.y[-1]+S.y[0]) #C
     )
