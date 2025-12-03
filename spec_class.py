@@ -11,7 +11,7 @@ from scipy.interpolate import LSQUnivariateSpline
 from scipy.optimize import minimize
 from . import spec_io
 from .interpolation import interp, interp_nan, interp_inf, wbin
-from .synphot import calc_AB_flux, Vega_AB_mag_offset
+from .synphot import calc_AB_flux, Vega_AB_mag_offset, lambda_mean
 from .broadening import convolve_gaussian, rotational_broadening
 from .misc import Wave, vac_to_air, air_to_vac, logarange
 
@@ -642,10 +642,11 @@ class Spectrum:
         if self._model:
             Nmc = 0
         fnu = calc_AB_flux(self.copy(), band, Nmc) * u.Unit('Jy')
-        fnu = fnu.to(unit)
+        central_wavelength = lambda_mean(band) * u.AA
+        F = fnu.to(unit, u.spectral_density(central_wavelength))
         if not attach_unit:
-            fnu = fnu.value
-        return fnu if Nmc == 0 else (fnu.mean(), fnu.std())
+            F = F.value
+        return F if Nmc == 0 else (F.mean(), F.std())
 
     def mag_calc_AB(self, band, Nmc=1000):
         """
