@@ -2,6 +2,7 @@
 Contains the Spectrum class for working with astrophysical spectra.
 """
 import math
+import itertools
 import numpy as np
 import matplotlib.pyplot as plt
 import astropy.units as u
@@ -1004,20 +1005,21 @@ class Spectrum:
         w = 1/self.e if weighted else 1
         return LSQUnivariateSpline(self.x, self.y, knots, w)
 
-    def split(self, W):
+    def split(self, x_split):
         """
-        If W is an int/float, splits spectrum in two around W. If W is an
-        interable of ints/floats, this will split into mutliple chunks instead.
+        If x_split is a scalar, splits spectrum in two around
+        x_split. If x_split is an interable of ints/floats, this will
+        split into mutliple chunks instead.
         """
-        if isinstance(W, (int, float)):
-            W = -np.inf, W, np.inf
-        elif isinstance(W, (list, tuple, np.ndarray)):
-            if not all(isinstance(w, (int, float)) for w in W):
-                raise TypeError("w must all be of type int/float")
-            W = -np.inf, *sorted(W), np.inf
+        if isinstance(x_split, (int, float)):
+            x_split = [x_split]
+        elif isinstance(x_split, (list, tuple, np.ndarray)):
+            if not all(isinstance(x, (int, float)) for x in x_split):
+                raise TypeError("x_split must contain only int/float")
         else:
-            raise TypeError("W must be int/float or iterable of those types")
-        return [self.clip(*w_pair) for w_pair in zip(W[:-1], W[1:])]
+            raise TypeError("x_split must be int/float or iterable of those types")
+        x_split = -np.inf, *sorted(x_split), np.inf
+        return [self.clip(*x_pair) for x_pair in itertools.pairwise(x_split)]
 
     @classmethod
     def join(cls, SS, sort=False, name=None):
