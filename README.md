@@ -22,5 +22,5 @@ and features many routines for performing common tasks for spectroscopy.
 * scipy
 * astropy
 * dustmaps
-* trm-molly
+* trm-molly (optional for reading .mol files)
 
