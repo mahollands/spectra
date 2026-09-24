@@ -28,6 +28,7 @@ import functools
 import numpy as np
 from scipy.integrate import trapezoid
 from scipy.interpolate import interp1d
+from astropy import units as u
 from .misc import Wave
 
 __all__ = [
@@ -125,7 +126,11 @@ def calc_AB_flux(S, band, Nmc=1000, Ifun=trapezoid):
     if S.x_unit != "AA":
         S.x_unit_to("AA")
     if S.y_unit != "Jy":
-        S.y_unit_to("Jy")
+        try:
+            S.y_unit_to("Jy")
+        except u.UnitConversionError:
+            # In case of working with angular fluxes
+            S.y_unit_to("Jy/sr")
 
     # clip data to filter range and interpolate filter to data axis
     R, Inorm = load_bandpass(band)
