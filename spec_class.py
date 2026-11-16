@@ -785,7 +785,9 @@ class Spectrum:
         Normalises a spectrum to a certain percentile of its fluxes. E.g.:
         >>> S.norm_percentile(99)
         """
-        self /= np.percentile(self.y, pc)
+        norm = np.percentile(self.y, pc)
+        self.y /= norm
+        self.e /= norm
 
     def air_to_vac(self):
         """
