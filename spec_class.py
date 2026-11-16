@@ -2,6 +2,7 @@
 Contains the Spectrum class for working with astrophysical spectra.
 """
 import math
+import numbers
 import itertools
 import numpy as np
 import matplotlib.pyplot as plt
@@ -113,7 +114,7 @@ class Spectrum:
 
     @y.setter
     def y(self, y):
-        if isinstance(y, (int, float)):
+        if isinstance(y, numbers.Real):
             self._y = y*np.ones_like(self.x)
         elif isinstance(y, np.ndarray):
             if y.shape != self.x.shape:
@@ -133,7 +134,7 @@ class Spectrum:
 
     @e.setter
     def e(self, e):
-        if isinstance(e, (int, float)):
+        if isinstance(e, numbers.Real):
             if e < 0:
                 raise ValueError("Uncertainties cannot be negative")
             self._e = e*np.ones_like(self.x)
@@ -410,10 +411,10 @@ class Spectrum:
         """
         Return self[key]
         """
-        if not isinstance(key, (int, slice, np.ndarray)):
+        if not isinstance(key, (numbers.Integral, slice, np.ndarray)):
             raise TypeError("spectra must be indexed with int/slice/ndarray types")
         data_keyed = self.x[key], self.y[key], self.e[key]
-        if isinstance(key, int):
+        if isinstance(key, numbers.Integral):
             return data_keyed
         return Spectrum(*data_keyed, **self.info)
 
