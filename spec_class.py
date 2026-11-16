@@ -10,7 +10,7 @@ import astropy.units as u
 import astropy.constants as const
 from dust_extinction import parameter_averages as dust_params
 from scipy.interpolate import LSQUnivariateSpline
-from scipy.optimize import minimize
+from scipy.optimize import minimize_scalar
 from . import spec_io
 from .interpolation import interp, interp_nan, interp_inf, wbin
 from .synphot import calc_AB_flux, Vega_AB_mag_offset, lambda_mean
@@ -904,10 +904,10 @@ class Spectrum:
         x0 = max(S.x.min() for S in (self, other))
         x1 = min(S.x.max() for S in (self, other))
         Soc = other.clip(x0, x1)
-        Ssi = self if assume_same_x else self.interp(Soc, kind='cubic')
+        Ssi = self.clip(x0, x1) if assume_same_x else self.interp(Soc, kind='cubic')
 
-        res = minimize(lambda A, S1, S2: (S1-A*S2).chi2, (1.0), args=(Soc, Ssi))
-        A = float(res['x'][0])
+        res = minimize_scalar(lambda A: (Soc - A*Ssi).chi2)
+        A = float(res.x)
 
         return (self*A, A) if return_scaling_factor else self*A
 
