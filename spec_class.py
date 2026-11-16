@@ -502,6 +502,8 @@ class Spectrum:
         Return self + other (with standard error propagation)
         """
         other = self._arithmetic_check_other(other, 'xy')
+        if self.y_unit != other.y_unit:
+            raise u.UnitsError("Incompatible units")
         ynew = self.y + other.y
         enew = np.hypot(self.e, other.e)
         return Spectrum(self.x, ynew, enew, **self.info)
@@ -511,6 +513,8 @@ class Spectrum:
         Return self - other (with standard error propagation)
         """
         other = self._arithmetic_check_other(other, 'xy')
+        if self.y_unit != other.y_unit:
+            raise u.UnitsError("Incompatible units")
         ynew = self.y - other.y
         enew = np.hypot(self.e, other.e)
         return Spectrum(self.x, ynew, enew, **self.info)
