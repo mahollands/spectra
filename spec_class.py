@@ -54,6 +54,7 @@ class Spectrum:
     by undefined behaviour of numpy/astropy implementations.
     """
     __slots__ = ['_x', '_y', '_e', '_name', '_wave', '_xu', '_yu', '_head']
+    __array_ufunc__ = None
 
     def __init__(self, x, y, e, name="", wave=Wave.AIR, x_unit="AA",
                  y_unit="erg/(s cm^2 AA)", head=None):
