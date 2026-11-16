@@ -108,93 +108,87 @@ def lanczos(x, y, xnew):
     return np.array(ynew)
 
 
-#TODO turn this fortran gobbledegook into vectorised python.
 def wbin(xin, yin, xout, kind):
     """
-    Rebin onto fluxes onto xout axis. Based on Molly rebin routine
+    Rebin fluxes onto the xout axis, conserving flux. Based on the Molly
+    REBIN routine. The input spectrum is treated as a piecewise function
+    (constant for kind='linear', quadratic for kind='quadratic') whose
+    integral over each input pixel equals that pixel's value. This function
+    is integrated between the output pixel edges, then divided by the
+    width of each output pixel (in input pixels).
     """
-    #Check x-in px scale is smooth, and get arc coefs
-    arc1, npix = get_spec_arc(xin)
-    arc2, nout = get_spec_arc(xout)
+    kind = kind.lower()
+    if kind in {'l', 'lin', 'linear'}:
+        quadratic = False
+    elif kind in {'q', 'quad', 'quadratic'}:
+        quadratic = True
+    else:
+        raise ValueError("kind must be a form of linear/quadratic")
 
-    acc = 1e-4/npix
-    rnout = 1.0/nout
-    yout = np.zeros(nout)
+    #Smooth pixel -> wavelength mappings for both axes
+    arc_in, npix = get_spec_arc(xin)
+    arc_out, nout = get_spec_arc(xout)
 
-    rx2 = 0.5*rnout
-    darc1 = arc1.copy()
-    darc1.cutdeg(len(darc1)-2)
-    darc1.coef *= np.arange(len(darc1))[::-1]
-    rslope = 1/darc1(0.2)
-    x1 = 0.2
-    rx2, x1 = wbin_tform(rx2, x1, arc1, darc1, arc2, rslope, acc)
-    x1 *= npix
-    dx = 0
-    nsgn = 1 if (arc2(1.0)-arc2.coef[0])*rslope >= 0 else -1
-    nstop = nout
+    #Output pixel edges, converted to (0-indexed) input pixel coordinates
+    edges_wave = arc_out((np.arange(nout+1) + 0.5) / nout)
+    edges_px = invert_arc(arc_in, npix, edges_wave) - 1
 
-    j1 = round(float(x1))
-    for k in range(nstop):
-        rx2 += rnout
-        x2 = (x1+dx)/npix
-        rx2, x2 = wbin_tform(rx2, x2, arc1, darc1, arc2, rslope, acc)
-        x2 *= npix
-        dx = x2-x1
-        j2 = round(float(x2))
-        d = 0
-        if kind.capitalize() in {'L', 'Lin', 'Linear'}:
-            if k == 0:
-                M1 = max(min(j1, npix), 1)-1
-                dd = (nsgn*(j1-x1)-0.5)*yin[M1]
-            M2 = max(min(j2, npix), 1)-1
-            d += dd
-            ddd = yin[M2]
-            dd = ddd*(nsgn*(j2-x2)-0.5)
-            d -= dd+ddd
-        elif kind.capitalize() in {'Q', 'Quad', 'Quadratic'}:
-            if k == 0:
-                M1, M2, M3 = [max(min(j1+i, npix), 1)-1 for i in (-1, 0, 1)]
-                A = 0.5*(yin[M1]+yin[M3])
-                B = (A-yin[M1])*0.5
-                C = (13.0*yin[M2]-A)/12.0
-                A = (A-yin[M2])/3.0
-                Y = x1-j1
-                dd = nsgn*(((A*Y+B)*Y+C)*Y-B*0.25) + A*0.125 + C*0.5
-
-            M1, M2, M3 = [max(min(j2+i, npix), 1)-1 for i in (-1, 0, 1)]
-            A = 0.5*(yin[M1]+yin[M3])
-            B = (A-yin[M1])*0.5
-            C = (13.0*yin[M2]-A)/12.0
-            A = (A-yin[M2])/3.0
-            y = x2-j2
-            d -= dd
-            dd = nsgn*(((A*y+B)*y+C)-B*0.25)
-            ddd = A*0.125 + C*0.5
-            d += dd-ddd
-            dd += ddd
-        else:
-            raise ValueError("kind must be a form of linear/quadratic")
-        idx = np.array([max(min(kk, npix-1), 0) for kk in range(j1, j2, nsgn)])
-        d += np.sum(yin[idx])
-        yout[k] = d/abs(dx)
-        x1 = x2
-        j1 = j2
-    return yout
+    cumflux = cumulative_flux(yin, edges_px, quadratic)
+    return np.diff(cumflux) / np.diff(edges_px)
 
 
-def wbin_tform(rx, x, arc1, darc1, arc2, rslope, acc):
+def invert_arc(arc, npix, wave, acc=1e-4):
     """
-    Routine based on WBIN_TFORM from Molly.
+    Find the (1-indexed) pixel positions corresponding to wavelengths wave,
+    for an arc fitted by get_spec_arc. A linear interpolation of the arc
+    provides the starting guess, which is refined with Newton's method until
+    converged to within acc pixels.
     """
-    rl = arc2(rx)
-    for n in range(101):
-        l = arc1(x)
-        dx = (rl-l)*rslope
-        x += dx
-        if abs(dx) < acc:
+    px = np.arange(1, npix+1)
+    arc_px = arc(px/npix)
+    order = np.argsort(arc_px)
+    p = np.interp(wave, arc_px[order], px[order])
+
+    darc = arc.deriv()
+    for _ in range(100):
+        dp = npix * (wave - arc(p/npix)) / darc(p/npix)
+        p += dp
+        if np.all(np.abs(dp) < acc):
             break
-        rslope = 1/darc1(x)
-    return rx, x
+    return p
+
+
+def cumulative_flux(y, p, quadratic):
+    """
+    Integral of the piecewise interpolant of y from an arbitrary origin up
+    to (0-indexed) pixel positions p. Pixel j spans j-0.5 to j+0.5. Beyond
+    the ends of y, the edge values are extended.
+    """
+    j = np.rint(p).astype(int)
+    t = p - j #position within pixel j, in [-0.5, 0.5]
+
+    #Pad with edge values so every pixel (and its neighbours) exists
+    lo = max(0, -j.min()) + 1
+    hi = max(0, j.max() - (len(y)-1)) + 1
+    ypad = np.pad(y, (lo, hi), mode='edge')
+    j += lo
+
+    #Total flux in all pixels before pixel j
+    flux_before = np.concatenate(([0.], np.cumsum(ypad)))[j]
+
+    Y = ypad[j]
+    if quadratic:
+        #Parabola f(t) = 3At^2 + 2Bt + C, constrained so its integral over
+        #each of pixels j-1, j, j+1 matches the respective pixel values
+        Yl, Yr = ypad[j-1], ypad[j+1]
+        mean = 0.5*(Yl + Yr)
+        A = (mean - Y) / 3
+        B = (Yr - Yl) / 4
+        C = (13*Y - mean) / 12
+        partial = ((A*t + B)*t + C)*t + A/8 - B/4 + C/2
+    else:
+        partial = Y * (t + 0.5)
+    return flux_before + partial
 
 
 def get_spec_arc(x):
