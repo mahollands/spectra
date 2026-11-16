@@ -3,11 +3,12 @@ Contains additional functions for working with spectra, some of which are used
 elsewhere in this module.
 """
 
-from functools import reduce
+from functools import reduce, wraps
 import operator
 from enum import StrEnum
 import numpy as np
 from scipy.special import wofz
+from astropy import units as u
 
 __all__ = [
     "jangstrom",
@@ -107,25 +108,40 @@ def voigt(x, x0, fwhm_g, fwhm_l):
     return wofz(z).real/(rt2pi*sigma)
 
 
-def vac_to_air(Wvac):
+def _units_vac_air(func):
     """
-    converts vacuum wavelengths to air wavelengths, as per VALD3 documentation
-    (in Angstroms)
+    Handles units conversion for air_to_vac/vac_to_air
     """
-    s = 1e4/Wvac
+    @wraps(func)
+    def wrapper(lam_in):
+        has_unit = isinstance(lam_in, u.Quantity)
+        lam_in_ = lam_in.to(u.AA) if has_unit else lam_in * u.AA
+        lam_out = func(lam_in_)
+        return lam_out.to(lam_in.unit) if has_unit else lam_out.value
+    return wrapper 
+
+
+@_units_vac_air
+def vac_to_air(lam):
+    """
+    Converts vacuum wavelengths to air wavelengths, as per VALD3 documentation
+    (Angstroms assumed if no units provided)
+    """
+    s = 1e4/lam.value
     n = 1.0000834254 + 0.02406147/(130.-s*s) + 0.00015998/(38.9-s*s)
-    return Wvac/n
+    return lam/n
 
 
-def air_to_vac(Wair):
+@_units_vac_air
+def air_to_vac(lam):
     """
-    converts air wavelengths to vacuum wavelengths, as per VALD3 documentation
-    (in Angstroms)
+    Converts air wavelengths to vacuum wavelengths, as per VALD3 documentation
+    (Angstroms assumed if no units provided)
     """
-    s = 1e4/Wair
+    s = 1e4/lam.value
     n = 1.00008336624212083 + 0.02408926869968 / (130.1065924522-s*s) \
         + 0.0001599740894897/(38.92568793293-s*s)
-    return Wair*n
+    return lam*n
 
 
 def _between(x, x1, x2):
