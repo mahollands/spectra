@@ -79,7 +79,7 @@ class Spectrum:
     from_sdss = classmethod(spec_io.spec_from_sdss_fits)
     from_fits = classmethod(spec_io.spec_from_fits_generic)
     list_from_txt = classmethod(spec_io.multi_model_from_txt)
-    list_from_sdss_subspectra = classmethod(spec_io.spec_from_sdss_fits)
+    list_from_sdss_subspectra = classmethod(spec_io.subspectra_from_sdss_fits)
     list_from_molly = classmethod(spec_io.spec_list_from_molly)
     write = spec_io.write
 
