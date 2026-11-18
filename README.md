@@ -16,11 +16,12 @@ and features many routines for performing common tasks for spectroscopy.
 * Sky line fitting
 
 # Dependencies:
-* Python >= 3.6
+* Python >= 3.11
 * numpy
 * matplotlib
 * scipy
+* pandas
 * astropy
-* dustmaps
+* dust_extinction
 * trm-molly (optional for reading .mol files)
 
