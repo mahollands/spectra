@@ -115,7 +115,7 @@ def _units_vac_air(func):
     @wraps(func)
     def wrapper(lam_in):
         has_unit = isinstance(lam_in, u.Quantity)
-        lam_in_ = lam_in.to(u.AA) if has_unit else lam_in * u.AA
+        lam_in_ = lam_in.to(u.AA) if has_unit else np.asarray(lam_in) * u.AA
         lam_out = func(lam_in_)
         return lam_out.to(lam_in.unit) if has_unit else lam_out.value
     return wrapper 
