@@ -6,11 +6,12 @@ import numbers
 import itertools
 import numpy as np
 import matplotlib.pyplot as plt
-import astropy.units as u
-import astropy.constants as const
-from dust_extinction import parameter_averages as dust_params
 from scipy.interpolate import LSQUnivariateSpline
 from scipy.optimize import minimize_scalar
+import astropy.units as u
+import astropy.constants as const
+from astropy.modeling.physical_models import BlackBody
+from dust_extinction import parameter_averages as dust_params
 from . import spec_io
 from .interpolation import interp, interp_nan, interp_inf, wbin
 from .synphot import calc_AB_flux, Vega_AB_mag_offset, lambda_mean
@@ -82,6 +83,33 @@ class Spectrum:
     list_from_sdss_subspectra = classmethod(spec_io.subspectra_from_sdss_fits)
     list_from_molly = classmethod(spec_io.spec_list_from_molly)
     write = spec_io.write
+
+    @classmethod
+    def BlackBody(cls, temperature, x, x_unit="AA", y_unit="erg/(s cm2 AA sr)"):
+        """
+        Creates a BlackBody spectrum from a temperature. 
+        """
+        T = u.Quantity(temperature, u.K)
+        if not T.isscalar:
+            raise ValueError("Temperature should be a scalar")
+        if not isinstance(x, np.ndarray):
+            raise ValueError("Wavelengths must be an array")
+        x *= u.Unit(x_unit)
+        k = x.to(u.Hz, u.spectral())
+        BB_flux = BlackBody(T)(k)
+
+        S_BB = cls(
+            x=x.value,
+            y=BB_flux.value,
+            e=0,
+            name = f"BlackBody {T}",
+            wave=Wave.VAC,
+            x_unit=x_unit,
+            y_unit=BB_flux.unit,
+        )
+        print(S_BB.y_unit)
+        S_BB.y_unit_to(y_unit)
+        return S_BB  
 
     @property
     def x(self):
@@ -175,8 +203,7 @@ class Spectrum:
     @property
     def x_unit(self):
         """
-        x-unit attribute. Can be set with either a string or astropy unit type,
-        but returns string for simplicity.
+        x-unit attribute. Can be set with either a string or astropy unit type.
         """
         return self._xu
 
@@ -189,8 +216,7 @@ class Spectrum:
     @property
     def y_unit(self):
         """
-        y-unit attribute. Can be set with either a string or astropy unit type,
-        but returns string for simplicity.
+        y-unit attribute. Can be set with either a string or astropy unit type.
         """
         return self._yu
 

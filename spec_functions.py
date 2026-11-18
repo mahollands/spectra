@@ -10,27 +10,9 @@ from .spec_class import Spectrum
 from .misc import Wave
 
 __all__ = [
-    "Black_body",
     "JuraDisc",
+    "sky_line_fwhm",
 ]
-
-
-def Black_body(x, T, wave=Wave.AIR, x_unit="AA", y_unit="erg/(s cm2 AA)", norm=False):
-    """
-    Returns a Black body curve like black_body(), but the return value
-    is a Spectrum class.
-    """
-    BB = Spectrum(x, 0., 0., f'{T}K BlackBody', wave, x_unit, "W/(m2 Hz)")
-    BB.x_unit_to("Hz")
-    nu = BB.x * u.Hz
-    T *= u.K
-    bb = 2*h*nu**3/(c**2*np.expm1(h*nu/(k_B*T)))
-    BB += bb.to("W/(m2 Hz)")
-    BB.x_unit_to(x_unit)
-    BB.y_unit_to(y_unit)
-    if norm:
-        BB /= BB.y.max()
-    return BB
 
 
 #Integral from equation 3 of Jura et al. (2003).
